@@ -1,0 +1,165 @@
+# Workflow của repo PUBLIC tringuyenminh209/ecomeal-mobile (chỉ chứa thư mục apps/mobile, đồng bộ bằng
+# ecomeal/tools/publish-mobile.sh). Repo public được dùng runner macOS miễn phí — repo private pj đã hết quota.
+# Trong repo pj file này nằm ở apps/mobile/.github/ nên GitHub KHÔNG chạy nó ở đó (chỉ đọc .github ở gốc repo).
+#   - push lên main: check (analyze + test) rồi build 2 IPA (khách + tài xế, không ký) → artifact EcoMeal-ipa.
+#   - bấm tay (workflow_dispatch): như trên, tick smoke_test để chạy thử trên iOS Simulator + chụp màn hình.
+name: iOS build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      smoke_test:
+        description: 'Mở thử 2 app trên iOS Simulator + chụp màn hình'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.32.5 # trùng phiên bản dự án (pubspec.lock, README)
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: |
+          flutter pub get
+          flutter gen-l10n
+          git diff --exit-code -- lib/l10n   # file l10n đã commit phải khớp bản sinh lại
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+  ios:
+    needs: check
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.32.5
+          channel: stable
+          cache: true
+
+      - name: Xcode / Flutter versions
+        run: |
+          xcodebuild -version
+          flutter --version
+
+      # env.json không nằm trong Git. Chỉ đặt giá trị CÔNG KHAI (URL + anon/publishable key, key Maps iOS có
+      # giới hạn bundle ID) — env.json bị nhúng vào Info.plist (DART_DEFINES), ai tải IPA cũng đọc được.
+      - name: Create env.json
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_MAPS_IOS_API_KEY: ${{ secrets.GOOGLE_MAPS_IOS_API_KEY }}
+        run: |
+          jq -n --arg url "${SUPABASE_URL:-https://example.supabase.co}" \
+                --arg anon "${SUPABASE_ANON_KEY:-}" \
+                --arg maps "${GOOGLE_MAPS_IOS_API_KEY:-}" \
+            '{SUPABASE_URL:$url, SUPABASE_ANON_KEY:$anon, GOOGLE_MAPS_ANDROID_API_KEY:"", GOOGLE_MAPS_IOS_API_KEY:$maps, LINE_CHANNEL_ID:"2011847544", LINE_OFFICIAL_ACCOUNT_ID:"@939hqcxi"}' > env.json
+          [ -n "${SUPABASE_ANON_KEY:-}" ] && echo "Supabase secrets: có" || echo "Supabase secrets: KHÔNG (chỉ kiểm build)"
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: CocoaPods
+        run: cd ios && pod install
+
+      # ---- App khách「EcoMeal」(lib/main.dart, bundle com.ecomeal.ecomealMobile) ----
+      - name: Build iOS — app khách (Simulator, không ký)
+        if: inputs.smoke_test
+        run: flutter build ios --simulator --debug --dart-define-from-file=env.json
+
+      - name: Run app khách on Simulator + screenshot
+        if: inputs.smoke_test
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices | to_entries[] | select(.key | test("iOS")) | .value[] | select(.name | startswith("iPhone"))][0].udid')
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl location "$UDID" set 34.70,135.50
+          xcrun simctl install "$UDID" build/ios/iphonesimulator/Runner.app
+          xcrun simctl launch "$UDID" com.ecomeal.ecomealMobile
+          sleep 25
+          mkdir -p screenshots
+          xcrun simctl io "$UDID" screenshot screenshots/customer-launch.png
+          # Ghi ra file rồi mới grep: `launchctl list | grep -q` làm launchctl nhận SIGPIPE (exit 141 với pipefail)
+          xcrun simctl spawn "$UDID" launchctl list > launchctl.txt
+          grep -q com.ecomeal.ecomealMobile launchctl.txt
+
+      # IPA KHÔNG ký để cài lên iPhone bằng Sideloadly + Apple ID (Apple ID miễn phí: hết hạn sau 7 ngày, tối đa 3 app).
+      - name: Build IPA — app khách (release, không ký)
+        run: |
+          set -euo pipefail
+          flutter build ios --release --no-codesign --dart-define-from-file=env.json
+          rm -rf build/ipa && mkdir -p build/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ipa/Payload/
+          (cd build/ipa && zip -qry EcoMeal.ipa Payload && rm -rf Payload)
+          ls -lh build/ipa/EcoMeal.ipa
+
+      # ---- App tài xế「EcoMeal Driver」(ADR-007: lib/main_driver.dart, bundle com.ecomeal.ecomealDriver) ----
+      - name: Switch iOS project to the driver app
+        run: bash tool/ios_use_driver_variant.sh
+
+      - name: Build iOS — app tài xế (Simulator, không ký)
+        if: inputs.smoke_test
+        run: flutter build ios --simulator --debug -t lib/main_driver.dart --dart-define-from-file=env.json
+
+      - name: Run app tài xế on Simulator + screenshot
+        if: inputs.smoke_test
+        run: |
+          set -euo pipefail
+          xcrun simctl install "$UDID" build/ios/iphonesimulator/Runner.app
+          xcrun simctl launch "$UDID" com.ecomeal.ecomealDriver
+          sleep 25
+          xcrun simctl io "$UDID" screenshot screenshots/driver-launch.png
+          xcrun simctl spawn "$UDID" launchctl list > launchctl.txt
+          grep -q com.ecomeal.ecomealDriver launchctl.txt
+
+      - name: Build IPA — app tài xế (release, không ký)
+        run: |
+          set -euo pipefail
+          flutter build ios --release --no-codesign -t lib/main_driver.dart --dart-define-from-file=env.json
+          mkdir -p build/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ipa/Payload/
+          (cd build/ipa && zip -qry EcoMeal-Driver.ipa Payload && rm -rf Payload)
+          ls -lh build/ipa/
+
+      - name: Upload screenshots
+        if: always() && inputs.smoke_test
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-screenshots
+          path: screenshots/
+          if-no-files-found: ignore
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: EcoMeal-ipa
+          path: |
+            build/ipa/EcoMeal.ipa
+            build/ipa/EcoMeal-Driver.ipa
+          retention-days: 7
+          if-no-files-found: error

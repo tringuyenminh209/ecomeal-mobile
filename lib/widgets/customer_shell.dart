@@ -1,0 +1,62 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/theme/app_theme.dart';
+import '../features/home/customer_home_page.dart';
+import '../features/orders/order_history_page.dart';
+import '../l10n/l10n.dart';
+import '../features/profile/my_page.dart';
+
+// Thứ tự tab: ホーム / 予約 / マイページ (Figma, 05_画面遷移図 SCR-M03/M06/M07).
+abstract final class CustomerTab {
+  static const home = 0;
+  static const orders = 1;
+  static const myPage = 2;
+}
+
+// Tab đang mở nằm trong provider (không phải state cục bộ của shell): SCR-M05 đặt hàng xong cần nhảy sang
+// tab 予約 trong khi nó đang nằm ở route khác phía trên shell. autoDispose: đăng xuất → shell bị gỡ →
+// tài khoản đăng nhập sau luôn bắt đầu ở ホーム, không kế thừa tab của người trước.
+final customerTabProvider = StateProvider.autoDispose<int>((ref) => CustomerTab.home);
+
+// Mobile/Bottom Navigation của Figma (88:246…): nền trắng, viền trên, không viên chỉ báo — màu/chữ lấy từ
+// navigationBarTheme (Chương 15 bước 5b).
+class CustomerShell extends ConsumerWidget {
+  const CustomerShell({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final index = ref.watch(customerTabProvider);
+    void goTo(int tab) => ref.read(customerTabProvider.notifier).state = tab;
+    final l10n = context.l10n;
+
+    return Scaffold(
+      // IndexedStack giữ cả 3 trang sống: quay lại tab thì bản đồ, bộ lọc, vị trí cuộn còn nguyên.
+      // Nút ở trạng thái Empty của SCR-M03/M06 chuyển tab qua callback — trang con không tự biết shell.
+      body: IndexedStack(
+        index: index,
+        children: [
+          CustomerHomePage(onOpenMyPage: () => goTo(CustomerTab.myPage)),
+          OrderHistoryPage(onBrowse: () => goTo(CustomerTab.home)),
+          // SCR-M07 (Chương 18) — có cả nút ログアウト.
+          const MyPage(),
+        ],
+      ),
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppColors.border))),
+        child: NavigationBar(
+          selectedIndex: index,
+          onDestinationSelected: (tab) {
+            // Trạng thái đơn đổi ở server (tài xế xác nhận số lượng, giao hàng…) — mỗi lần mở tab 予約 tải lại.
+            if (tab == CustomerTab.orders) ref.invalidate(myOrdersProvider);
+            goTo(tab);
+          },
+          destinations: [
+            NavigationDestination(key: const Key('navHome'), icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home), label: l10n.homeTab),
+            NavigationDestination(key: const Key('navOrders'), icon: const Icon(Icons.receipt_long_outlined), selectedIcon: const Icon(Icons.receipt_long), label: l10n.reservationsTab),
+            NavigationDestination(key: const Key('navProfile'), icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person), label: l10n.myPageTab),
+          ],
+        ),
+      ),
+    );
+  }
+}

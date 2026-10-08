@@ -1,0 +1,6 @@
+# flutter gen-l10n đọc file này (tự chạy lại mỗi lần flutter pub get / flutter run / flutter test).
+arb-dir: lib/l10n
+template-arb-file: app_ja.arb
+output-localization-file: app_localizations.dart
+# AppLocalizations.of(context) trả về kiểu không-null → không phải viết "!" ở mọi chỗ dùng
+nullable-getter: false

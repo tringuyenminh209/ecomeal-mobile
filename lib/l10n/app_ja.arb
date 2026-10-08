@@ -1,0 +1,778 @@
+{
+  "@@locale": "ja",
+  "loginTab": "ログイン",
+  "signupTab": "新規登録",
+  "emailLabel": "メールアドレス",
+  "passwordLabel": "パスワード",
+  "errorEmailRequired": "メールアドレスを入力してください",
+  "errorPasswordRequired": "パスワードを入力してください",
+  "errorEmailNotConfirmed": "メールアドレスの確認が完了していません。受信ボックスをご確認ください",
+  "errorInvalidCredentials": "メールアドレスまたはパスワードが正しくありません",
+  "loginButton": "ログインする",
+  "displayNameLabel": "表示名",
+  "errorDisplayNameRequired": "表示名を入力してください",
+  "errorPasswordMin8": "パスワードは8文字以上で入力してください",
+  "signupButton": "登録する",
+  "errorEmailAlreadyRegistered": "このメールアドレスは既に登録されています",
+  "errorSignupFailed": "登録に失敗しました。入力内容をご確認のうえ、再度お試しください",
+  "errorRateLimited": "しばらく時間をおいてから再度お試しください",
+  "signupConfirmationTitle": "確認メールを送信しました",
+  "signupConfirmationBody": "{email}宛に確認メールを送信しました。メール内のリンクをタップして登録を完了してください。",
+  "@signupConfirmationBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "webOnlyAccountTitle": "このアカウントはアプリでは利用できません",
+  "webOnlyAccountBody": "飲食店・EcoMeal運営のアカウントは、パソコンのWeb管理画面からご利用ください。",
+  "openWebAdmin": "Web管理画面を開く",
+  "errorOpenWebAdmin": "Web管理画面を開けませんでした",
+  "errorProfileLoadFailed": "プロフィール情報の取得に失敗しました。もう一度お試しください",
+  "appTitle": "EcoMeal",
+  "driverAppTitle": "EcoMeal Driver",
+  "driverBadge": "ドライバー",
+  "switchLanguageLabel": "English",
+  "driverLoginLead": "EcoMeal から発行されたドライバー用アカウントでログインしてください。",
+  "driverAccountIssuedNote": "アカウントは運営から発行されます。招待メールのリンクでパスワードを設定してからログインしてください。",
+  "driverOnlyAppTitle": "ドライバー専用アプリです",
+  "driverOnlyAppBody": "お客様は「EcoMeal」アプリ、飲食店・EcoMeal運営の方はパソコンのWeb管理画面をご利用ください。",
+  "driverAccountTitle": "ドライバー用アカウントです",
+  "driverAccountBody": "ドライバーの方は「EcoMeal Driver」アプリでログインしてください。このアプリはお客様専用です。",
+  "driverSuspendedTitle": "稼働が停止されています",
+  "driverSuspendedBody": "このアカウントは現在シフトに入れない状態です。理由と再開の手続きは EcoMeal 運営にお問い合わせください。",
+  "selectLanguage": "言語を選択 / Select language",
+  "japaneseLanguage": "日本語",
+  "englishLanguage": "English",
+  "backToLogin": "ログイン画面に戻る",
+  "errorNetwork": "通信に失敗しました。接続を確認して再度お試しください",
+  "signOutButton": "ログアウト",
+  "errorSignOutFailed": "ログアウトに失敗しました。もう一度お試しください",
+  "onboardingHeadline": "今夜の食事を、未来につなぐ。",
+  "onboardingLead": "街のレストランから生まれるおいしい余剰を、Eco-Truckがあなたの近くへ届けます。",
+  "onboardingImpact": "食品ロスをおいしく削減",
+  "loginLead": "メールアドレスとパスワードでログインしましょう。",
+  "signupLead": "メールアドレスとパスワードでアカウントを作成しましょう。",
+  "emailHint": "example@example.jp",
+  "passwordHint": "パスワードを入力",
+  "passwordMin8Helper": "8文字以上で入力してください。",
+  "showPassword": "表示",
+  "hidePassword": "非表示",
+  "displayNameHint": "表示名を入力",
+  "noAccountPrompt": "まだアカウントをお持ちでない方は",
+  "haveAccountPrompt": "すでにアカウントをお持ちの方は",
+  "signupSpamFolderNote": "メールが届かない場合は、迷惑メールフォルダをご確認ください。",
+  "forgotPasswordPrompt": "パスワードを忘れた方は",
+  "forgotPasswordAction": "こちら",
+  "resetPasswordTitle": "パスワード再設定",
+  "resetPasswordRequestLead": "登録したメールアドレスに、パスワード再設定用の確認コードを送信します。",
+  "resetPasswordSendCodeButton": "確認コードを送信する",
+  "resetPasswordCodeLead": "{email} が登録済みであれば、確認コードを送信しました。メールに記載のコードと、新しいパスワードを入力してください。",
+  "@resetPasswordCodeLead": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationCodeLabel": "確認コード",
+  "verificationCodeHint": "メールに記載のコード",
+  "newPasswordLabel": "新しいパスワード",
+  "newPasswordHint": "新しいパスワードを入力",
+  "resetPasswordButton": "パスワードを再設定する",
+  "resendCodePrompt": "コードが届かない場合は",
+  "resendCodeAction": "再送する",
+  "codeResent": "確認コードを再送しました",
+  "passwordResetDone": "パスワードを再設定しました",
+  "errorVerificationCodeFormat": "メールに記載の確認コード（数字）を入力してください",
+  "errorVerificationCodeInvalid": "確認コードが正しくないか、有効期限が切れています",
+  "errorSamePassword": "現在のパスワードとは異なるパスワードを入力してください",
+  "errorResetRequestFailed": "確認コードを送信できませんでした。もう一度お試しください",
+  "errorResetFailed": "パスワードの再設定に失敗しました。もう一度お試しください",
+  "retry": "再試行",
+  "errorLoadRetry": "データの取得に失敗しました。再試行",
+  "errorLoadTitle": "データの取得に失敗しました。",
+  "errorLoadBody": "通信状態を確認して、もう一度お試しください。",
+  "errorLocationUnavailable": "位置情報を取得できませんでした",
+  "errorLocationBody": "端末の位置情報の設定とネットワーク接続を確認してください。",
+  "nearbyBatches": "近くのフードバッグ",
+  "countItems": "{count}件",
+  "@countItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "liveUpdating": "位置更新中",
+  "truckRunning": "Eco-Truck 運行中",
+  "truckNumber": "Eco-Truck {number}号車",
+  "@truckNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "truckRouteSummary": "今夜の停車予定 · {count}地点",
+  "@truckRouteSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "truckTapHint": "地図のトラックか、このカードをタップすると停車予定とメニューを表示します",
+  "stopPassed": "通過済み",
+  "nextStopBadge": "次の停車地",
+  "truckNoBatches": "このトラックで販売中のフードバッグはありません",
+  "closeTruckRoute": "閉じる",
+  "truckNextStop": "次の停車地：{stopName}",
+  "@truckNextStop": {
+    "placeholders": {
+      "stopName": {
+        "type": "String"
+      }
+    }
+  },
+  "truckEta": "到着予定 {time}・あと{minutes}分",
+  "@truckEta": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "homeEmptyTitle": "本日はまだ販売予定がありません",
+  "homeEmptyBody": "LINEと連携すると、Eco-Truckが近づいたときにお知らせが届きます。",
+  "setupLineNotify": "LINE通知を設定する",
+  "homeEmptyBodyLinked": "Eco-Truckが近づいたら、EcoMeal公式アカウントからLINEでお知らせします。",
+  "openLine": "LINEを開く",
+  "partnerStore": "EcoMeal提携店",
+  "mysteryBag": "ミステリーバッグ",
+  "remainingBags": "残り{qty}袋",
+  "@remainingBags": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "batchDetailTitle": "フードバッグ詳細",
+  "priceCalculating": "価格を計算中...",
+  "errorPriceLoad": "価格の取得に失敗しました",
+  "minutesRemaining": "あと{minutes}分",
+  "@minutesRemaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "pickupByEcoTruck": "Eco-Truckで受け取り",
+  "allergensHeading": "アレルゲン情報",
+  "allergensNone": "該当なし",
+  "ingredientsHeading": "主な原材料・産地",
+  "ingredientWithOrigin": "{name}（{origin}）",
+  "@ingredientWithOrigin": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "origin": {
+        "type": "String"
+      }
+    }
+  },
+  "originUnknown": "産地不明",
+  "detailNote": "内容は受け取りまでのお楽しみです。写真はイメージです。アレルギーをお持ちの方は表示をご確認ください。",
+  "dailyLimitReached": "本日の予約上限（2件）に達しています",
+  "reserveButton": "予約する",
+  "mapSetupRequired": "地図を表示できません。下の一覧はご覧いただけます。",
+  "openLocationSettings": "位置情報の設定",
+  "batchExpired": "販売期限を過ぎました。別のフードバッグをお選びください。",
+  "reservationCountFailed": "予約件数を確認できませんでした。再試行してください。",
+  "homeTab": "ホーム",
+  "reservationsTab": "予約",
+  "myPageTab": "マイページ",
+  "locateMe": "現在地へ",
+  "statusPending": "数量確認待ち",
+  "statusAllocated": "取り置き済み",
+  "statusPickedUp": "受け取り済み",
+  "statusRefunded": "返金済み",
+  "statusExpired": "失効",
+  "statusCancelled": "キャンセル済み",
+  "reservationConfirmTitle": "予約内容の確認",
+  "paymentMethodRequired": "支払い方法（必須）",
+  "paymentMethodSection": "支払い方法",
+  "addPaymentMethod": "支払い方法を追加",
+  "addPaymentMethodSub": "クレジットカード・デビットカード",
+  "defaultCardLabel": "デフォルトカード",
+  "addPaymentMethodHint": "支払い方法を追加すると、予約を確定できます。",
+  "addPaymentMethodButton": "支払い方法を追加してください",
+  "payNotice": "予約を確定すると、{amount}が決済されます。",
+  "payButton": "{amount}を支払って予約する",
+  "errorPaymentMethodsLoad": "支払い方法を取得できませんでした",
+  "errorPaymentMethodMissing": "選択したカードが見つかりません。支払い方法を選び直してください",
+  "paymentTitle": "お支払い",
+  "paymentProcessingTitle": "お支払いを処理しています",
+  "paymentProcessingBody": "完了までこの画面でお待ちください。\n支払いボタンを繰り返し押さないでください。",
+  "paymentProcessingNote": "決済結果を確認しています。\n通常は数秒で完了します。",
+  "paymentSummaryLine": "{amount}（税込）  ·  {card}",
+  "reservationCompleteTitle": "予約完了",
+  "paymentDoneTitle": "お支払いが完了しました",
+  "paymentDoneBody": "予約を受け付けました。\n受け取りの案内は予約画面で確認できます。",
+  "pickupPlaceLine": "受取場所：{place}",
+  "pickupTimeLine": "受取時間：{time}",
+  "viewReservation": "予約内容を確認",
+  "paymentDeclinedTitle": "お支払いできませんでした",
+  "paymentDeclinedBody": "カード会社が決済を承認しませんでした。\n別のカードを選ぶか、カード会社へご確認ください。",
+  "paymentCardExpiredBody": "カードの有効期限が切れています。\n別のカードを選んでください。",
+  "paymentNotCompletedNote": "この支払いは完了していません。\n予約はまだ確定していません。",
+  "payWithAnotherCard": "別のカードで支払う",
+  "backToReview": "予約内容に戻る",
+  "paymentUnknownTitle": "決済結果を確認できません",
+  "paymentUnknownBody": "通信が途切れたため、支払い状況を確認しています。\n重複を防ぐため、再度支払わないでください。",
+  "paymentUnknownNote": "支払い・予約状況は確認中です。\n接続を確認してから結果を取得してください。",
+  "recheckPayment": "支払い状況を再確認",
+  "viewReservationHistory": "予約履歴を確認",
+  "paymentNotFound": "お支払いは完了していませんでした。もう一度お試しください",
+  "errorRecheckFailed": "確認できませんでした。接続を確認してもう一度お試しください",
+  "paymentMethodsTitle": "支払い方法",
+  "paymentMethodsSubtitle": "カードを安全に管理",
+  "paymentMethodsEmptyTitle": "支払い方法が未登録です",
+  "paymentMethodsEmptyBody": "カードを登録すると、予約の支払いがワンタップで完了します。",
+  "addCreditCard": "＋ クレジットカードを追加",
+  "paymentProviderNote": "支払い情報は認定決済プロバイダーによって安全に処理されます。",
+  "registeredCards": "登録済みカード",
+  "cardExpiresOn": "有効期限 {expiry}",
+  "defaultBadge": "デフォルト",
+  "addAnotherCard": "＋  別のカードを追加",
+  "paymentSafetyTitle": "支払いの安全性",
+  "paymentSafetyBody": "カード情報は暗号化され、決済プロバイダーによって安全に管理されます。\nデフォルトカードを設定すると、ワンタップで支払えます。",
+  "setDefaultCard": "デフォルトのカードに設定",
+  "deleteCard": "このカードを削除",
+  "deleteCardTitle": "このカードを削除しますか？",
+  "deleteCardBody": "{card} を削除します。削除すると、このカードは次回以降の注文に使えなくなります。",
+  "deleteConfirm": "削除する",
+  "cardDeleted": "カードを削除しました",
+  "defaultCardChanged": "デフォルトのカードを変更しました",
+  "addCardTitle": "カードを追加",
+  "addCardSubtitle": "安全な支払い方法",
+  "cardInfoSection": "カード情報",
+  "cardNumberLabel": "カード番号",
+  "cardNumberHint": "1234  5678  9012  3456",
+  "cardHolderLabel": "カード名義",
+  "cardHolderHint": "カード名義人",
+  "cardExpiryLabel": "有効期限",
+  "cardExpiryHint": "MM / YY",
+  "cardCvcLabel": "セキュリティコード",
+  "cardCvcHint": "CVC",
+  "cardTokenNote": "カード情報は安全にトークン化されます。CVCは他人に知らせないでください。",
+  "cardTermsNote": "カードを追加すると、支払い条件に同意したものとみなされます。",
+  "addCardButton": "カードを追加する",
+  "cardNumberInvalid": "カード番号を確認してください。",
+  "cardHolderRequired": "カード名義を入力してください。",
+  "cardExpiryInvalid": "有効期限を確認してください。",
+  "cardCvcInvalid": "セキュリティコードを確認してください。",
+  "errorCardLimit": "登録できるカードは10枚までです",
+  "errorCardAdd": "カードを追加できませんでした。もう一度お試しください",
+  "testPaymentNote": "テスト中のため実際の請求は発生しません。テスト用カード 4242 4242 4242 4242 をお使いください（0002で終わるカードは決済が拒否されます）。",
+  "paymentMethodRowDefault": "{card} ・ デフォルト",
+  "paymentMethodRowNone": "未登録",
+  "freeCancelTitle": "受取予定の30分前まで無料キャンセル",
+  "freeCancelBody": "受取予定の30分前まで無料キャンセルできます。キャンセルは予約履歴から行えます。",
+  "errorReservationFailed": "予約できませんでした。売り切れた可能性があります。別のフードバッグをお選びください",
+  "tryAgain": "もう一度試す",
+  "orderHistoryTitle": "予約履歴",
+  "orderHistorySubtitle": "あなたのEcoMealの記録",
+  "filterAll": "すべて",
+  "filterActive": "予約中",
+  "filterCompleted": "完了",
+  "orderHistoryEmpty": "まだ予約がありません",
+  "cancelDialogTitle": "予約をキャンセルしますか？",
+  "cancelDialogFree": "受取予定の30分前まで無料キャンセルできます。現在の状況では全額返金されます。",
+  "cancelDialogNoRefund": "受取予定の30分前を過ぎているため、キャンセルしても返金されません。",
+  "back": "戻る",
+  "cancelConfirmButton": "キャンセルする",
+  "cancelledWithRefund": "キャンセルしました（¥{amount}を返金）",
+  "@cancelledWithRefund": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "cancelledNoRefund": "キャンセルしました（返金なし）",
+  "errorCancelFailed": "キャンセルに失敗しました。もう一度お試しください",
+  "orderNumber": "注文 {number}",
+  "@orderNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "pendingExplanation": "注文内容の数量を配送員が確認中です。数量不足の場合は、各受け取りポイントの順番（FIFO）に従って分配します。分配されなかった数量については、自動で返金処理を行います。",
+  "allocatedExplanation": "{stopName}で1袋を確保しました。受け取り時はQRコードを提示し、読み取れない場合は下記コードを伝えてください。",
+  "@allocatedExplanation": {
+    "placeholders": {
+      "stopName": {
+        "type": "String"
+      }
+    }
+  },
+  "freeCancelExpired": "無料キャンセル期限を過ぎています（返金なし）",
+  "cancelButton": "キャンセル",
+  "manualCodeLabel": "手動入力：{code}",
+  "@manualCodeLabel": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "pickupQrTitle": "受け取りQR",
+  "pickupQrCaption": "受け取り時にQRコードを読み取ってもらうか、コードを入力してもらってください。",
+  "refundFullBadge": "全額返金されます",
+  "refundFullNote": "現在の予約状況では、キャンセル後に全額返金されます。",
+  "refundNoneBadge": "返金なし",
+  "refundNoneNote": "受取予定の30分前を過ぎているため、キャンセル後の返金はありません。",
+  "errorBadge": "エラー",
+  "browseBatches": "近くのフードバッグを見る",
+  "totalWithQuantity": "合計（数量 {quantity}）",
+  "todayTime": "本日 {time}",
+  "@totalWithQuantity": {
+    "placeholders": {
+      "quantity": {
+        "type": "int"
+      }
+    }
+  },
+  "@todayTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "errorDisplayNameTooLong": "表示名は{max}文字以内で入力してください",
+  "@errorDisplayNameTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "errorNameKanaTooLong": "フリガナは{max}文字以内で入力してください",
+  "@errorNameKanaTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "errorLanguageSave": "言語設定の保存に失敗しました",
+  "errorLineStatusLoad": "LINE連携状態を取得できませんでした",
+  "lineLinked": "LINE連携済み",
+  "lineLinkedBody": "受け取り通知をLINEで確認できます",
+  "lineLinkHint": "通知はEcoMeal公式アカウント（LINE）のトークに届きます",
+  "lineOpenChat": "LINEでトークを開く",
+  "errorOpenLine": "LINEを開けませんでした",
+  "errorLineLinkFailed": "LINE連携に失敗しました。もう一度お試しください",
+  "lineLinkButton": "LINEと連携する",
+  "logoutDialogTitle": "ログアウトしますか？",
+  "logoutDialogBody": "ログアウトすると、ログイン画面に戻ります。",
+  "profileSaved": "プロフィールを更新しました",
+  "errorSaveFailed": "保存に失敗しました。もう一度お試しください",
+  "discardDialogTitle": "変更を破棄しますか？",
+  "discardDialogBody": "編集した内容は保存されません。",
+  "keepEditing": "編集を続ける",
+  "discard": "破棄する",
+  "profileEditTitle": "プロフィール編集",
+  "requiredBadge": "必須",
+  "optionalBadge": "任意",
+  "nameKanaLabel": "フリガナ",
+  "nameKanaHint": "例：ハルカ ミカ",
+  "emailNotEditable": "メールアドレスは変更できません",
+  "credentialsChangeOutOfScope": "メールアドレスとパスワードはこの画面では変更できません。パスワードはログイン画面の「パスワードを忘れた方は」から再設定できます。",
+  "saveButton": "保存する",
+  "languageLabel": "言語 / Language",
+  "errorBatchAlreadyConfirmed": "このロットは既に確定済みです",
+  "errorStopNotOnRoute": "指定された停車地点はこのロットの巡回ルート上に存在しません",
+  "errorStopClosed": "この停車地点は既にクローズされています",
+  "errorTemperatureRange": "温度は-30〜99.9℃の範囲で入力してください",
+  "errorConfirmFailed": "確定登録に失敗しました。もう一度お試しください",
+  "errorTemperatureRequired": "温度を入力してください",
+  "errorConfirmedQtyRequired": "確定数量を入力してください",
+  "errorNonNegativeInteger": "0以上の整数で入力してください",
+  "pickupConfirmTitle": "集荷を確認",
+  "pickupSubtitle": "{stopName} • 集荷 {index}/{total}",
+  "@pickupSubtitle": {
+    "placeholders": {
+      "stopName": {
+        "type": "String"
+      },
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "estimatedMeals": "概算 {qty}食",
+  "@estimatedMeals": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "confirmedQtyLabel": "確定数量",
+  "mealUnit": "食",
+  "coreTemperatureLabel": "受取時の中心温度",
+  "coldChainNotice": "冷蔵品は10°C以下を確認してください。基準外の場合は運営へ連絡します。",
+  "coldChainOverLimit": "基準（10℃以下）を超えています。このロットは回収・販売できません。",
+  "distributionStopsLabel": "配分先の停車地",
+  "distributionStopsHint": "現在のルートの停車地を選択してください。選択した停車地に分配されます。",
+  "noDistributableStops": "配分できる停車地がありません（全て出発済み）",
+  "nextStopLabel": "次の停車",
+  "nthStopLabel": "{n}番目",
+  "@nthStopLabel": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "distributionStopSubtitle": "{order} • {time}予定",
+  "@distributionStopSubtitle": {
+    "placeholders": {
+      "order": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "selectedStopsCount": "選択した停車地（{count}箇所）に分配されます。",
+  "@selectedStopsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "confirmPickupButton": "{qty}食の受け取りを確定",
+  "@confirmPickupButton": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      }
+    }
+  },
+  "pickupConfirmedToast": "{qty}食の受け取りを確定しました（予約{allocated}件確保・{refunded}件返金）",
+  "@pickupConfirmedToast": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      },
+      "allocated": {
+        "type": "int"
+      },
+      "refunded": {
+        "type": "int"
+      }
+    }
+  },
+  "rejectPickupButton": "回収しない（温度基準外）",
+  "rejectPickupDialogTitle": "このロットを回収しませんか？",
+  "rejectPickupDialogBody": "芯温が{celsius}℃で、基準（10℃以下）を超えています。このロットは販売せず、予約はすべて返金されてお客様に通知されます。温度の記録は残ります。",
+  "@rejectPickupDialogBody": {
+    "placeholders": { "celsius": { "type": "String" } }
+  },
+  "rejectPickupConfirm": "回収しない",
+  "pickupRejectedToast": "温度基準外のため回収しませんでした（予約{refunded}件を返金）",
+  "@pickupRejectedToast": {
+    "placeholders": { "refunded": { "type": "int" } }
+  },
+  "noTruckAssigned": "担当トラックが割り当てられていません。運営へ連絡してください",
+  "noRouteTonight": "今夜のルートはまだありません",
+  "errorLoad": "データの取得に失敗しました",
+  "noPendingPickup": "この店舗の未確定の集荷はありません",
+  "selectBatchToPickUp": "集荷するロットを選択",
+  "tonightRouteTitle": "今夜のルート",
+  "gpsUnavailable": "位置情報取得不可",
+  "settings": "設定",
+  "minutesShort": "{minutes}分",
+  "@minutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "allStopsCompleted": "全停車地点を完了",
+  "reservedOrdersLabel": "予約注文",
+  "reservedOrdersCaption": "未完了の停車地点の合計",
+  "stopDonePickup": "完了 • 集荷済み",
+  "stopDoneHandoff": "完了 • {count}件引き渡し",
+  "@stopDoneHandoff": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stopKindPickup": "集荷",
+  "stopReservations": "予約 {count}件",
+  "@stopReservations": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nextStopPrefixed": "次の停車 • {body}",
+  "@nextStopPrefixed": {
+    "placeholders": {
+      "body": {
+        "type": "String"
+      }
+    }
+  },
+  "stopCount": "{count}つの停車地点",
+  "@stopCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "routeDone": "完了",
+  "routeInProgress": "運行中",
+  "driverProfileTitle": "プロフィール・設定",
+  "driverRoleChip": "ドライバー",
+  "assignedTruck": "担当トラック",
+  "unassigned": "未割当",
+  "plateNumberLabel": "ナンバープレート",
+  "driverTabRoute": "運行",
+  "driverTabPickup": "受取",
+  "driverTabSales": "販売",
+  "driverTabEnd": "終了",
+  "noPickupsTonight": "今夜の集荷予定はありません",
+  "gpsSending": "GPS送信中",
+  "driverAccountSubtitle": "ドライバーアカウント",
+  "errorNotHandoverable": "この予約は受け渡し確認できる状態ではありません",
+  "errorWalkupSoldOut": "この停車地点のWalk-up在庫は売り切れです",
+  "errorWalkupNotConfirmed": "確定登録前のロットではWalk-up販売できません",
+  "errorBatchExpired": "このロットは販売終了時刻を過ぎています",
+  "errorDonationExceedsStock": "寄付数量が残り在庫を超えています",
+  "errorDonationNotConfirmed": "確定登録前のロットは寄付記録できません",
+  "errorDonationStopsOpen": "未出発の販売地点があるため、まだ寄付を記録できません",
+  "errorDonationNoteRequired": "寄付先を入力してください",
+  "errorNotAssignedDriver": "このトラックの担当ドライバーではありません",
+  "errorGeneric": "処理に失敗しました。もう一度お試しください",
+  "errorDonationQtyRequired": "寄付数量を入力してください",
+  "errorPositiveInteger": "1以上の整数で入力してください",
+  "handedOverToast": "引き渡しを記録しました（{number}）",
+  "@handedOverToast": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "errorNotWaitingHere": "この停車地点で引き渡し待ちの予約ではありません",
+  "errorNoMatchingReservation": "該当する予約がありません",
+  "duplicateCodeTitle": "同じコードの予約が複数あります",
+  "duplicateCodeOption": "{number}（予約 {time}）",
+  "@duplicateCodeOption": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "walkupSoldToast": "Walk-up販売を登録しました（¥{price}）",
+  "@walkupSoldToast": {
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "departDialogTitle": "停車地点を出発しますか？",
+  "currentStop": "現在の停車地点：{name}",
+  "@currentStop": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "departWarning": "{count}件の予約が引き渡し待ちです。出発すると、これらの予約は「no-show / 失効」として扱われ、返金対象外になります。",
+  "departWarningTitle": "未受取の予約が残っています",
+  "cautionBadge": "注意",
+  "@departWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "departConfirm": "出発する",
+  "departedWithExpired": "出発しました（未受取{count}件を失効）",
+  "@departedWithExpired": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "departed": "出発しました",
+  "departedLabel": "出発済み",
+  "minutesUntilDeparture": "停車終了まで {minutes}分",
+  "@minutesUntilDeparture": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "reservationsCount": "予約 {count}",
+  "@reservationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reservationHandoffTab": "予約引き渡し",
+  "handedOverLabel": "引き渡し済み",
+  "waitingLabel": "予約待ち",
+  "departButton": "停車地点を出発",
+  "scanPickupQr": "受け取りQRを読み取る",
+  "scanPickupQrHint": "お客様の受け取りQRを読み取ってください",
+  "manualCodeFallback": "QRが読み取れない場合：手動入力",
+  "batchLabel": "ロット",
+  "noWalkupBatches": "この停車地点で販売できるロットはありません",
+  "mealsRemaining": "残り {qty}食",
+  "@mealsRemaining": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "registerSale": "販売を登録",
+  "soldLabel": "販売済み",
+  "enterPickupCode": "受け取りコードを入力",
+  "pickupCodeHint": "例：A7K2",
+  "verifyCode": "照合する",
+  "noSalesTonight": "今夜の販売予定はありません",
+  "routeEndTitle": "運行を終了",
+  "routeSummaryTitle": "運行サマリー",
+  "routeEndThanks": "今夜の運行、おつかれさまでした",
+  "mealsCount": "{count}食",
+  "@mealsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "salesStopsLabel": "販売地点",
+  "openStopsWarning": "未出発の販売地点が{count}箇所あります。「販売」タブから出発操作を行ってください。",
+  "@openStopsWarning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "donationBatchOption": "{name}（確定 {qty}食）",
+  "@donationBatchOption": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
+  "donationRecorded": "寄付を記録しました（このロットの残り {remaining}食）",
+  "@donationRecorded": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "donationTitle": "未販売分の寄付記録",
+  "donationLockedNotice": "全ての販売地点を出発した後に寄付を記録できます（出発後は販売できなくなるため、在庫が確定します）。",
+  "noConfirmedBatches": "確定済みのロットがありません",
+  "donationQtyLabel": "寄付数量",
+  "donationRecipientLabel": "寄付先",
+  "donationRecipientHint": "例：○○こども食堂",
+  "donationHandedOverCheck": "寄付先への引き渡しを確認しました",
+  "recordDonationButton": "寄付を記録する",
+  "driverLicenseTitle": "運転免許証",
+  "licenseStatusNone": "未提出",
+  "licenseStatusSubmitted": "確認待ち",
+  "licenseStatusVerified": "確認済み",
+  "licenseStatusRejected": "差し戻し",
+  "licenseNoneBody": "運転免許証を撮影して提出してください。運営が確認するまでシフトには入れません。",
+  "licenseSubmittedBody": "運営が確認しています。確認が終わるとシフトに入れるようになります。",
+  "licenseExpiresOn": "有効期限 {date}",
+  "@licenseExpiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "licenseRejectedLabel": "運営からのメッセージ",
+  "licenseUploadButton": "撮影してアップロード",
+  "licenseResubmitButton": "更新した免許証を提出する",
+  "licenseResubmitNote": "提出し直すと、運営が確認するまで新しいシフトに入れません。",
+  "licensePrivacyNote": "画像は運営だけが見られます。",
+  "licenseSourceCamera": "カメラで撮影",
+  "licenseSourceGallery": "写真から選ぶ",
+  "licenseUploadSuccess": "提出しました。運営の確認をお待ちください。",
+  "licenseUploadError": "提出できませんでした。通信状態を確認して、もう一度お試しください。",
+  "upcomingShiftsTitle": "今後のシフト（{days}日間）",
+  "@upcomingShiftsTitle": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "upcomingShiftsEmpty": "予定されたシフトはありません。運営がシフトを入れると、ここに表示されます。",
+  "shiftsLoadError": "シフトを取得できませんでした。",
+  "torchOn": "ライトをつける",
+  "@torchOn": { "description": "QR読み取り画面のライト（懐中電灯）ボタン。夜間の受け渡しで暗い時に使う" },
+  "torchOff": "ライトを消す",
+  "mealPhotoLabel": "料理の写真",
+  "detailNotePhoto": "写真は店舗が登録した料理です。数量や盛り付けは写真と異なる場合があります。アレルギーをお持ちの方は表示をご確認ください。",
+  "@detailNotePhoto": { "description": "SCR-M04: 店舗が料理の写真を登録したロット（0038）。写真が無いときは detailNote（イメージ写真）" },
+  "@payNotice": { "placeholders": { "amount": { "type": "String" } } },
+  "@payButton": { "placeholders": { "amount": { "type": "String" } } },
+  "@paymentSummaryLine": { "placeholders": { "amount": { "type": "String" }, "card": { "type": "String" } } },
+  "@pickupPlaceLine": { "placeholders": { "place": { "type": "String" } } },
+  "@pickupTimeLine": { "placeholders": { "time": { "type": "String" } } },
+  "@cardExpiresOn": { "placeholders": { "expiry": { "type": "String" } } },
+  "@deleteCardBody": { "placeholders": { "card": { "type": "String" } } },
+  "@paymentMethodRowDefault": { "placeholders": { "card": { "type": "String" } } }
+}
