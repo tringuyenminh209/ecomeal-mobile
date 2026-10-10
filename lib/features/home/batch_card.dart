@@ -49,6 +49,7 @@ class BatchCard extends ConsumerWidget {
                   batchId: listing.batchId,
                   routeStopId: listing.routeStopId,
                   stopName: listing.stopName,
+                  stopLocationId: listing.stopLocationId,
                   plannedPickupTime: listing.plannedPickupTime,
                 ),
               ),

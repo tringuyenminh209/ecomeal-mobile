@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/app_events.dart';
 import '../../core/jst_date.dart';
+import '../../core/stripe_payments.dart';
+import '../../core/tax.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/customer_shell.dart';
@@ -17,6 +20,8 @@ import 'payment_outcome.dart';
 import 'payment_result_view.dart';
 import '../../core/haptics.dart';
 import '../../widgets/batch_photo.dart';
+import '../coupons/coupons.dart';
+import '../coupons/coupons_page.dart' show CouponTile;
 
 // SCR-M05 — 06_画面設計 §SCR-M05. Figma「M05 予約確認・決済」211:608: 16:16527 (支払い方法なし) / 378:82
 // (選択済み) / 389:913 (処理中) / 389:935 (完了) / 389:959 (カード拒否) / 389:985 (結果確認待ち).
@@ -56,11 +61,20 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
   String? _selectedCardId; // null = dùng thẻ mặc định
   PaymentMethod? _paidCard; // thẻ đã dùng — hiện ở màn kết quả
   int? _paidAmount;
+
+  @override
+  void initState() {
+    super.initState();
+    logAppEvent(ref, AppEvent.checkoutView, widget.batchId); // 0051: "đã mở màn đặt chỗ"
+  }
   bool _cardExpired = false;
   bool _rechecking = false;
   // Lỗi hiện ở màn review: hết hàng / giới hạn ngày… (_orderError) hoặc thẻ đã bị xoá (_cardMissing)
   bool _orderError = false;
   bool _cardMissing = false;
+  bool _rateLimited = false; // E-RATE-429: cùng khung lỗi với _orderError, khác câu
+  bool _couponError = false; // E-COUPON-*: coupon vừa được dùng ở máy khác / hết hạn
+  bool _useCoupon = true; // 0056 (Figma 470:1318): coupon có lợi nhất được bật sẵn, khách có thể tắt
 
   PaymentMethod? _selectedCard(List<PaymentMethod> methods) {
     if (methods.isEmpty) return null;
@@ -70,13 +84,15 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
     return methods.firstWhere((m) => m.isDefault, orElse: () => methods.first);
   }
 
-  Future<void> _pay(PaymentMethod card, int amount) async {
+  Future<void> _pay(PaymentMethod card, int amount, String? couponId) async {
     setState(() {
       _phase = PaymentPhase.processing;
       _paidCard = card;
       _paidAmount = amount;
       _orderError = false;
       _cardMissing = false;
+      _rateLimited = false;
+      _couponError = false;
     });
     try {
       final result = await ref.read(orderGatewayProvider).createOrder(
@@ -84,6 +100,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
             pickupRouteStopId: widget.routeStopId,
             paymentMethodId: card.id,
             idempotencyKey: _idempotencyKey,
+            couponId: couponId,
           );
       _onPaid(result);
     } catch (e) {
@@ -102,11 +119,20 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
             _phase = PaymentPhase.review;
             _cardMissing = true;
             _selectedCardId = null;
+          case PaymentFailure.rateLimited:
+            _phase = PaymentPhase.review;
+            _orderError = true;
+            _rateLimited = true;
+          case PaymentFailure.couponUnavailable:
+            _phase = PaymentPhase.review;
+            _orderError = true;
+            _couponError = true;
           case PaymentFailure.other:
             _phase = PaymentPhase.review;
             _orderError = true;
         }
       });
+      if (failure == PaymentFailure.couponUnavailable) ref.invalidate(usableCouponsProvider);
       if (failure == PaymentFailure.methodMissing) ref.invalidate(myPaymentMethodsProvider);
     }
   }
@@ -119,6 +145,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
       _phase = PaymentPhase.done;
       _paidAmount = result.pricePaid;
     });
+    ref.invalidate(usableCouponsProvider); // coupon đã dùng không còn hiện ở SCR-M19 / lần đặt sau
   }
 
   // 結果確認待ち: đọc đơn theo khoá. Có đơn → thanh toán đã thành công. Không có → chưa trừ tiền, quay lại
@@ -209,7 +236,11 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
     final priceAsync = ref.watch(currentPriceProvider(priceParams));
     final methodsAsync = ref.watch(myPaymentMethodsProvider);
     final card = methodsAsync.whenOrNull(data: _selectedCard);
-    final price = priceAsync.valueOrNull?.currentPrice;
+    final basePrice = priceAsync.valueOrNull?.currentPrice;
+    // 0056: coupon có lợi nhất (nếu có). Số tiền hiển thị = giá − coupon; server tính lại khi tạo đơn
+    final coupon = bestCoupon(ref.watch(usableCouponsProvider).valueOrNull ?? const []);
+    final discount = basePrice != null && coupon != null && _useCoupon ? couponDiscount(coupon.amount, basePrice) : 0;
+    final price = basePrice == null ? null : basePrice - discount;
     final l10n = context.l10n;
     final priceText = price == null ? '—' : '¥$price';
     // Chưa có giá hoặc chưa có thẻ thì KHÔNG cho trả — người dùng không được đồng ý trả một số tiền mà màn hình
@@ -255,6 +286,19 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                     onChange: () => _chooseCard(card?.id),
                     onRetry: () => ref.invalidate(myPaymentMethodsProvider),
                   ),
+                  if (coupon != null) ...[
+                    const SizedBox(height: 20),
+                    Text(l10n.couponSectionLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    CouponTile(
+                      coupon: coupon,
+                      trailing: Switch(
+                        key: const Key('useCouponSwitch'),
+                        value: _useCoupon,
+                        onChanged: (v) => setState(() => _useCoupon = v),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   // "Cancellation note": nền vàng nhạt, viền Amber.
                   Container(
@@ -274,7 +318,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  PaymentNote(text: l10n.testPaymentNote, icon: Icons.science_outlined),
+                  if (ref.watch(paymentTestModeProvider)) PaymentNote(text: l10n.testPaymentNote, icon: Icons.science_outlined),
                 ],
               ],
             ),
@@ -315,6 +359,17 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                           ],
                         ),
                         const Divider(height: 20),
+                        if (discount > 0) ...[
+                          _SummaryLine(label: l10n.subtotalLabel, value: '¥$basePrice'),
+                          const SizedBox(height: 4),
+                          _SummaryLine(
+                            key: const Key('couponDiscountLine'),
+                            label: l10n.couponSectionLabel,
+                            value: '−¥$discount',
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -322,6 +377,24 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                             Text(priceText, key: const Key('totalPrice'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                           ],
                         ),
+                        // Figma 432:1022: giá đã gồm thuế — hiện phần thuế 8% nằm trong đó (app tự tính, cùng công thức với 0046).
+                        if (price != null) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.taxIncludedLine(reducedTaxRate),
+                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                              ),
+                              Text(
+                                '¥${includedTax(price)}',
+                                key: const Key('taxAmount'),
+                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -341,7 +414,15 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                     const SizedBox(height: 8),
                   ],
                   if (_orderError || _cardMissing) ...[
-                    _ErrorBox(message: _cardMissing ? l10n.errorPaymentMethodMissing : l10n.errorReservationFailed),
+                    _ErrorBox(
+                      message: _cardMissing
+                          ? l10n.errorPaymentMethodMissing
+                          : _rateLimited
+                              ? l10n.errorRateLimited
+                              : _couponError
+                                  ? l10n.errorCouponUnavailable
+                                  : l10n.errorReservationFailed,
+                    ),
                     const SizedBox(height: 10),
                   ] else if (price != null && methodsAsync.hasValue) ...[
                     Text(
@@ -354,7 +435,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                   ],
                   FilledButton(
                     key: const Key('confirmReservationButton'),
-                    onPressed: canPay ? () => _pay(card, price) : null,
+                    onPressed: canPay ? () => _pay(card, price, discount > 0 ? coupon?.id : null) : null,
                     child: Text(
                       _orderError
                           ? l10n.tryAgain
@@ -492,6 +573,25 @@ class _OutlinedBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: child,
+    );
+  }
+}
+
+// Dòng 「小計 ¥650」/「クーポン −¥100」 trong thẻ tóm tắt (Figma 470:1318).
+class _SummaryLine extends StatelessWidget {
+  const _SummaryLine({super.key, required this.label, required this.value, this.color});
+  final String label;
+  final String value;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        Text(value, style: TextStyle(fontSize: 12, fontWeight: color == null ? FontWeight.w400 : FontWeight.w700, color: color)),
+      ],
     );
   }
 }

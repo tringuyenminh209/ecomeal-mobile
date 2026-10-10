@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ecomeal_mobile/features/home/batch_detail_page.dart';
 import 'package:ecomeal_mobile/features/home/home_gateway.dart';
+import 'package:ecomeal_mobile/features/favorites/favorite_stops.dart';
+import '../../helpers/fake_favorite_stops.dart';
 import '../../helpers/test_app.dart';
 
 class MockHomeGateway extends Mock implements HomeGateway {}
@@ -43,6 +45,7 @@ void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
     Locale locale = const Locale('ja'),
+    String? stopLocationId,
   }) {
     tester.view.physicalSize = const Size(390, 1100);
     tester.view.devicePixelRatio = 1;
@@ -50,7 +53,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     return tester.pumpWidget(
       ProviderScope(
-        overrides: [homeGatewayProvider.overrideWithValue(gateway)],
+        overrides: [
+          homeGatewayProvider.overrideWithValue(gateway),
+          favoriteStopsGatewayProvider.overrideWithValue(FakeFavoriteStopsGateway([])),
+        ],
         // MaterialApp không còn const được: DateTime(...) không phải hằng số.
         child: testApp(
           BatchDetailPage(
@@ -58,6 +64,7 @@ void main() {
             routeStopId: 'rs-1',
             stopName: '大阪学生寮前',
             plannedPickupTime: DateTime.utc(2026, 10, 2, 11, 10), // = 20:10 JST (không phụ thuộc múi giờ máy chạy test)
+            stopLocationId: stopLocationId,
           ),
           locale: locale,
         ),
@@ -251,5 +258,16 @@ void main() {
     expect(find.text(l10nJa.detailNotePhoto), findsOneWidget);
     final photo = tester.widget<Image>(find.byWidgetPredicate((w) => w is Image && w.image is NetworkImage));
     expect((photo.image as NetworkImage).url, endsWith('batch_photos/r-1/a.jpg'));
+  });
+
+  testWidgets('0053: có stopLocationId → thẻ 受け取り có nút ☆ お気に入り; không có thì không hiện', (tester) async {
+    when(() => gateway.fetchTodayReservationCount()).thenAnswer((_) async => 0);
+    await pumpPage(tester, stopLocationId: 'stop-1');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('favoriteStarButton')), findsOneWidget);
+
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('favoriteStarButton')), findsNothing);
   });
 }

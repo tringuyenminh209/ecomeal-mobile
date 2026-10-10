@@ -4,11 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/clock.dart';
 import '../../core/jst_date.dart';
+import '../../core/stripe_payments.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/labeled_field.dart';
 import 'card_input.dart';
 import 'card_widgets.dart';
+import 'payment_api.dart';
 import 'payment_gateway.dart';
 
 // SCR-M09 カードを追加 — 06_画面設計 §SCR-M09, Figma 378:26 (thường) / 389:1011 (入力エラー).
@@ -16,6 +18,8 @@ import 'payment_gateway.dart';
 // (API-046). Tên chủ thẻ chỉ để khách kiểm tra lại — không gửi, không lưu (thanh toán giả, ADR-006).
 // Không có checkbox「このカードを保存」: mọi thẻ thêm ở đây đều được lưu (06 §SCR-M09 差異).
 // Trả về id thẻ vừa thêm khi thành công.
+// Stripe (0047): thay 4 ô nhập bằng CardField của Stripe — số thẻ đi thẳng tới Stripe, app chỉ nhận pm_… rồi gửi cho
+// Edge Function stripe-add-card (API-053), server đọc hãng/4 số cuối/hạn từ Stripe.
 class AddCardPage extends ConsumerStatefulWidget {
   const AddCardPage({super.key});
 
@@ -31,6 +35,7 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
   bool _submitted = false; // lỗi chỉ hiện sau lần bấm đầu tiên, không đỏ ngay khi vừa gõ
   bool _saving = false;
   String? _serverExpiryError;
+  bool _stripeComplete = false; // CardField đã nhập đủ và hợp lệ
 
   @override
   void initState() {
@@ -57,7 +62,35 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
       _submitted ? (validateExpiry(_expiry.text, _nowJst, l10n) ?? _serverExpiryError) : null;
   String? _cvcError(AppLocalizations l10n) => _submitted ? validateCvc(_cvc.text, _brand, l10n) : null;
 
+  Future<void> _submitStripe() async {
+    final l10n = context.l10n;
+    if (!_stripeComplete) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.stripeCardIncomplete)));
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      final pmId = await ref.read(stripeCardTokenizerProvider)();
+      final id = await ref.read(paymentGatewayProvider).addStripeCard(pmId);
+      ref.invalidate(myPaymentMethodsProvider);
+      if (mounted) Navigator.of(context).pop(id);
+    } catch (e) {
+      if (!mounted) return;
+      final message = switch (paymentErrorCode(e)) {
+        'E-PAY-409' => l10n.errorCardLimit,
+        'E-PAY-410' => l10n.cardExpiryInvalid,
+        'E-PAY-402' || 'E-PAY-422' => l10n.errorCardDeclined,
+        'E-RATE-429' => l10n.errorRateLimited, // 0052: 10 lần/giờ (chống card testing)
+        _ => l10n.errorCardAdd,
+      };
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
   Future<void> _submit() async {
+    if (ref.read(stripeEnabledProvider)) return _submitStripe();
     final l10n = context.l10n;
     setState(() {
       _submitted = true;
@@ -99,6 +132,7 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final brand = _brand;
+    final stripeMode = ref.watch(stripeEnabledProvider);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -114,70 +148,74 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
         children: [
           Text(l10n.cardInfoSection, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
-          LabeledField(
-            label: l10n.cardNumberLabel,
-            child: TextField(
-              key: const Key('cardNumberField'),
-              controller: _number,
-              keyboardType: TextInputType.number,
-              autofillHints: const [AutofillHints.creditCardNumber],
-              inputFormatters: [_FormatFormatter(formatCardNumber)],
-              decoration: InputDecoration(
-                hintText: l10n.cardNumberHint,
-                errorText: _numberError(l10n),
-                suffixIcon: Padding(padding: const EdgeInsets.all(8), child: CardBrandBadge(brand: brand)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          LabeledField(
-            label: l10n.cardHolderLabel,
-            child: TextField(
-              key: const Key('cardHolderField'),
-              controller: _holder,
-              textCapitalization: TextCapitalization.characters,
-              autofillHints: const [AutofillHints.creditCardName],
-              decoration: InputDecoration(hintText: l10n.cardHolderHint, errorText: _holderError(l10n)),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: LabeledField(
-                  label: l10n.cardExpiryLabel,
-                  child: TextField(
-                    key: const Key('cardExpiryField'),
-                    controller: _expiry,
-                    keyboardType: TextInputType.number,
-                    autofillHints: const [AutofillHints.creditCardExpirationDate],
-                    inputFormatters: [_FormatFormatter(formatExpiry)],
-                    decoration: InputDecoration(hintText: l10n.cardExpiryHint, errorText: _expiryError(l10n)),
-                  ),
+          if (stripeMode)
+            ref.watch(stripeCardInputProvider)((complete) => setState(() => _stripeComplete = complete))
+          else ...[
+            LabeledField(
+              label: l10n.cardNumberLabel,
+              child: TextField(
+                key: const Key('cardNumberField'),
+                controller: _number,
+                keyboardType: TextInputType.number,
+                autofillHints: const [AutofillHints.creditCardNumber],
+                inputFormatters: [_FormatFormatter(formatCardNumber)],
+                decoration: InputDecoration(
+                  hintText: l10n.cardNumberHint,
+                  errorText: _numberError(l10n),
+                  suffixIcon: Padding(padding: const EdgeInsets.all(8), child: CardBrandBadge(brand: brand)),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: LabeledField(
-                  label: l10n.cardCvcLabel,
-                  child: TextField(
-                    key: const Key('cardCvcField'),
-                    controller: _cvc,
-                    keyboardType: TextInputType.number,
-                    obscureText: true,
-                    autofillHints: const [AutofillHints.creditCardSecurityCode],
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
-                    decoration: InputDecoration(hintText: l10n.cardCvcHint, errorText: _cvcError(l10n)),
+            ),
+            const SizedBox(height: 16),
+            LabeledField(
+              label: l10n.cardHolderLabel,
+              child: TextField(
+                key: const Key('cardHolderField'),
+                controller: _holder,
+                textCapitalization: TextCapitalization.characters,
+                autofillHints: const [AutofillHints.creditCardName],
+                decoration: InputDecoration(hintText: l10n.cardHolderHint, errorText: _holderError(l10n)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: LabeledField(
+                    label: l10n.cardExpiryLabel,
+                    child: TextField(
+                      key: const Key('cardExpiryField'),
+                      controller: _expiry,
+                      keyboardType: TextInputType.number,
+                      autofillHints: const [AutofillHints.creditCardExpirationDate],
+                      inputFormatters: [_FormatFormatter(formatExpiry)],
+                      decoration: InputDecoration(hintText: l10n.cardExpiryHint, errorText: _expiryError(l10n)),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: LabeledField(
+                    label: l10n.cardCvcLabel,
+                    child: TextField(
+                      key: const Key('cardCvcField'),
+                      controller: _cvc,
+                      keyboardType: TextInputType.number,
+                      obscureText: true,
+                      autofillHints: const [AutofillHints.creditCardSecurityCode],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
+                      decoration: InputDecoration(hintText: l10n.cardCvcHint, errorText: _cvcError(l10n)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 16),
           PaymentNote(text: l10n.cardTokenNote),
           const SizedBox(height: 8),
-          PaymentNote(text: l10n.testPaymentNote, icon: Icons.science_outlined),
+          if (ref.watch(paymentTestModeProvider)) PaymentNote(text: l10n.testPaymentNote, icon: Icons.science_outlined),
           const SizedBox(height: 12),
           Text(l10n.cardTermsNote, style: TextStyle(fontSize: 11, color: context.eco.textSecondary)),
         ],

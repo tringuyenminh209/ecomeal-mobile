@@ -8,6 +8,9 @@ import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import 'order_gateway.dart';
 import 'order_helpers.dart';
+import 'order_rating.dart';
+import 'receipt_page.dart';
+import 'report_issue_page.dart';
 import '../../widgets/skeleton.dart';
 import '../../core/haptics.dart';
 
@@ -215,6 +218,16 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
     }
   }
 
+  // SCR-M15: gửi xong → báo và tải lại danh sách (thẻ đổi sang 「確認中」)
+  Future<void> _openReport() async {
+    final sent = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => ReportIssuePage(order: widget.order)),
+    );
+    if (sent != true || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.reportIssueSent)));
+    widget.onCancelled();
+  }
+
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
@@ -222,6 +235,7 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
     final badge = badgeForStatus(order.status, l10n);
     final showCancel = canCancel(order.status);
     final isFree = isFreeCancellation(order.plannedPickupTime);
+    final canReport = canReportIssue(status: order.status, hasIssue: order.issue != null, plannedPickupTime: order.plannedPickupTime);
     const secondary = TextStyle(fontSize: 11, color: AppColors.textSecondary);
 
     return Container(
@@ -249,9 +263,49 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(l10n.orderNumber(orderDisplayNumber(order.id)), style: secondary),
-              Text('¥${order.pricePaid}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+              Text(
+                l10n.priceTaxIncluded('¥${order.pricePaid}'),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
             ],
           ),
+          // Figma 432:1074: chỉ đơn đã nhận mới có biên lai (đơn chưa nhận còn có thể bị huỷ / hoàn tiền).
+          // Figma 463:5600 (0050): 「問題を報告」 cho đơn đã nhận / hết hạn, trong 48 giờ, chưa báo cáo.
+          if (order.status == 'picked_up' || canReport) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                if (order.status == 'picked_up')
+                  OutlinedButton(
+                    key: const Key('receiptButton'),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) => ReceiptPage(order: order)),
+                    ),
+                    child: Text(l10n.receiptButton),
+                  ),
+                if (canReport)
+                  OutlinedButton(
+                    key: const Key('reportIssueButton'),
+                    onPressed: _openReport,
+                    child: Text(l10n.reportIssueButton),
+                  ),
+              ],
+            ),
+          ],
+          if (order.issue != null) ...[
+            const SizedBox(height: 10),
+            _IssueNote(issue: order.issue!),
+          ],
+          // 0054 (Figma 463:5600 / 463:5710): mời đánh giá trong 7 ngày; đã đánh giá thì hiện số sao
+          if (canRateOrder(status: order.status, rating: order.rating, plannedPickupTime: order.plannedPickupTime)) ...[
+            const SizedBox(height: 10),
+            RatingPrompt(order: order, onRated: widget.onCancelled),
+          ] else if (order.rating case final rating?) ...[
+            const SizedBox(height: 10),
+            RatedNote(rating: rating),
+          ],
           if (order.status == 'pending') ...[
             const SizedBox(height: 10),
             // "Pending note" của Figma: nền vàng nhạt, viền Amber.
@@ -296,6 +350,32 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
           ],
         ],
       ),
+    );
+  }
+}
+
+// 0050: trạng thái báo cáo vấn đề (Figma 463:5600 確認中 / 443:1239 対応済み). Câu trả lời của 運営 hiện bên dưới.
+class _IssueNote extends StatelessWidget {
+  const _IssueNote({required this.issue});
+  final OrderIssue issue;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    if (!issue.isResolved) {
+      return _NoteBox(
+        background: AppColors.amberSoft,
+        borderColor: AppColors.amber,
+        title: l10n.issueOpenTitle,
+        body: l10n.issueOpenBody,
+      );
+    }
+    final refund = issue.refundAmount ?? 0;
+    return _NoteBox(
+      background: AppColors.primarySoft,
+      borderColor: AppColors.primary,
+      title: refund > 0 ? l10n.issueResolvedRefund(refund) : l10n.issueResolvedNoRefund,
+      body: issue.resolution ?? '',
     );
   }
 }

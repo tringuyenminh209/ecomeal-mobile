@@ -9,6 +9,8 @@ import 'package:ecomeal_mobile/features/auth/auth_controller.dart';
 import 'package:ecomeal_mobile/features/auth/auth_gateway.dart';
 import 'package:ecomeal_mobile/features/auth/locale_controller.dart';
 import 'package:ecomeal_mobile/features/auth/login_signup_page.dart';
+import 'package:ecomeal_mobile/features/legal/legal_pages.dart';
+import 'package:ecomeal_mobile/features/legal/terms_gateway.dart';
 import '../../helpers/test_app.dart';
 
 class MockAuthGateway extends Mock implements AuthGateway {}
@@ -54,6 +56,9 @@ void main() {
       find.byKey(const Key('signupPasswordField')),
       '1234567',
     );
+    await tester.ensureVisible(find.byKey(const Key('signupTermsCheckbox')));
+    await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('signupSubmitButton')));
     await tester.pumpAndSettle();
     expect(find.text('パスワードは8文字以上で入力してください'), findsOneWidget);
@@ -222,6 +227,9 @@ void main() {
         find.byKey(const Key('signupPasswordField')),
         'password123',
       );
+      await tester.ensureVisible(find.byKey(const Key('signupTermsCheckbox')));
+      await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
+      await tester.pump();
       await tester.tap(find.byKey(const Key('signupSubmitButton')));
       await tester.pumpAndSettle();
 
@@ -258,6 +266,9 @@ void main() {
         find.byKey(const Key('signupPasswordField')),
         'password123',
       );
+      await tester.ensureVisible(find.byKey(const Key('signupTermsCheckbox')));
+      await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
+      await tester.pump();
       await tester.tap(find.byKey(const Key('signupSubmitButton')));
       await tester.pumpAndSettle();
 
@@ -295,6 +306,9 @@ void main() {
         find.byKey(const Key('signupPasswordField')),
         'password123',
       );
+      await tester.ensureVisible(find.byKey(const Key('signupTermsCheckbox')));
+      await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
+      await tester.pump();
       await tester.tap(find.byKey(const Key('signupSubmitButton')));
       await tester.pumpAndSettle();
 
@@ -308,4 +322,41 @@ void main() {
       expect(find.text('確認メールを送信しました'), findsNothing);
     },
   );
+
+  testWidgets('UC-36: chưa tick đồng ý → 「登録する」 disabled; link 利用規約 mở SCR-M10, quay lại vẫn giữ nội dung; gửi terms_version', (tester) async {
+    when(
+      () => gateway.signUp(
+        email: any(named: 'email'),
+        password: any(named: 'password'),
+        data: any(named: 'data'),
+      ),
+    ).thenAnswer((_) async {});
+    await pumpPage(tester);
+    await tester.tap(find.text('新規登録'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('signupNameField')), '山田太郎');
+    await tester.enterText(find.byKey(const Key('signupEmailField')), 'new@ecomeal.test');
+    await tester.enterText(find.byKey(const Key('signupPasswordField')), 'password123');
+    FilledButton submit() => tester.widget<FilledButton>(find.byKey(const Key('signupSubmitButton')));
+    expect(submit().onPressed, isNull);
+
+    await tester.ensureVisible(find.byKey(const Key('signupTermsLink')));
+    await tester.tap(find.byKey(const Key('signupTermsLink')));
+    await tester.pumpAndSettle();
+    expect(find.byType(LegalDocumentPage), findsOneWidget);
+    expect(find.text('第1条（適用）'), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('山田太郎'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
+    await tester.pump();
+    expect(submit().onPressed, isNotNull);
+    await tester.tap(find.byKey(const Key('signupSubmitButton')));
+    await tester.pumpAndSettle();
+    final data = verify(
+      () => gateway.signUp(email: 'new@ecomeal.test', password: 'password123', data: captureAny(named: 'data')),
+    ).captured.single as Map<String, dynamic>;
+    expect(data['terms_version'], currentTermsVersion);
+  });
 }

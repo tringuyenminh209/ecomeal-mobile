@@ -1,39 +1,14 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/jst_date.dart';
+import '../../core/photo_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/status_badge.dart';
 import 'driver_account_gateway.dart';
 
 // SCR-D05 の追加カード（レビュー第74回、Figma 277:712 差し戻し・シフトなし / 277:773 確認済み・シフトあり）
-
-class PickedLicenseImage {
-  const PickedLicenseImage({required this.bytes, required this.extension});
-  final Uint8List bytes;
-  final String extension;
-}
-
-typedef LicenseImagePicker = Future<PickedLicenseImage?> Function(ImageSource source);
-
-// 長辺1600px・品質80で十分読める（バケット上限5MBに収まる）
-const _maxImageSide = 1600.0;
-const _imageQuality = 80;
-
-// テストでは差し替える（実機のカメラ／写真ライブラリを使わない）
-final licenseImagePickerProvider = Provider<LicenseImagePicker>((ref) {
-  final picker = ImagePicker();
-  return (source) async {
-    final file = await picker.pickImage(source: source, maxWidth: _maxImageSide, maxHeight: _maxImageSide, imageQuality: _imageQuality);
-    if (file == null) return null;
-    final name = file.name;
-    final dot = name.lastIndexOf('.');
-    return PickedLicenseImage(bytes: await file.readAsBytes(), extension: dot < 0 ? 'jpg' : name.substring(dot + 1));
-  };
-});
 
 (String, BadgeTone) _licenseBadge(LicenseStatus status, AppLocalizations l10n) => switch (status) {
       LicenseStatus.none => (l10n.licenseStatusNone, BadgeTone.neutral),
@@ -112,7 +87,7 @@ class _DriverLicenseCardState extends ConsumerState<DriverLicenseCard> {
     if (source == null || !mounted) return;
     setState(() => _uploading = true);
     try {
-      final picked = await ref.read(licenseImagePickerProvider)(source);
+      final picked = await ref.read(photoPickerProvider)(source);
       if (picked == null) return;
       await ref.read(driverAccountGatewayProvider).submitLicense(
             bytes: picked.bytes,

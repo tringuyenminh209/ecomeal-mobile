@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../core/app_events.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/jst_date.dart';
@@ -7,6 +8,7 @@ import '../../l10n/l10n.dart';
 import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import '../orders/reservation_confirm_page.dart';
+import '../favorites/favorite_stops.dart';
 import 'home_gateway.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/value_change.dart';
@@ -46,7 +48,7 @@ final homeClockProvider = StreamProvider.autoDispose<DateTime>((ref) async* {
   yield* Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
 });
 
-// SCR-M04 — khớp frame Figma 16:16465 (Default) / 134:713 (予約上限) / 134:649 (Error) / 134:583 (Loading).
+// SCR-M04 — khớp frame Figma 460:1181 (Default) / 134:713 (予約上限) / 134:649 (Error) / 134:583 (Loading).
 // stopName + plannedPickupTime đến từ thẻ lô đã chọn ở SCR-M03: thẻ "Eco-Truckで受け取り" phải là đúng
 // điểm dừng sẽ gửi làm p_pickup_route_stop_id ở SCR-M05 (Chương 17), không tự chọn điểm khác.
 class BatchDetailPage extends ConsumerWidget {
@@ -56,18 +58,24 @@ class BatchDetailPage extends ConsumerWidget {
     required this.routeStopId,
     required this.stopName,
     required this.plannedPickupTime,
+    this.stopLocationId,
   });
   final String batchId;
   final String routeStopId;
   final String stopName;
   final DateTime plannedPickupTime;
+  final String? stopLocationId; // 0053: có thì hiện nút ☆ お気に入り ở thẻ 受け取り
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(batchDetailProvider(batchId));
     final l10n = context.l10n;
 
-    return Scaffold(
+    // 0051: đo chuyển đổi — "đã xem túi đồ ăn" (1 lần khi mở màn)
+    return LogAppEventOnce(
+      event: AppEvent.batchView,
+      surplusBatchId: batchId,
+      child: Scaffold(
       appBar: AppBar(title: Text(l10n.batchDetailTitle)),
       body: detailAsync.when(
         loading: () => const _DetailSkeleton(),
@@ -85,7 +93,9 @@ class BatchDetailPage extends ConsumerWidget {
           routeStopId: routeStopId,
           stopName: stopName,
           plannedPickupTime: plannedPickupTime,
+          stopLocationId: stopLocationId,
         ),
+      ),
       ),
     );
   }
@@ -97,11 +107,13 @@ class _BatchDetailBody extends ConsumerWidget {
     required this.routeStopId,
     required this.stopName,
     required this.plannedPickupTime,
+    this.stopLocationId,
   });
   final BatchDetail batch;
   final String routeStopId;
   final String stopName;
   final DateTime plannedPickupTime;
+  final String? stopLocationId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -203,6 +215,7 @@ class _BatchDetailBody extends ConsumerWidget {
               _PickupCard(
                 stopName: stopName,
                 plannedPickupTime: plannedPickupTime,
+                stopLocationId: stopLocationId,
               ),
               const SizedBox(height: 20),
               _SectionHeading(l10n.allergensHeading),
@@ -319,9 +332,10 @@ class _BatchDetailBody extends ConsumerWidget {
 
 // "Eco-Truckで受け取り": điểm dừng + khung giờ nhận — cùng pickupWindowLabel với SCR-M05 (Chương 17).
 class _PickupCard extends StatelessWidget {
-  const _PickupCard({required this.stopName, required this.plannedPickupTime});
+  const _PickupCard({required this.stopName, required this.plannedPickupTime, this.stopLocationId});
   final String stopName;
   final DateTime plannedPickupTime;
+  final String? stopLocationId;
 
   @override
   Widget build(BuildContext context) {
@@ -358,6 +372,11 @@ class _PickupCard extends StatelessWidget {
               ],
             ),
           ),
+          // 0053 (Figma 460:1181): ☆ お気に入りの受取地点 — bật thì có túi đồ ăn mới ở điểm này sẽ được thông báo
+          if (stopLocationId case final id?) ...[
+            const SizedBox(width: 12),
+            FavoriteStarButton(stopLocationId: id),
+          ],
         ],
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ecomeal_mobile/core/app_version.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
@@ -13,6 +14,10 @@ import 'package:ecomeal_mobile/features/payment/card_input.dart';
 import 'package:ecomeal_mobile/features/payment/payment_gateway.dart';
 import 'package:ecomeal_mobile/features/profile/my_page.dart';
 import 'package:ecomeal_mobile/features/profile/profile_gateway.dart';
+import 'package:ecomeal_mobile/features/legal/legal_pages.dart';
+import 'package:ecomeal_mobile/features/favorites/favorite_stops.dart';
+import 'package:ecomeal_mobile/features/favorites/favorite_stops_page.dart';
+import '../../helpers/fake_favorite_stops.dart';
 import '../../helpers/fake_payment_gateway.dart';
 import '../../helpers/test_app.dart';
 
@@ -28,6 +33,8 @@ void main() {
   late MockAuthGateway authGateway;
   late SharedPreferences prefs;
   late FakePaymentGateway paymentGateway;
+  late FakeFavoriteStopsGateway favoriteGateway;
+  final openedUrls = <String>[];
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({'preferred_language': 'ja'});
@@ -36,6 +43,7 @@ void main() {
     lineBridge = MockLineLoginBridge();
     authGateway = MockAuthGateway();
     paymentGateway = FakePaymentGateway();
+    favoriteGateway = FakeFavoriteStopsGateway([]);
     when(() => profileGateway.fetchMyProfile()).thenAnswer(
       (_) async => const UserProfile(name: '春香 美香', nameKana: null, email: 'mika@example.jp'),
     );
@@ -49,10 +57,16 @@ void main() {
         overrides: [
           profileGatewayProvider.overrideWithValue(profileGateway),
           paymentGatewayProvider.overrideWithValue(paymentGateway),
+          favoriteStopsGatewayProvider.overrideWithValue(favoriteGateway),
           lineLoginBridgeProvider.overrideWithValue(lineBridge),
           authGatewayProvider.overrideWithValue(authGateway),
           sharedPreferencesProvider.overrideWithValue(prefs),
           openLineOfficialAccountProvider.overrideWithValue(openLine),
+          appVersionProvider.overrideWith((ref) async => '1.0.0'),
+          openExternalUrlProvider.overrideWithValue((url) async {
+            openedUrls.add(url);
+            return true;
+          }),
         ],
         child: testApp(const MyPage()),
       ),
@@ -156,7 +170,10 @@ void main() {
     when(() => authGateway.signOut()).thenAnswer((_) async {});
     await pumpPage(tester);
 
-    await tester.ensureVisible(find.byKey(const Key('logoutButton')));
+    // ListView dựng lười: nút ở cuối (dưới 「アプリについて」) chưa tồn tại cho tới khi cuộn tới
+    await tester.scrollUntilVisible(find.byKey(const Key('logoutButton')), 200);
+    await tester.ensureVisible(find.byKey(const Key('logoutButton'))); // cuộn tới khi thấy CẢ nút, không chỉ mép trên
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('logoutButton')));
     await tester.pumpAndSettle();
     expect(find.text('ログアウトしますか？'), findsOneWidget);
@@ -165,6 +182,18 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => authGateway.signOut()).called(1);
+  });
+
+  testWidgets('0053 「お気に入りの受取地点」: hiện số điểm → chạm mở SCR-M16', (tester) async {
+    when(() => profileGateway.isLineLinked()).thenAnswer((_) async => false);
+    favoriteGateway.favorites.add(const FavoriteStop(stopLocationId: 'stop-1', name: '大阪学生寮前'));
+    await pumpPage(tester);
+
+    expect(find.text('1件 ・ 新しいフードバッグをお知らせ'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('favoriteStopsRow')));
+    await tester.pumpAndSettle();
+    expect(find.byType(FavoriteStopsPage), findsOneWidget);
+    expect(find.text('大阪学生寮前'), findsOneWidget);
   });
 
   testWidgets('「支払い方法」 hiện thẻ mặc định (Figma 16:16656) → chạm mở SCR-M09', (tester) async {
@@ -186,5 +215,46 @@ void main() {
     await pumpPage(tester);
 
     expect(find.text('未登録'), findsOneWidget);
+  });
+
+  testWidgets('「アプリについて」: バージョン 1.0.0, 利用規約 → SCR-M10, プライバシーポリシー → SCR-M11 (Figma 419:5532)', (tester) async {
+    when(() => profileGateway.isLineLinked()).thenAnswer((_) async => false);
+    await pumpPage(tester);
+
+    await tester.scrollUntilVisible(find.byKey(const Key('termsRow')), 200);
+    await tester.ensureVisible(find.byKey(const Key('termsRow')));
+    await tester.pumpAndSettle();
+    expect(find.text('アプリについて'), findsOneWidget);
+    expect(find.text('1.0.0'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('termsRow')));
+    await tester.pumpAndSettle();
+    expect(find.byType(LegalDocumentPage), findsOneWidget);
+    expect(find.text('第10条（変更・停止・免責）', skipOffstage: false), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('privacyRow')));
+    await tester.pumpAndSettle();
+    expect(find.text('1. 取得する情報'), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    // 特定商取引法に基づく表記 → site công khai (bản tiếng Nhật vì ngôn ngữ đang là ja)
+    openedUrls.clear();
+    await tester.tap(find.byKey(const Key('tokushohoRow')));
+    expect(openedUrls, ['https://ecomeal-site.vercel.app/tokushoho/']);
+  });
+
+  testWidgets('có avatar_path → xin URL ký và hiện ảnh (UC-35)', (tester) async {
+    when(() => profileGateway.isLineLinked()).thenAnswer((_) async => false);
+    when(() => profileGateway.fetchMyProfile()).thenAnswer(
+      (_) async => const UserProfile(name: '春香 美香', nameKana: null, email: 'mika@example.jp', avatarPath: 'u-1/a.jpg'),
+    );
+    when(() => profileGateway.signedAvatarUrl('u-1/a.jpg')).thenAnswer((_) async => 'https://example.test/a.jpg');
+    await pumpPage(tester);
+
+    verify(() => profileGateway.signedAvatarUrl('u-1/a.jpg')).called(1);
+    expect(find.byKey(const Key('profileAvatarImage')), findsOneWidget);
   });
 }

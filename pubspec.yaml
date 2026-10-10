@@ -49,6 +49,14 @@ dependencies:
   url_launcher: ^6.3.2
   image_picker: ^1.2.1
   uuid: ^4.5.1 # khoá chống trừ tiền 2 lần cho create_order (0043)
+  image: ^4.10.1 # cắt ảnh đại diện thành 512×512 JPEG trước khi tải lên (API-049)
+  package_info_plus: ^9.0.1 # số phiên bản ở SCR-M07「アプリについて」
+  flutter_stripe: ^13.0.0 # thanh toán thật bằng Stripe (0047) — chỉ bật khi có STRIPE_PUBLISHABLE_KEY
+  firebase_core: ^4.15.0 # thông báo app (0048) — chỉ khởi động khi có FIREBASE_* trong env.json
+  firebase_messaging: ^16.7.0 # FCM token + nhận thông báo (SCR-M07「アプリの通知」)
+  sentry_flutter: ^9.30.1 # theo dõi lỗi (ADR-010) — chỉ bật khi có SENTRY_DSN trong env.json
+  sign_in_with_apple: ^7.0.1
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:

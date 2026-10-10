@@ -130,20 +130,28 @@ class AuthController extends StateNotifier<AppAuthState> {
 
   // languageCode đến từ LocaleController (bước 5) — xem box-warn đầu chương: đây là nơi DUY NHẤT
   // preferred_language của 1 user MỚI được lưu, qua raw_user_meta_data, không qua API-023.
+  // termsVersion (UC-36): bản điều khoản người dùng vừa tick đồng ý — trigger 0044 ghi vào users.terms_version.
   Future<void> signUp({
     required String email,
     required String password,
     required String name,
     required String languageCode,
+    required String termsVersion,
   }) {
     return _gateway.signUp(
       email: email,
       password: password,
-      data: {'name': name, 'preferred_language': languageCode},
+      data: {'name': name, 'preferred_language': languageCode, 'terms_version': termsVersion},
     );
   }
 
   Future<void> signOut() => _gateway.signOut();
+
+  // UC-45 (0057): RoleGate tự chuyển màn khi onAuthStateChange báo có phiên — giống signIn bằng mật khẩu.
+  Future<void> signInWithLine({required String idToken, required String languageCode}) =>
+      _gateway.signInWithLineIdToken(idToken: idToken, languageCode: languageCode);
+  Future<void> signInWithApple({required String idToken, required String rawNonce, String? fullName}) =>
+      _gateway.signInWithAppleIdToken(idToken: idToken, rawNonce: rawNonce, fullName: fullName);
 
   // ── UC-28 Đặt lại mật khẩu (API-028/029/030) ──────────────────────────────────────
   Future<void> requestPasswordReset(String email) => _gateway.requestPasswordReset(email);

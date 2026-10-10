@@ -17,10 +17,13 @@ class BatchListing {
     required this.availableQty,
     this.truckId,
     this.photoUrl,
+    this.stopLocationId,
   });
 
   final String batchId;
   final String routeStopId;
+  // stop_locations.id — nút ☆ お気に入り của SCR-M04 (0053). null ở dữ liệu test cũ = không hiện nút.
+  final String? stopLocationId;
   final int unitPrice;
   final DateTime expiresAt;
   final String stopName;
@@ -152,7 +155,7 @@ class SupabaseHomeGateway implements HomeGateway {
                 .select(
                   'available_qty, route_stop_id, '
                   'surplus_batches!inner(id, unit_price, expires_at, truck_id, photo_path), '
-                  'route_stops!inner(planned_time, actual_departure_at, stop_locations!inner(name, lat, lng, type))',
+                  'route_stops!inner(planned_time, actual_departure_at, stop_locations!inner(id, name, lat, lng, type))',
                 )
                 .eq('route_stops.stop_locations.type', 'public')
                 .isFilter('route_stops.actual_departure_at', null)
@@ -179,6 +182,7 @@ class SupabaseHomeGateway implements HomeGateway {
         availableQty: row['available_qty'] as int,
         truckId: batch['truck_id'] as String?,
         photoUrl: _photoUrl(batch['photo_path'] as String?),
+        stopLocationId: stop['id'] as String?,
       );
     }).toList();
   }

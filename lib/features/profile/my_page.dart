@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/line_login_bridge.dart';
 import '../../core/line_official_account.dart';
+import '../../core/app_version.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/error_banner.dart';
@@ -11,12 +12,23 @@ import '../auth/locale_controller.dart';
 import '../payment/card_widgets.dart';
 import '../payment/payment_gateway.dart';
 import '../payment/payment_methods_page.dart';
+import '../favorites/favorite_stops.dart';
+import '../favorites/favorite_stops_page.dart';
+import '../coupons/coupons.dart';
+import '../coupons/coupons_page.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator;
+import '../legal/legal_pages.dart';
+import '../notifications/push_registration.dart';
+import '../legal/terms_gateway.dart';
+import 'delete_account_page.dart';
+import 'my_impact.dart';
+import '../auth/auth_gateway.dart' show isLineOnlyEmail;
+import 'profile_avatar.dart';
 import 'profile_edit_page.dart';
 import 'profile_gateway.dart';
-import 'profile_validation.dart';
 import '../../widgets/skeleton.dart';
 
-// SCR-M07 プロフィール・設定 — 06_画面設計 §SCR-M07, khớp frame Figma 16:16656 (thường) / 54:2843
+// SCR-M07 プロフィール・設定 — 06_画面設計 §SCR-M07, khớp frame Figma 470:1400 (thường) / 54:2843
 // (LINE連携済み) / 54:2915 (Loading) / 54:2983 (Error) / 125:243 (取得エラー) / 54:3054 (ログアウト確認).
 class MyPage extends ConsumerWidget {
   const MyPage({super.key});
@@ -43,20 +55,45 @@ class MyPage extends ConsumerWidget {
               Text(l10n.myPageTab, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               _ProfileSummary(profile: profile),
+              const SizedBox(height: 12),
+              // 0055 (Figma 470:1400): あなたが救った食品 — tải xong mới hiện, lỗi thì ẩn
+              const MyImpactCard(),
               const SizedBox(height: 16),
-              // Figma 16:16656: nhãn song ngữ cố định 「言語 / Language」 phía trên rãnh chọn ngôn ngữ.
+              // Figma 470:1400: nhãn song ngữ cố định 「言語 / Language」 phía trên rãnh chọn ngôn ngữ.
               Text(l10n.languageLabel, style: Theme.of(context).textTheme.labelMedium),
               const SizedBox(height: 8),
               const _LanguageSwitch(),
               const SizedBox(height: 16),
               const _PaymentMethodRow(),
+              const SizedBox(height: 12),
+              const _FavoriteStopsRow(),
+              const SizedBox(height: 12),
+              const _CouponsRow(),
               const SizedBox(height: 16),
               const _LineLinkSection(),
+              const SizedBox(height: 16),
+              const _AppNotificationSection(),
+              const _AboutAppSection(),
               const SizedBox(height: 16),
               // "Logout section" của Figma: đường kẻ Border phía trên, cách 16.
               const Divider(),
               const SizedBox(height: 16),
               const LogoutButton(),
+              const SizedBox(height: 4),
+              // UC-37 (Figma 425:1006): link nhỏ màu phụ dưới ログアウト → SCR-M12.
+              Center(
+                child: TextButton(
+                  key: const Key('deleteAccountLink'),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const DeleteAccountPage()),
+                  ),
+                  child: Text(
+                    l10n.deleteAccountLink,
+                    style: const TextStyle(fontSize: 13, decoration: TextDecoration.underline),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -81,16 +118,8 @@ class _ProfileSummary extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(color: AppColors.primarySoft, shape: BoxShape.circle),
-            child: Text(
-              avatarInitialOf(profile.name),
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.primary),
-            ),
-          ),
+          // UC-35: ảnh nếu đã đặt (Figma 419:5532), không thì chữ cái đầu. Chạm vào avatar không làm gì — sửa ở SCR-M08.
+          ProfileAvatar(name: profile.name, avatarPath: profile.avatarPath, size: 48),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -98,7 +127,10 @@ class _ProfileSummary extends ConsumerWidget {
               children: [
                 Text(profile.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 3),
-                Text(profile.email, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(
+                  isLineOnlyEmail(profile.email) ? context.l10n.signedInWithLine : profile.email,
+                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
               ],
             ),
           ),
@@ -119,7 +151,7 @@ class _ProfileSummary extends ConsumerWidget {
   }
 }
 
-// 「支払い方法」(Figma 16:16656, 0043): dòng phụ = thẻ mặc định「Visa •••• 3456 ・ デフォルト」→ SCR-M09 (quản lý).
+// 「支払い方法」(Figma 470:1400, 0043): dòng phụ = thẻ mặc định「Visa •••• 3456 ・ デフォルト」→ SCR-M09 (quản lý).
 // Lỗi tải thẻ không chặn cả trang: chỉ bỏ dòng phụ, chạm vào vẫn mở SCR-M09 (ở đó có nút 再試行).
 class _PaymentMethodRow extends ConsumerWidget {
   const _PaymentMethodRow();
@@ -165,6 +197,264 @@ class _PaymentMethodRow extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// 「お気に入りの受取地点」 (0053, Figma 470:1400): số điểm đã đăng ký → SCR-M16.
+class _FavoriteStopsRow extends ConsumerWidget {
+  const _FavoriteStopsRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final count = ref.watch(myFavoriteStopsProvider).valueOrNull?.length;
+    return InkWell(
+      key: const Key('favoriteStopsRow'),
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const FavoriteStopsPage())),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.star_outline_rounded, size: 20, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.favoriteStopsTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  if (count != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      count == 0 ? l10n.favoriteStopsRowNone : l10n.favoriteStopsRowCount(count),
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 「クーポン・友だち紹介」 (0056, Figma 470:1400): số coupon dùng được → SCR-M19.
+class _CouponsRow extends ConsumerWidget {
+  const _CouponsRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final count = ref.watch(usableCouponsProvider).valueOrNull?.length;
+    return InkWell(
+      key: const Key('couponsRow'),
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CouponsPage())),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.card_giftcard_outlined, size: 20, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.couponsTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  if (count != null) ...[
+                    const SizedBox(height: 3),
+                    Text(l10n.couponsRowSubtitle(count), style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  ],
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 「アプリの通知」 (0048, Figma 436:1053 オフ / 470:1400 オン / 436:1223 許可されていない). Chưa cấu hình Firebase thì
+// không hiện (app vẫn dùng LINE như trước). Có khoảng cách 16 phía dưới khi hiện.
+class _AppNotificationSection extends ConsumerStatefulWidget {
+  const _AppNotificationSection();
+
+  @override
+  ConsumerState<_AppNotificationSection> createState() => _AppNotificationSectionState();
+}
+
+class _AppNotificationSectionState extends ConsumerState<_AppNotificationSection> {
+  bool _working = false;
+
+  Future<void> _enable() async {
+    setState(() => _working = true);
+    try {
+      await enablePush(ref);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorPushEnable)));
+      }
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final status = ref.watch(pushStatusProvider).valueOrNull;
+    if (status == null || status == PushStatus.unavailable) return const SizedBox.shrink();
+    final (title, body, icon, iconColor, iconBg) = switch (status) {
+      PushStatus.on => (l10n.pushOnTitle, l10n.pushOnBody, Icons.check, AppColors.primary, AppColors.primarySoft),
+      PushStatus.denied => (l10n.pushDeniedTitle, l10n.pushDeniedBody, Icons.priority_high, AppColors.error, AppColors.errorSoft),
+      _ => (l10n.pushOffTitle, l10n.pushOffBody, Icons.notifications_outlined, AppColors.primary, AppColors.primarySoft),
+    };
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(l10n.pushSectionTitle, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 8),
+          Container(
+            key: const Key('appNotificationCard'),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                      child: Icon(icon, size: 18, color: iconColor),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 3),
+                          Text(body, style: const TextStyle(fontSize: 11, height: 1.55, color: AppColors.textSecondary)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (status == PushStatus.off) ...[
+                  const SizedBox(height: 10),
+                  FilledButton(
+                    key: const Key('enablePushButton'),
+                    onPressed: _working ? null : _enable,
+                    child: Text(l10n.pushEnableButton),
+                  ),
+                ],
+                if (status == PushStatus.denied) ...[
+                  const SizedBox(height: 10),
+                  OutlinedButton(
+                    key: const Key('pushSettingsButton'),
+                    // Quay lại app sau khi đổi trong Cài đặt → đọc lại quyền
+                    onPressed: () async {
+                      await Geolocator.openAppSettings();
+                      ref.invalidate(pushStatusProvider);
+                    },
+                    child: Text(l10n.openSettings),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+// 「アプリについて」 (FUNC-037, Figma 419:5532): 1 thẻ 3 dòng — 利用規約 → SCR-M10, プライバシーポリシー → SCR-M11,
+// バージョン (không chạm được).
+class _AboutAppSection extends ConsumerWidget {
+  const _AboutAppSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final version = ref.watch(appVersionProvider).valueOrNull ?? '';
+    Widget row(String label, {Key? key, VoidCallback? onTap, Widget? trailing}) => InkWell(
+          key: key,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            child: Row(
+              children: [
+                Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
+                trailing ?? const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(l10n.aboutAppSection, style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(height: 8),
+        Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            border: Border.all(color: AppColors.border),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              row(l10n.legalTermsTitle,
+                  key: const Key('termsRow'), onTap: () => openLegalDocument(context, LegalDocument.terms)),
+              const Divider(height: 1),
+              row(l10n.legalPrivacyTitle,
+                  key: const Key('privacyRow'), onTap: () => openLegalDocument(context, LegalDocument.privacy)),
+              const Divider(height: 1),
+              // SCR-P06 trên site công khai (nội dung pháp lý về bán hàng chỉ giữ 1 bản ở site), mở trình duyệt ngoài.
+              row(
+                l10n.legalTokushohoTitle,
+                key: const Key('tokushohoRow'),
+                onTap: () => ref.read(openExternalUrlProvider)(
+                  tokushohoPageUrl(ref.read(localeControllerProvider).languageCode),
+                ),
+                trailing: const Icon(Icons.open_in_new, size: 18, color: AppColors.textSecondary),
+              ),
+              const Divider(height: 1),
+              row(
+                l10n.appVersionLabel,
+                trailing: Text(version, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

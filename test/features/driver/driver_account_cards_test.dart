@@ -5,16 +5,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:ecomeal_mobile/core/photo_picker.dart';
 import 'package:ecomeal_mobile/features/driver/driver_account_cards.dart';
 import 'package:ecomeal_mobile/features/driver/driver_account_gateway.dart';
 import '../../helpers/test_app.dart';
 
 class MockDriverAccountGateway extends Mock implements DriverAccountGateway {}
 
-Widget _cards(DriverAccountGateway gateway, {LicenseImagePicker? picker}) => ProviderScope(
+Widget _cards(DriverAccountGateway gateway, {PhotoPicker? picker}) => ProviderScope(
       overrides: [
         driverAccountGatewayProvider.overrideWithValue(gateway),
-        licenseImagePickerProvider.overrideWithValue(picker ?? (_) async => null),
+        photoPickerProvider.overrideWithValue(picker ?? (_) async => null),
       ],
       child: testApp(
         Scaffold(body: ListView(children: const [DriverLicenseCard(), UpcomingShiftsCard()])),
@@ -39,7 +40,7 @@ void main() {
     ImageSource? usedSource;
     await tester.pumpWidget(_cards(gateway, picker: (source) async {
       usedSource = source;
-      return PickedLicenseImage(bytes: Uint8List.fromList([1, 2, 3]), extension: 'jpg');
+      return PickedPhoto(bytes: Uint8List.fromList([1, 2, 3]), extension: 'jpg');
     }));
     await tester.pumpAndSettle();
 
@@ -62,7 +63,7 @@ void main() {
     );
     when(() => gateway.submitLicense(bytes: any(named: 'bytes'), extension: any(named: 'extension'), previousPath: any(named: 'previousPath')))
         .thenAnswer((_) async {});
-    await tester.pumpWidget(_cards(gateway, picker: (_) async => PickedLicenseImage(bytes: Uint8List(1), extension: 'png')));
+    await tester.pumpWidget(_cards(gateway, picker: (_) async => PickedPhoto(bytes: Uint8List(1), extension: 'png')));
     await tester.pumpAndSettle();
 
     expect(find.text('差し戻し'), findsOneWidget);
@@ -82,7 +83,7 @@ void main() {
     var calls = 0;
     await tester.pumpWidget(_cards(gateway, picker: (_) async {
       calls++;
-      return calls == 1 ? null : PickedLicenseImage(bytes: Uint8List(1), extension: 'jpg');
+      return calls == 1 ? null : PickedPhoto(bytes: Uint8List(1), extension: 'jpg');
     }));
     await tester.pumpAndSettle();
 

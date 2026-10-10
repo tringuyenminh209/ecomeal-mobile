@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_client.dart';
 import 'card_input.dart';
+import 'payment_api.dart';
 
 // 1 dòng payment_methods (0043). Không có số thẻ đầy đủ — chỉ đủ để hiện「Visa •••• 3456」và hạn.
 class PaymentMethod {
@@ -29,13 +30,17 @@ abstract class PaymentGateway {
   Future<List<PaymentMethod>> fetchMyPaymentMethods();
   // API-046 — chỉ hãng + 4 số cuối + hạn. Trả về id thẻ vừa tạo.
   Future<String> addPaymentMethod({required CardBrand brand, required String last4, required CardExpiry expiry});
+  // API-053 (Stripe, 0047): pm_… do Stripe SDK tạo từ CardField → server gắn vào Customer và lưu. Trả về id thẻ vừa tạo.
+  Future<String> addStripeCard(String stripePaymentMethodId);
   Future<void> setDefaultPaymentMethod(String id); // API-047
   Future<void> deletePaymentMethod(String id); // API-048
 }
 
 class SupabasePaymentGateway implements PaymentGateway {
-  SupabasePaymentGateway(this._client);
+  SupabasePaymentGateway(this._client, {PaymentInvoker? invokePayment})
+      : _invokePayment = invokePayment ?? paymentInvokerFor(_client);
   final SupabaseClient _client;
+  final PaymentInvoker _invokePayment;
 
   // RLS payment_methods_select_own: chỉ thấy thẻ của mình. Thẻ mặc định lên đầu, sau đó thẻ mới thêm.
   @override
@@ -72,6 +77,12 @@ class SupabasePaymentGateway implements PaymentGateway {
       'p_exp_year': expiry.year,
     }) as Map<String, dynamic>;
     return result['payment_method_id'] as String;
+  }
+
+  @override
+  Future<String> addStripeCard(String stripePaymentMethodId) async {
+    final data = await _invokePayment('stripe-add-card', {'payment_method_id': stripePaymentMethodId});
+    return data['payment_method_id'] as String;
   }
 
   @override

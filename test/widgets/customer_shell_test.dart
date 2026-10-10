@@ -65,6 +65,8 @@ void main() {
     await tester.tap(find.byKey(const Key('navProfile')));
     await tester.pumpAndSettle();
     expect(find.text('customer@ecomeal.test'), findsOneWidget);
+    // ListView dựng lười: nút ở cuối マイページ chỉ tồn tại khi cuộn tới
+    await tester.scrollUntilVisible(find.byKey(const Key('logoutButton')), 300, scrollable: find.byType(Scrollable).last);
     expect(find.byKey(const Key('logoutButton')), findsOneWidget);
   });
 }

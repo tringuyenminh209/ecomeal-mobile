@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/auth_controller.dart';
+import '../features/notifications/push_registration.dart';
 import '../l10n/l10n.dart';
 import 'confirm_dialog.dart';
 
@@ -9,10 +10,12 @@ import 'confirm_dialog.dart';
 // ログアウト確認 của Figma (54:3054), cùng hành vi. Không tự điều hướng: RoleGate thấy session = null
 // và tự hiện SCR-M02.
 class LogoutButton extends ConsumerWidget {
-  const LogoutButton({super.key, this.filled = false});
+  const LogoutButton({super.key, this.filled = false, this.danger = true});
 
-  // Figma: SCR-M07 = nút viền đỏ (16:16656), SCR-D05 = nút đỏ đặc dính đáy (49:105) — chỉ khác hình thức.
+  // Figma: SCR-M07 = nút viền đỏ (470:1400), SCR-D05 = nút đỏ đặc dính đáy (49:105) — chỉ khác hình thức.
   final bool filled;
+  // false: viền màu chính (SCR-S00 審査中・却下 552:72 / 552:107 — đăng xuất là lối ra bình thường, không phải thao tác nguy hiểm)
+  final bool danger;
 
   Future<void> _confirmAndSignOut(BuildContext context, WidgetRef ref) async {
     final l10n = context.l10n;
@@ -28,6 +31,7 @@ class LogoutButton extends ConsumerWidget {
     );
     if (confirmed != true) return;
     try {
+      await unregisterPush(ref); // 0048: máy này thôi nhận thông báo của tài khoản này
       await ref.read(authControllerProvider.notifier).signOut();
     } catch (_) {
       // Cùng xử lý với PlaceholderScreen (Chương 15): đăng xuất lỗi thì báo, không im lặng.
@@ -48,11 +52,12 @@ class LogoutButton extends ConsumerWidget {
         child: label,
       );
     }
+    final color = danger ? context.eco.error : context.eco.primary;
     return OutlinedButton(
       key: const Key('logoutButton'),
       style: OutlinedButton.styleFrom(
-        foregroundColor: context.eco.error,
-        side: BorderSide(color: context.eco.error),
+        foregroundColor: color,
+        side: BorderSide(color: color),
       ),
       onPressed: () => _confirmAndSignOut(context, ref),
       child: label,

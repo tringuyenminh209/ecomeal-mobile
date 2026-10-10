@@ -12,6 +12,16 @@ String orderDisplayNumber(String orderId) {
   return '#EM-${asNumber.toString().padLeft(4, '0')}';
 }
 
+// Loại báo cáo sự cố (order_issues.category, 0050) — dùng ở SCR-M15 (khách chọn) và app vận hành (A01 / A04)
+const issueCategories = ['wrong_contents', 'quality', 'not_received', 'other'];
+
+String issueCategoryLabel(String category, AppLocalizations l10n) => switch (category) {
+  'wrong_contents' => l10n.issueCategoryWrongContents,
+  'quality' => l10n.issueCategoryQuality,
+  'not_received' => l10n.issueCategoryNotReceived,
+  _ => l10n.issueCategoryOther,
+};
+
 // Mã nhận hàng dự phòng khi QR không quét được — suy ra từ orders.id, KHÔNG phải khoá xác thực và
 // KHÔNG dùng để tra cứu toàn hệ thống (4 ký tự hex không unique). Phía tài xế (SCR-D03) chỉ so khớp
 // mã này trong danh sách đơn của ĐÚNG điểm dừng hiện tại mà app tài xế đã tải sẵn (RLS
@@ -86,4 +96,20 @@ List<T> filterOrders<T>(List<T> orders, OrderFilter filter, String Function(T) s
     case OrderFilter.completed:
       return orders.where((o) => !canCancel(statusOf(o))).toList();
   }
+}
+
+// 0050 (UC-40): báo cáo vấn đề — đơn đã nhận hoặc hết hạn, chưa báo cáo, trong 48 giờ kể từ giờ nhận dự kiến.
+// Cùng điều kiện với report_order_issue (server vẫn kiểm lại bằng now() của DB).
+const issueReportWindow = Duration(hours: 48);
+
+// 0054 (UC-42): đánh giá trong 7 ngày kể từ giờ nhận dự kiến, chỉ đơn đã nhận, 1 lần (server kiểm lại: E-RATING-409/410)
+const ratingWindow = Duration(days: 7);
+bool canRateOrder({required String status, required int? rating, required DateTime plannedPickupTime, DateTime? now}) {
+  if (status != 'picked_up' || rating != null) return false;
+  return !(now ?? DateTime.now()).isAfter(plannedPickupTime.add(ratingWindow));
+}
+
+bool canReportIssue({required String status, required bool hasIssue, required DateTime plannedPickupTime, DateTime? now}) {
+  if (hasIssue || (status != 'picked_up' && status != 'expired')) return false;
+  return !(now ?? DateTime.now()).isAfter(plannedPickupTime.add(issueReportWindow));
 }

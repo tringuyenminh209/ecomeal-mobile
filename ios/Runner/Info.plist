@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
-	<string>受け取りQRの読み取りと、運転免許証の撮影にカメラを使用します。</string>
+	<string>受け取りQRの読み取りと、運転免許証・料理の写真の撮影にカメラを使用します。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>運転免許証の写真を選ぶために写真ライブラリを使用します。</string>
+	<string>運転免許証・プロフィール・料理の写真を選ぶために写真ライブラリを使用します。</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>近くの販売地点を表示するため、位置情報を使用します。</string>
 	<key>DartDefines</key>

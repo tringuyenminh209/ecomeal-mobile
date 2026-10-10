@@ -1,7 +1,7 @@
 # Workflow của repo PUBLIC tringuyenminh209/ecomeal-mobile (chỉ chứa thư mục apps/mobile, đồng bộ bằng
 # ecomeal/tools/publish-mobile.sh). Repo public được dùng runner macOS miễn phí — repo private pj đã hết quota.
 # Trong repo pj file này nằm ở apps/mobile/.github/ nên GitHub KHÔNG chạy nó ở đó (chỉ đọc .github ở gốc repo).
-#   - push lên main: check (analyze + test) rồi build 2 IPA (khách + tài xế, không ký) → artifact EcoMeal-ipa.
+#   - push lên main: check (analyze + test) rồi build 4 IPA (khách, tài xế, nhà hàng, vận hành; không ký) → artifact EcoMeal-ipa.
 #   - bấm tay (workflow_dispatch): như trên, tick smoke_test để chạy thử trên iOS Simulator + chụp màn hình.
 name: iOS build
 
@@ -120,7 +120,7 @@ jobs:
 
       # ---- App tài xế「EcoMeal Driver」(ADR-007: lib/main_driver.dart, bundle com.ecomeal.ecomealDriver) ----
       - name: Switch iOS project to the driver app
-        run: bash tool/ios_use_driver_variant.sh
+        run: bash tool/ios_use_variant.sh driver
 
       - name: Build iOS — app tài xế (Simulator, không ký)
         if: inputs.smoke_test
@@ -146,6 +146,21 @@ jobs:
           (cd build/ipa && zip -qry EcoMeal-Driver.ipa Payload && rm -rf Payload)
           ls -lh build/ipa/
 
+      # ---- App nhà hàng「EcoMeal Store」/ vận hành「EcoMeal Admin」(ADR-015: lib/main_store.dart / lib/main_admin.dart) ----
+      # Chỉ build IPA (không chạy Simulator) để giữ phút macOS. Sideloadly với Apple ID miễn phí chỉ cài được 3 app cùng lúc.
+      - name: Build IPA — app nhà hàng / vận hành (release, không ký)
+        run: |
+          set -euo pipefail
+          for app in store admin; do
+            bash tool/ios_use_variant.sh "$app"
+            flutter build ios --release --no-codesign -t "lib/main_$app.dart" --dart-define-from-file=env.json
+            mkdir -p build/ipa/Payload
+            cp -R build/ios/iphoneos/Runner.app build/ipa/Payload/
+            name=$([ "$app" = store ] && echo EcoMeal-Store || echo EcoMeal-Admin)
+            (cd build/ipa && zip -qry "$name.ipa" Payload && rm -rf Payload)
+          done
+          ls -lh build/ipa/
+
       - name: Upload screenshots
         if: always() && inputs.smoke_test
         uses: actions/upload-artifact@v4
@@ -161,5 +176,7 @@ jobs:
           path: |
             build/ipa/EcoMeal.ipa
             build/ipa/EcoMeal-Driver.ipa
+            build/ipa/EcoMeal-Store.ipa
+            build/ipa/EcoMeal-Admin.ipa
           retention-days: 7
           if-no-files-found: error

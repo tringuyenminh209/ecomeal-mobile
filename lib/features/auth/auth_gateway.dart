@@ -28,6 +28,22 @@ abstract class AuthGateway {
   Future<void> requestPasswordReset(String email);
   Future<void> verifyRecoveryCode({required String email, required String code});
   Future<void> updatePassword(String password);
+  // UC-45 (0057, ADR-013). LINE: Edge Function line-login (API-076) xác minh ID token → token dùng 1 lần → verifyOTP lấy phiên.
+  Future<void> signInWithLineIdToken({required String idToken, required String languageCode});
+  // Apple: provider Apple của Supabase Auth. fullName chỉ có ở lần đầu (Apple không gửi lại) → lưu làm tên hiển thị.
+  Future<void> signInWithAppleIdToken({required String idToken, required String rawNonce, String? fullName});
+}
+
+// Tài khoản tạo bằng LINE (0057) có email nội bộ không nhận thư — cùng miền với lineLoginEmail() của Edge Function line-login.
+// Màn hình không hiện địa chỉ này mà hiện「LINEでログイン中」.
+bool isLineOnlyEmail(String email) => email.endsWith('@line.ecomeal.invalid');
+
+// Lỗi có mã do line-login trả (envelope của Edge Function), vd E-AUTH-403 (tài khoản không phải khách).
+class SocialLoginException implements Exception {
+  const SocialLoginException(this.code);
+  final String code;
+  @override
+  String toString() => 'SocialLoginException($code)';
 }
 
 class SupabaseAuthGateway implements AuthGateway {
@@ -76,6 +92,35 @@ class SupabaseAuthGateway implements AuthGateway {
   @override
   Future<void> verifyRecoveryCode({required String email, required String code}) {
     return _client.auth.verifyOTP(email: email, token: code, type: OtpType.recovery);
+  }
+
+  @override
+  Future<void> signInWithLineIdToken({required String idToken, required String languageCode}) async {
+    final String tokenHash;
+    try {
+      final res = await _client.functions.invoke('line-login', body: {'id_token': idToken, 'language': languageCode});
+      final data = res.data;
+      final hash = data is Map && data['data'] is Map ? (data['data'] as Map)['token_hash'] : null;
+      if (hash is! String) throw const SocialLoginException('E-INTERNAL');
+      tokenHash = hash;
+    } on FunctionException catch (e) {
+      final details = e.details;
+      final code = details is Map && details['error'] is Map ? (details['error'] as Map)['code'] : null;
+      throw SocialLoginException(code is String ? code : 'E-INTERNAL');
+    }
+    await _client.auth.verifyOTP(type: OtpType.magiclink, tokenHash: tokenHash);
+  }
+
+  @override
+  Future<void> signInWithAppleIdToken({required String idToken, required String rawNonce, String? fullName}) async {
+    final res = await _client.auth.signInWithIdToken(provider: OAuthProvider.apple, idToken: idToken, nonce: rawNonce);
+    final name = fullName?.trim();
+    final userId = res.user?.id;
+    if (name == null || name.isEmpty || userId == null) return;
+    // Chỉ thay tên mặc định của trigger 0057 — không ghi đè tên người dùng đã tự sửa. Lỗi ở đây không chặn đăng nhập.
+    try {
+      await _client.from('users').update({'name': name}).eq('id', userId).eq('name', 'EcoMealユーザー');
+    } catch (_) {}
   }
 
   @override

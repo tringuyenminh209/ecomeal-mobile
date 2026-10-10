@@ -120,6 +120,44 @@ class AppLocalizationsEn extends AppLocalizations {
       'Drivers, please sign in with the EcoMeal Driver app. This app is for customers only.';
 
   @override
+  String get storeAppTitle => 'EcoMeal Store';
+
+  @override
+  String get adminAppTitle => 'EcoMeal Admin';
+
+  @override
+  String get storeBadge => 'Store';
+
+  @override
+  String get storeLoginLead =>
+      'Sign in with the store account issued by EcoMeal.';
+
+  @override
+  String get storeLoginNote =>
+      'New stores can apply from the web dashboard (ecomeal-pi.vercel.app).';
+
+  @override
+  String get adminBadge => 'Ops';
+
+  @override
+  String get adminLoginLead =>
+      'Sign in with your operations account. You will then enter a two-factor code.';
+
+  @override
+  String get storeOnlyAppTitle => 'This app is for stores';
+
+  @override
+  String get storeOnlyAppBody =>
+      'Customers please use the \"EcoMeal\" app, and drivers the \"EcoMeal Driver\" app.';
+
+  @override
+  String get adminOnlyAppTitle => 'This app is for EcoMeal operations';
+
+  @override
+  String get adminOnlyAppBody =>
+      'Customers please use \"EcoMeal\", restaurants \"EcoMeal Store\", and drivers \"EcoMeal Driver\".';
+
+  @override
   String get driverSuspendedTitle => 'Your account is suspended';
 
   @override
@@ -833,7 +871,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String totalWithQuantity(int quantity) {
-    return 'Total (qty $quantity)';
+    return 'Total incl. tax (qty $quantity)';
   }
 
   @override
@@ -1451,4 +1489,2091 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get detailNotePhoto =>
       'This photo was added by the restaurant. Portions and presentation may differ. If you have allergies, please check the labels.';
+
+  @override
+  String get legalTermsTitle => 'Terms of Use';
+
+  @override
+  String get legalPrivacyTitle => 'Privacy Policy';
+
+  @override
+  String get legalEnactedOn => 'Effective: October 9, 2026';
+
+  @override
+  String get legalDemoNotice =>
+      'This text is a demo for a graduation project. It will be reviewed by a professional before real operation.';
+
+  @override
+  String get legalContactTitle => 'Contact';
+
+  @override
+  String get termsArticle1Title => 'Article 1 (Scope)';
+
+  @override
+  String get termsArticle1Body =>
+      'These terms set out the conditions for using the EcoMeal smartphone app (the \"Service\"). By registering, you agree to these terms before using the Service.';
+
+  @override
+  String get termsArticle2Title => 'Article 2 (Your account)';
+
+  @override
+  String get termsArticle2Body =>
+      'You register with an email address and password. Keep your details accurate and do not share your password. If we find misuse, we may suspend the account.';
+
+  @override
+  String get termsArticle3Title => 'Article 3 (Products)';
+
+  @override
+  String get termsArticle3Body =>
+      'The food sold on the Service is surplus food cooked that day at partner restaurants (mystery bags). Contents and quantities vary by day, and prices drop as the sales deadline approaches. Check the allergens (28 items) and ingredient origins in the app before buying. Because the food is prepared in shared kitchens, trace cross-contact cannot be ruled out.';
+
+  @override
+  String get termsArticle4Title => 'Article 4 (Reservations and payment)';
+
+  @override
+  String get termsArticle4Body =>
+      'You can make up to two reservations per day. Payment uses a card you have registered. The Service is in testing, so no real charges are made. Card numbers and security codes are not stored on our servers.';
+
+  @override
+  String get termsArticle5Title => 'Article 5 (Cancellations and refunds)';
+
+  @override
+  String get termsArticle5Body =>
+      'Cancellations up to 30 minutes before the pickup time are fully refunded; later cancellations are not refunded. Reservations that cannot be filled because of a shortage are refunded automatically. Reservations not picked up before the truck leaves the pickup point expire without a refund.';
+
+  @override
+  String get termsArticle6Title => 'Article 6 (Pickup)';
+
+  @override
+  String get termsArticle6Body =>
+      'Pick up your order from the Eco-Truck parked at the reserved pickup point and time by showing the QR code or confirmation code on the reservation screen.';
+
+  @override
+  String get termsArticle7Title => 'Article 7 (Location and notifications)';
+
+  @override
+  String get termsArticle7Body =>
+      'Your location is used on your device to show nearby pickup points and is not stored on our servers. If you link LINE, the EcoMeal official account sends you truck-arrival and refund notices.';
+
+  @override
+  String get termsArticle8Title => 'Article 8 (Profile photo)';
+
+  @override
+  String get termsArticle8Body =>
+      'Your profile photo is shown only on your own My Page. You may not upload images that infringe the rights of others, such as their likeness or copyrighted works, or images that are offensive. We may remove inappropriate images.';
+
+  @override
+  String get termsArticle9Title => 'Article 9 (Prohibited conduct)';
+
+  @override
+  String get termsArticle9Body =>
+      'You may not break the law, harass other users, partner restaurants or drivers, resell purchased items, or attempt unauthorized access to the Service.';
+
+  @override
+  String get termsArticle10Title =>
+      'Article 10 (Changes, suspension and disclaimer)';
+
+  @override
+  String get termsArticle10Body =>
+      'The Service is being developed and tested as a graduation project and may be changed or suspended without notice. We will announce changes to these terms in the app and ask for your consent again for significant changes.';
+
+  @override
+  String get privacySection1Title => '1. Information we collect';
+
+  @override
+  String get privacySection1Body =>
+      'Registration details (email address, display name, furigana, profile photo), reservation and purchase history, payment methods (card brand, last four digits and expiry only), your LINE user ID if you link LINE, the content of your inquiries, how you use the app (records of opening food bags and the reservation screen), error information (error details, device type, app version), and a device identifier for sending notifications. We do not collect or store card numbers or security codes; our payment provider receives them directly.';
+
+  @override
+  String get privacySection2Title => '2. Location';
+
+  @override
+  String get privacySection2Body =>
+      'We use your device\'s location to show nearby pickup points, but it is not sent to or stored on our servers.';
+
+  @override
+  String get privacySection3Title => '3. How we use it';
+
+  @override
+  String get privacySection3Body =>
+      'To process reservations, handovers and refunds, send pickup notices, answer inquiries, and improve the Service.';
+
+  @override
+  String get privacySection4Title => '4. Sharing and outsourcing';
+
+  @override
+  String get privacySection4Body =>
+      'We do not share your information with third parties without your consent except where required by law. We use Supabase (data storage), Google Maps (maps), LINE and Firebase Cloud Messaging (notifications), Stripe (payments) and Sentry (error monitoring) to process data on our behalf.';
+
+  @override
+  String get privacySection5Title => '5. Access, correction and deletion';
+
+  @override
+  String get privacySection5Body =>
+      'To request access to or correction or deletion of your information, contact us through the inquiry form. You can delete your account and profile photo from My Page at any time.';
+
+  @override
+  String get termsUpdatedTitle => 'The Terms of Use have been updated';
+
+  @override
+  String get termsUpdatedBody =>
+      'To keep using EcoMeal, please agree to the latest Terms of Use and Privacy Policy.';
+
+  @override
+  String get termsAgreeAndContinue => 'Agree and continue';
+
+  @override
+  String get termsDeclineAndLogout => 'Don\'t agree (log out)';
+
+  @override
+  String get errorTermsAcceptFailed =>
+      'Couldn\'t record your consent. Please try again.';
+
+  @override
+  String get signupConsentBefore => 'I agree to the ';
+
+  @override
+  String get signupConsentBetween => ' and ';
+
+  @override
+  String get signupConsentAfter => '';
+
+  @override
+  String get signupConsentHint =>
+      'Check the box to enable Sign up. Tap a link to read the full text.';
+
+  @override
+  String get aboutAppSection => 'About this app';
+
+  @override
+  String get appVersionLabel => 'Version';
+
+  @override
+  String get profilePhotoSet => 'Add photo';
+
+  @override
+  String get profilePhotoChange => 'Change photo';
+
+  @override
+  String get profilePhotoHint =>
+      'JPEG or PNG (up to 10 MB). Cropped to a square.';
+
+  @override
+  String get profilePhotoUploading => 'Uploading photo…';
+
+  @override
+  String get errorProfilePhotoUpload =>
+      'Couldn\'t upload the photo. Check your connection and try again.';
+
+  @override
+  String get errorProfilePhotoInvalid =>
+      'Choose a JPEG or PNG of 10 MB or less';
+
+  @override
+  String get profilePhotoSheetTitle => 'Profile photo';
+
+  @override
+  String get profilePhotoTake => 'Take photo';
+
+  @override
+  String get profilePhotoLibrary => 'Choose from library';
+
+  @override
+  String get profilePhotoDelete => 'Delete photo';
+
+  @override
+  String get profilePhotoDeleted => 'Photo deleted';
+
+  @override
+  String get photoAccessDeniedTitle => 'Camera (photo) access is not allowed';
+
+  @override
+  String get openSettings => 'Open settings';
+
+  @override
+  String get photoAccessDeniedBody =>
+      'Allow EcoMeal to access the camera and photos in your device settings.';
+
+  @override
+  String get deleteAccountLink => 'Delete account';
+
+  @override
+  String get deleteAccountTitle => 'Delete account';
+
+  @override
+  String get deleteAccountLead =>
+      'After you delete your account, you can no longer log in to EcoMeal. This cannot be undone.';
+
+  @override
+  String get deleteAccountRemovedTitle => 'What will be deleted';
+
+  @override
+  String get deleteAccountRemoved1 =>
+      '• Email address, display name, furigana and profile photo';
+
+  @override
+  String get deleteAccountRemoved2 =>
+      '• Saved cards (brand, last four digits, expiry)';
+
+  @override
+  String get deleteAccountRemoved3 => '• LINE link and truck-arrival notices';
+
+  @override
+  String get deleteAccountKeptTitle => 'What we keep (not linked to you)';
+
+  @override
+  String get deleteAccountKeptBody =>
+      'Past reservations and purchases are kept without your name or email address, to calculate sales and restaurant payouts.';
+
+  @override
+  String get deleteAccountNote =>
+      'If you have reservations not yet picked up, cancel or pick them up first. You can unfriend the EcoMeal official LINE account in the LINE app.';
+
+  @override
+  String get deleteAccountOpenOrders =>
+      'You have reservations not yet picked up. Cancel them in the Reservations tab or pick them up before deleting your account.';
+
+  @override
+  String get deleteAccountButton => 'Delete my account';
+
+  @override
+  String get deleteAccountDialogTitle => 'Delete your account?';
+
+  @override
+  String get deleteAccountDialogBody =>
+      'This cannot be undone. Reservation and purchase records are kept in a form that does not identify you.';
+
+  @override
+  String get deleteAccountConfirm => 'Delete';
+
+  @override
+  String get accountDeleted => 'Your account has been deleted';
+
+  @override
+  String get errorDeleteAccount =>
+      'Couldn\'t delete your account. Please try again.';
+
+  @override
+  String get legalTokushohoTitle =>
+      'Specified Commercial Transactions Act notice';
+
+  @override
+  String taxIncludedLine(int rate) {
+    return 'Incl. consumption tax ($rate%)';
+  }
+
+  @override
+  String priceTaxIncluded(String price) {
+    return '$price incl. tax';
+  }
+
+  @override
+  String get receiptButton => 'Receipt';
+
+  @override
+  String get receiptTitle => 'Receipt';
+
+  @override
+  String receiptAddressee(String name) {
+    return '$name';
+  }
+
+  @override
+  String get receiptPurpose => 'For food';
+
+  @override
+  String receiptTaxableLine(int rate) {
+    return 'Subject to $rate% (incl. tax)';
+  }
+
+  @override
+  String get receiptUsedOn => 'Date of use';
+
+  @override
+  String get receiptOrderNumber => 'Order number';
+
+  @override
+  String get receiptPaymentMethod => 'Payment method';
+
+  @override
+  String get receiptPaymentCard => 'Credit card';
+
+  @override
+  String get receiptIssuedOn => 'Issued on';
+
+  @override
+  String get receiptIssuer =>
+      'EcoMeal operations team (graduation project “Kuri Manju”)';
+
+  @override
+  String get receiptNote =>
+      '* Food items subject to the reduced tax rate (8%). EcoMeal is not a registered qualified invoice issuer, so no registration number is shown. Save or print this screen if you need it.';
+
+  @override
+  String get stripeCardIncomplete =>
+      'Enter the card number, expiry date and security code.';
+
+  @override
+  String get errorCardDeclined =>
+      'This card couldn\'t be added. Please try another card.';
+
+  @override
+  String get pushSectionTitle => 'App notifications';
+
+  @override
+  String get pushOffTitle => 'App notifications';
+
+  @override
+  String get pushOffBody =>
+      'Get notified on this phone when the truck is arriving or a refund is made.';
+
+  @override
+  String get pushEnableButton => 'Turn on notifications';
+
+  @override
+  String get pushOnTitle => 'Notifications are on';
+
+  @override
+  String get pushOnBody =>
+      'We\'ll notify you when the truck is arriving, about refunds, and about new food bags at your favorite pickup points. If you\'ve linked LINE, truck-arrival notices go to LINE.';
+
+  @override
+  String get pushDeniedTitle => 'Notifications are not allowed';
+
+  @override
+  String get pushDeniedBody =>
+      'Allow EcoMeal notifications in your device settings.';
+
+  @override
+  String get errorPushEnable =>
+      'Couldn\'t turn on notifications. Please try again.';
+
+  @override
+  String get reportIssueButton => 'Report a problem';
+
+  @override
+  String get reportIssueTitle => 'Report a problem';
+
+  @override
+  String get reportIssueQuestion => 'What was the problem?';
+
+  @override
+  String get issueCategoryWrongContents =>
+      'Items or quantity differ from the reservation';
+
+  @override
+  String get issueCategoryQuality =>
+      'Quality problem (spoiled, foreign object, etc.)';
+
+  @override
+  String get issueCategoryNotReceived => 'I couldn\'t pick it up';
+
+  @override
+  String get issueCategoryOther => 'Other';
+
+  @override
+  String get reportIssueDetailLabel => 'Details';
+
+  @override
+  String get reportIssueDetailHint => 'e.g. Part of the bread was moldy';
+
+  @override
+  String get reportIssueNote =>
+      'Please report within 48 hours of pickup. We will review it and refund if needed (you will be notified and see the result in your reservation history).';
+
+  @override
+  String get reportIssueSubmit => 'Send report';
+
+  @override
+  String get reportIssueSent => 'Report sent';
+
+  @override
+  String get errorReportIssueSelect => 'Choose the type of problem';
+
+  @override
+  String get errorReportIssueDetail =>
+      'Enter the details (up to 500 characters)';
+
+  @override
+  String get errorReportIssueLate =>
+      'More than 48 hours have passed since pickup, so you can no longer report it in the app. Please use the contact form.';
+
+  @override
+  String get errorReportIssueDuplicate =>
+      'This order has already been reported';
+
+  @override
+  String get errorReportIssue => 'Couldn\'t send the report. Please try again.';
+
+  @override
+  String get issueOpenTitle => 'Problem reported (under review)';
+
+  @override
+  String get issueOpenBody =>
+      'We\'re reviewing it and will refund if needed. We\'ll let you know the result.';
+
+  @override
+  String issueResolvedRefund(int amount) {
+    return 'Resolved: ¥$amount refunded';
+  }
+
+  @override
+  String get issueResolvedNoRefund => 'Resolved';
+
+  @override
+  String get favoriteStopsTitle => 'Favorite pickup points';
+
+  @override
+  String get favoriteStopsIntro =>
+      'We\'ll notify you in the app (or on LINE) when new food bags are available at these pickup points. You can add up to 5.';
+
+  @override
+  String get favoriteStopsHint =>
+      'Tap ★ to remove. Not getting notifications? Turn on \"App notifications\" in My Page.';
+
+  @override
+  String get favoriteStopsEmptyTitle => 'No favorite pickup points yet';
+
+  @override
+  String get favoriteStopsEmptyBody =>
+      'Tap ☆ in the pickup section of a food bag, and we\'ll let you know when new food bags are available there.';
+
+  @override
+  String get favoriteStopsRowNone => 'None ・ Get notified about new food bags';
+
+  @override
+  String favoriteStopsRowCount(int count) {
+    return '$count ・ Get notified about new food bags';
+  }
+
+  @override
+  String get favoriteAdded =>
+      'Added to favorites. We\'ll let you know when new food bags are available at this pickup point';
+
+  @override
+  String get favoriteRemoved => 'Removed from favorites';
+
+  @override
+  String get favoriteLimitReached =>
+      'You can add up to 5 favorite pickup points. Remove one in My Page first';
+
+  @override
+  String get favoriteUpdateFailed =>
+      'Couldn\'t update your favorites. Please try again later';
+
+  @override
+  String get favoriteAddTooltip => 'Add this pickup point to favorites';
+
+  @override
+  String get favoriteRemoveTooltip => 'Remove from favorites';
+
+  @override
+  String get ratingPromptTitle => 'How was your food bag?';
+
+  @override
+  String get ratingPromptHint => 'Tap a star to rate (within 7 days of pickup)';
+
+  @override
+  String get ratingLabel1 => 'Poor';
+
+  @override
+  String get ratingLabel2 => 'Fair';
+
+  @override
+  String get ratingLabel3 => 'OK';
+
+  @override
+  String get ratingLabel4 => 'Good';
+
+  @override
+  String get ratingLabel5 => 'Great';
+
+  @override
+  String ratingStarSemantics(int count) {
+    return '$count stars';
+  }
+
+  @override
+  String ratingSheetOrder(String number, String time) {
+    return 'Order #$number ・ Picked up $time';
+  }
+
+  @override
+  String get ratingCommentLabel => 'A note for the restaurant (optional)';
+
+  @override
+  String get ratingCommentHint =>
+      'e.g. Generous portions, still warm at pickup.';
+
+  @override
+  String get ratingPrivacyNote =>
+      'Your rating reaches the restaurant without your name. Please don\'t include personal information.';
+
+  @override
+  String get ratingSubmit => 'Send rating';
+
+  @override
+  String get ratingSent => 'Thanks for your rating';
+
+  @override
+  String get ratingErrorExpired => 'You can only rate within 7 days of pickup';
+
+  @override
+  String get ratingErrorAlreadyRated => 'You\'ve already rated this order';
+
+  @override
+  String get ratingErrorFailed =>
+      'Couldn\'t send your rating. Please try again';
+
+  @override
+  String get ratedLabel => 'Your rating';
+
+  @override
+  String get ratedThanks => 'Thank you';
+
+  @override
+  String ratedSemantics(int count) {
+    return 'Your rating: $count stars';
+  }
+
+  @override
+  String get impactTitle => 'Food you have saved';
+
+  @override
+  String get impactEmpty =>
+      'Once you pick up a food bag, you\'ll see how much food you\'ve saved and the CO₂ avoided here.';
+
+  @override
+  String impactBagsValue(int count) {
+    return '$count';
+  }
+
+  @override
+  String get impactBagsLabel => 'Food bags picked up';
+
+  @override
+  String get impactFoodLabel => 'Food saved';
+
+  @override
+  String get impactCo2Label => 'CO₂ avoided';
+
+  @override
+  String impactApproxKg(String kg) {
+    return '~$kg kg';
+  }
+
+  @override
+  String impactNote(String bagKg, String factor) {
+    return 'Estimates (about $bagKg kg per bag, about $factor kg of CO₂ per kg of food waste)';
+  }
+
+  @override
+  String get couponsTitle => 'Coupons & referrals';
+
+  @override
+  String couponsRowSubtitle(int count) {
+    return '$count coupons ・ Invite friends for ¥100';
+  }
+
+  @override
+  String get couponSectionLabel => 'Coupon';
+
+  @override
+  String get subtotalLabel => 'Subtotal';
+
+  @override
+  String couponAmountOff(int amount) {
+    return '¥$amount off';
+  }
+
+  @override
+  String couponValidUntil(String date) {
+    return 'Valid until $date';
+  }
+
+  @override
+  String get couponReasonWelcome => 'Referral coupon (welcome)';
+
+  @override
+  String get couponReasonReward => 'Referral coupon (thank you)';
+
+  @override
+  String get couponReasonCampaign => 'Campaign coupon';
+
+  @override
+  String get couponsUsableHeading => 'Available coupons';
+
+  @override
+  String get couponsNone => 'No coupons available';
+
+  @override
+  String get couponsAutoNote =>
+      'Coupons are applied automatically on the reservation screen (one per reservation). Cancel within the free period and the coupon comes back.';
+
+  @override
+  String get errorCouponUnavailable =>
+      'This coupon can\'t be used anymore. Please check and try again';
+
+  @override
+  String get receiptCouponLine => 'Coupon discount';
+
+  @override
+  String get referralMyCodeLabel => 'Your referral code';
+
+  @override
+  String get referralCopy => 'Copy';
+
+  @override
+  String get referralCopied => 'Referral code copied';
+
+  @override
+  String get referralShareLine => 'Send on LINE';
+
+  @override
+  String referralShareText(String code) {
+    return 'Get leftover bento at a discount with EcoMeal. Sign up and enter referral code \"$code\" to get a ¥100 coupon.';
+  }
+
+  @override
+  String get referralHowItWorks =>
+      'When a friend enters this code, they get a ¥100 coupon. When they pick up their first food bag, you get a ¥100 coupon too.';
+
+  @override
+  String get referralEnterLabel => 'Enter a friend\'s referral code';
+
+  @override
+  String get referralEnterHint => 'e.g. EM3PX9';
+
+  @override
+  String get referralApply => 'Apply';
+
+  @override
+  String get referralEnterNote =>
+      'Available within 14 days of sign-up, before your first pickup.';
+
+  @override
+  String referralApplied(String code) {
+    return 'Referral code $code applied';
+  }
+
+  @override
+  String get referralAppliedToast => 'You got a ¥100 coupon';
+
+  @override
+  String get referralErrorFormat => 'Enter a 6-character referral code';
+
+  @override
+  String get referralErrorNotFound => 'We couldn\'t find this referral code';
+
+  @override
+  String get referralErrorOwnCode => 'You can\'t use your own referral code';
+
+  @override
+  String get referralErrorNotEligible =>
+      'The period for entering a referral code has ended';
+
+  @override
+  String get referralErrorFailed =>
+      'Couldn\'t apply the referral code. Please try again';
+
+  @override
+  String get socialLoginDivider => 'or';
+
+  @override
+  String get lineLoginButton => 'Log in with LINE';
+
+  @override
+  String get appleLoginButton => 'Sign in with Apple';
+
+  @override
+  String get socialLoginNote =>
+      'If it\'s your first time, an EcoMeal account is created with your LINE or Apple account.';
+
+  @override
+  String get lineLoginFailed =>
+      'Couldn\'t log in with LINE. Please try again later';
+
+  @override
+  String get appleLoginFailed =>
+      'Couldn\'t sign in with Apple. Please try again later';
+
+  @override
+  String get socialLoginNotCustomer =>
+      'This account can\'t log in with LINE. Please log in with your email and password';
+
+  @override
+  String get signedInWithLine => 'Logged in with LINE';
+
+  @override
+  String get storeReviewPendingTitle => 'Under review';
+
+  @override
+  String get storeReviewPendingBody =>
+      'EcoMeal is reviewing your application. We will notify you by email and in the app (usually within 2 business days).';
+
+  @override
+  String get storeFieldName => 'Store';
+
+  @override
+  String get storeFieldAppliedAt => 'Applied on';
+
+  @override
+  String get storeFieldApplicant => 'Applicant';
+
+  @override
+  String get storeReviewRejectedTitle => 'Application not approved';
+
+  @override
+  String get storeReviewRejectedBody =>
+      'You can fix the details and apply again from the web dashboard.';
+
+  @override
+  String get storeRejectionReasonLabel => 'Reason';
+
+  @override
+  String get storeNotRegisteredTitle => 'Your store is not registered yet';
+
+  @override
+  String get storeNotRegisteredBody =>
+      'Apply to register your store from the web dashboard. After review, you can register surplus food in this app.';
+
+  @override
+  String get storeTabHome => 'Home';
+
+  @override
+  String get storeTabRegister => 'Register';
+
+  @override
+  String get storeTabSettlement => 'Payouts';
+
+  @override
+  String get storeTabSettings => 'Settings';
+
+  @override
+  String get storeRegisterCta => 'Register today\'s surplus';
+
+  @override
+  String storeRegisterDeadline(String time, String remaining) {
+    return 'Deadline $time ($remaining left)';
+  }
+
+  @override
+  String storeRegisterDeadlinePassed(String time) {
+    return 'Past the $time deadline';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get storePhotoRemovedTitle => 'A food photo was removed';
+
+  @override
+  String get storePhotoRemovedHint =>
+      'Next time, please use a photo without your store name or logo.';
+
+  @override
+  String get storePhotoRemovedAck => 'Got it';
+
+  @override
+  String get storeTodayBatches => 'Today\'s batches';
+
+  @override
+  String get storeBatchStatusEstimated => 'Estimate';
+
+  @override
+  String get storeBatchStatusOnSale => 'On sale';
+
+  @override
+  String get storeBatchStatusEnded => 'Ended';
+
+  @override
+  String storeSellBy(String time) {
+    return 'Sell by $time';
+  }
+
+  @override
+  String storeCollectionPlanned(String time) {
+    return 'Pickup at $time';
+  }
+
+  @override
+  String storeBatchQtyConfirmed(int estimated, int confirmed) {
+    return 'Est. $estimated → confirmed $confirmed';
+  }
+
+  @override
+  String storeBatchQtyEstimated(int estimated) {
+    return 'Est. $estimated (awaiting pickup)';
+  }
+
+  @override
+  String storeBatchCounts(int reserved, int pickedUp) {
+    return '$reserved reserved ・ $pickedUp picked up';
+  }
+
+  @override
+  String storeBatchReserved(int reserved) {
+    return '$reserved reserved';
+  }
+
+  @override
+  String get storeNoBatchesTitle => 'No batches today yet';
+
+  @override
+  String get storeNoBatchesBody =>
+      'If you expect leftovers, register an estimate by 16:00. It will be added to tonight\'s route.';
+
+  @override
+  String get storeLoadErrorTitle => 'Couldn\'t load';
+
+  @override
+  String get storeLoadErrorBody => 'Check your connection and try again.';
+
+  @override
+  String get storeReload => 'Reload';
+
+  @override
+  String get storeMonthSales => 'Sales this month';
+
+  @override
+  String storeMonthSalesSub(int orders, String from) {
+    return '$orders meals (since $from)';
+  }
+
+  @override
+  String get storeMonthPayout => 'Payout this month';
+
+  @override
+  String storeSharePct(String pct) {
+    return 'Share $pct%';
+  }
+
+  @override
+  String storeRatingsRow(String average) {
+    return 'Customer rating $average';
+  }
+
+  @override
+  String storeRatingsSub(int count) {
+    return 'Last 30 days ・ $count ratings';
+  }
+
+  @override
+  String get storeRatingsNone => 'No ratings yet';
+
+  @override
+  String get storeBatchDetailTitle => 'Batch details';
+
+  @override
+  String storeBatchPriceLine(String price, String time) {
+    return '$price ・ sell by $time';
+  }
+
+  @override
+  String get storeStatConfirmed => 'Confirmed';
+
+  @override
+  String get storeStatEstimated => 'Estimate';
+
+  @override
+  String get storeStatReserved => 'Reserved';
+
+  @override
+  String get storeStatPickedUp => 'Picked up';
+
+  @override
+  String get storeStatRemaining => 'Left';
+
+  @override
+  String get storeStatCollection => 'Pickup';
+
+  @override
+  String get storeProgress => 'Progress';
+
+  @override
+  String get storeStepEstimated => 'Estimate registered';
+
+  @override
+  String storeStepEstimatedDetail(int qty) {
+    return 'Registered $qty';
+  }
+
+  @override
+  String get storeStepCollected => 'Pickup & count';
+
+  @override
+  String storeStepCollectedPlanned(String time) {
+    return 'Planned $time';
+  }
+
+  @override
+  String get storeStepCollectedHint =>
+      'When the driver arrives, confirm the actual count together';
+
+  @override
+  String storeStepCollectedBy(String name) {
+    return 'Driver $name';
+  }
+
+  @override
+  String get storeStepOnSale => 'On sale';
+
+  @override
+  String storeStepOnSaleUntil(String time) {
+    return 'until $time';
+  }
+
+  @override
+  String storeStepOnSaleDetail(int count) {
+    return 'Sold at $count pickup points';
+  }
+
+  @override
+  String get storeStepEnded => 'Ended';
+
+  @override
+  String get storeStepEndedDetail =>
+      'Leftovers are recorded as donated or discarded';
+
+  @override
+  String get storeStopsRemaining => 'Left at each pickup point';
+
+  @override
+  String get storeAutoUpdate => 'Auto-updating';
+
+  @override
+  String storeStopRemaining(int remaining) {
+    return '$remaining left';
+  }
+
+  @override
+  String storeStopAllocated(int allocated) {
+    return ' / $allocated';
+  }
+
+  @override
+  String get storeEstimatedNote =>
+      'If fewer items are collected than reserved, the earliest reservations are kept and the rest are refunded automatically.';
+
+  @override
+  String get storeBatchNotFound => 'This batch was not found';
+
+  @override
+  String storeTemperature(String celsius) {
+    return '$celsius°C';
+  }
+
+  @override
+  String get storeRegisterTitle => 'Register surplus';
+
+  @override
+  String get storeRegisterSubtitle =>
+      'Estimate — the driver confirms the count at pickup';
+
+  @override
+  String get storeRequired => 'Required';
+
+  @override
+  String get storePhotoTake => 'Take a food photo';
+
+  @override
+  String get storePhotoRetake => 'Retake';
+
+  @override
+  String get storePhotoHint =>
+      'Make sure no store name, logo or faces are in the photo.';
+
+  @override
+  String get storePhotoCamera => 'Take photo';
+
+  @override
+  String get storePhotoLibrary => 'Choose from library';
+
+  @override
+  String get storePhotoRemove => 'Remove photo';
+
+  @override
+  String get storeQtyLabel => 'Expected quantity';
+
+  @override
+  String get storeQtyUnit => 'pcs';
+
+  @override
+  String get storeQtyDecrease => 'Decrease';
+
+  @override
+  String get storeQtyIncrease => 'Increase';
+
+  @override
+  String get storePriceLabel => 'Unit price (tax incl.)';
+
+  @override
+  String get storePriceHint =>
+      'As the sell-by time approaches, the app discounts automatically (30–70%).';
+
+  @override
+  String get storeSellByLabel => 'Sell by';
+
+  @override
+  String get storeSellByToday => 'Today';
+
+  @override
+  String get storeSellByTomorrow => 'Tomorrow';
+
+  @override
+  String get storeSellByChange => 'Change';
+
+  @override
+  String get storeAllergenLabel => 'Allergens (28 items)';
+
+  @override
+  String get storeAllergenShowAll => 'Show all (28)';
+
+  @override
+  String get storeAllergenHint =>
+      'Select all that apply. The 12 most common are shown.';
+
+  @override
+  String storeAllergenSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get storeAllergenSheetNote =>
+      'Your selection stays on the form after you close this.';
+
+  @override
+  String get storeAllergenMandatory => 'Mandatory labeling (8 items)';
+
+  @override
+  String get storeAllergenRecommended => 'Recommended labeling (20 items)';
+
+  @override
+  String get storeAllergenClear => 'Clear all';
+
+  @override
+  String storeAllergenDone(int count) {
+    return 'Done ($count)';
+  }
+
+  @override
+  String get storeAllergenLoadFailed => 'Couldn\'t load the allergen list.';
+
+  @override
+  String get storeIngredientsLabel => 'Main ingredients & origin';
+
+  @override
+  String get storeIngredientAdd => '+ Add ingredient';
+
+  @override
+  String get storeIngredientName => 'Ingredient';
+
+  @override
+  String get storeIngredientOrigin => 'Origin';
+
+  @override
+  String get storeIngredientOriginHint => 'e.g. Japan (Kagoshima)';
+
+  @override
+  String storeIngredientRemove(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String get storeAdd => 'Add';
+
+  @override
+  String get storeCancel => 'Cancel';
+
+  @override
+  String get storeReviewButton => 'Review';
+
+  @override
+  String get storeConfirmTitle => 'Register with these details?';
+
+  @override
+  String get storeConfirmQty => 'Quantity';
+
+  @override
+  String storeConfirmQtyValue(int qty) {
+    return '$qty';
+  }
+
+  @override
+  String get storeConfirmAllergens => 'Allergens';
+
+  @override
+  String get storeConfirmIngredients => 'Ingredients';
+
+  @override
+  String get storeConfirmNone => 'None';
+
+  @override
+  String storeConfirmIngredientsMore(String first, int more) {
+    return '$first and $more more';
+  }
+
+  @override
+  String get storeConfirmNote =>
+      'Once registered, it joins tonight\'s route and customers can start reserving.';
+
+  @override
+  String get storeConfirmSubmit => 'Register';
+
+  @override
+  String get storeConfirmBack => 'Go back and edit';
+
+  @override
+  String storeSellByValue(String day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String get storeDoneTitle => 'Registered';
+
+  @override
+  String get storeDoneBody =>
+      'It has been added to tonight\'s route. We\'ll let you know when reservations come in.';
+
+  @override
+  String get storeDoneCollection => 'Pickup';
+
+  @override
+  String storeDoneCollectionValue(String time) {
+    return 'around $time';
+  }
+
+  @override
+  String get storeDoneRoute => 'Route';
+
+  @override
+  String storeDoneRouteMore(String names) {
+    return '$names and more';
+  }
+
+  @override
+  String get storeDoneViewBatch => 'View batch';
+
+  @override
+  String get storeDoneHome => 'Back to home';
+
+  @override
+  String get storeErrQty => 'Enter at least 1';
+
+  @override
+  String get storeErrPrice => 'Enter a price of at least ¥1';
+
+  @override
+  String get storeErrSellByPast => 'The sell-by time must be in the future';
+
+  @override
+  String get storeErrIngredientName => 'Enter the ingredient name';
+
+  @override
+  String get storeErrPhotoUpload =>
+      'Couldn\'t upload the photo. Check your connection and try again, or remove the photo. (The batch has not been registered yet.)';
+
+  @override
+  String get storeErrNotApproved =>
+      'Your store is not approved yet, so you can\'t register.';
+
+  @override
+  String get storeErrPhotoInvalid =>
+      'Couldn\'t attach the photo. Choose it again and retry.';
+
+  @override
+  String get storeErrNoTruck =>
+      'No truck is assigned today, so you can\'t register. Please contact EcoMeal.';
+
+  @override
+  String get storeErrNoStops =>
+      'No pickup points are set up, so you can\'t register. Please contact EcoMeal.';
+
+  @override
+  String get storeErrNoStopsLeft =>
+      'Tonight\'s route has no pickup points left after your store, so you can\'t register.';
+
+  @override
+  String get storeErrTruckDeparted =>
+      'The truck has already left your store today, so you can\'t register more.';
+
+  @override
+  String get storeErrRegisterFailed =>
+      'Couldn\'t register. Check your connection and try again.';
+
+  @override
+  String get storeSettlementTitle => 'Payouts';
+
+  @override
+  String get storeSettlementSubtitle => 'Monthly sales and payouts';
+
+  @override
+  String storeSettlementCurrent(String month) {
+    return '$month (in progress)';
+  }
+
+  @override
+  String get storeSettlementCutoff => 'Closes at month end';
+
+  @override
+  String storeSettlementEstimate(String amount) {
+    return 'Expected payout $amount';
+  }
+
+  @override
+  String storeSettlementCurrentSub(String sales, int orders, String pct) {
+    return 'Sales $sales ・ $orders meals ・ share $pct%';
+  }
+
+  @override
+  String get storeSettlementStatements => 'Statements';
+
+  @override
+  String get storeSettlementConfirmed => 'Confirmed';
+
+  @override
+  String get storeSettlementPaid => 'Paid';
+
+  @override
+  String storeSettlementRowConfirmed(String date, int orders) {
+    return 'Confirmed $date ・ $orders meals';
+  }
+
+  @override
+  String storeSettlementRowPaid(String date, int orders) {
+    return 'Paid $date ・ $orders meals';
+  }
+
+  @override
+  String get storeSettlementNote =>
+      'EcoMeal confirms each month after it closes. Once transferred, the payment date appears here.';
+
+  @override
+  String get storeSettlementEmptyTitle => 'No statements yet';
+
+  @override
+  String get storeSettlementEmptyBody =>
+      'Statements appear here after each month is closed and confirmed.';
+
+  @override
+  String get storeNoticeTitle => 'Payment statement';
+
+  @override
+  String storeNoticeFor(String month) {
+    return 'For $month';
+  }
+
+  @override
+  String storeNoticeAddressee(String name) {
+    return 'To: $name';
+  }
+
+  @override
+  String storeNoticeIssued(String date) {
+    return 'Issued by EcoMeal ・ $date';
+  }
+
+  @override
+  String get storeNoticeOrders => 'Meals sold (picked up)';
+
+  @override
+  String storeNoticeOrdersValue(int orders) {
+    return '$orders';
+  }
+
+  @override
+  String get storeNoticeSales => 'Sales (tax incl.)';
+
+  @override
+  String get storeNoticePayout => 'Payout';
+
+  @override
+  String get storeNoticeConfirmedAt => 'Confirmed on';
+
+  @override
+  String get storeNoticePaidAt => 'Paid on';
+
+  @override
+  String get storeNoticeUnpaid => 'Not paid yet (shown after transfer)';
+
+  @override
+  String get storeNoticeNumber => 'Statement no.';
+
+  @override
+  String get storeNoticeFootnote =>
+      'The payout covers picked-up orders only, using each order\'s share rate (refunded or expired orders are excluded).';
+
+  @override
+  String get storeNoticePrintOnWeb => 'Print / save PDF on the web';
+
+  @override
+  String get storeRatingsTitle => 'Customer ratings';
+
+  @override
+  String get storeRatingsPeriod => 'Last 30 days';
+
+  @override
+  String storeRatingsCount(int count) {
+    return '$count ratings';
+  }
+
+  @override
+  String get storeRatingsRecent => 'Recent comments';
+
+  @override
+  String get storeRatingsAnonymous => 'Customer names are not shown.';
+
+  @override
+  String get storeRatingsEmptyBody =>
+      'Customers can rate with stars and a comment within 7 days of pickup.';
+
+  @override
+  String storeRatingStars(int rating) {
+    return '★$rating';
+  }
+
+  @override
+  String get storeInquiryTitle => 'Contact';
+
+  @override
+  String get storeInquirySubtitle => 'Message EcoMeal';
+
+  @override
+  String get storeInquiryLabel => 'Message';
+
+  @override
+  String get storeInquiryHint =>
+      'We usually reply within 1 business day by email and app notification.';
+
+  @override
+  String get storeInquirySend => 'Send';
+
+  @override
+  String get storeInquirySent => 'Sent';
+
+  @override
+  String get storeInquirySendFailed =>
+      'Couldn\'t send. Check your connection and try again. Your message is kept.';
+
+  @override
+  String get storeInquiryEmpty => 'Enter a message';
+
+  @override
+  String get storeInquiryHistory => 'Previous messages';
+
+  @override
+  String get storeInquiryStatusNew => 'Received';
+
+  @override
+  String get storeInquiryStatusInProgress => 'In progress';
+
+  @override
+  String get storeInquiryStatusDone => 'Resolved';
+
+  @override
+  String get storeInquiryStatusRejected => 'Declined';
+
+  @override
+  String get storeInquiryHistoryEmpty => 'No messages yet';
+
+  @override
+  String get storeAccountDeletionMessage =>
+      'I would like to delete my account.';
+
+  @override
+  String get inboxTitle => 'Notifications';
+
+  @override
+  String get inboxEmptyTitle => 'No notifications';
+
+  @override
+  String get inboxEmptyBody =>
+      'Updates about pickups, payouts and more appear here and as notifications.';
+
+  @override
+  String get inboxOpen => 'Open notifications';
+
+  @override
+  String inboxUnread(int count) {
+    return '$count unread';
+  }
+
+  @override
+  String get inboxJustNow => 'Just now';
+
+  @override
+  String inboxMinutesAgo(int minutes) {
+    return '$minutes min ago';
+  }
+
+  @override
+  String inboxYesterday(String time) {
+    return 'Yesterday $time';
+  }
+
+  @override
+  String get noticeRestaurantReviewedTitle => 'Review result';
+
+  @override
+  String get noticeRestaurantReviewedBody =>
+      'Your review is complete. Please check the result.';
+
+  @override
+  String get noticeSettlementConfirmedTitle => 'Statement confirmed';
+
+  @override
+  String get noticeSettlementConfirmedBody =>
+      'Check the amount on the payouts screen.';
+
+  @override
+  String get noticeSettlementPaidTitle => 'Payment transferred';
+
+  @override
+  String get noticeSettlementPaidBody =>
+      'Check the transfer date on the payouts screen.';
+
+  @override
+  String get noticeBatchCollectedTitle => 'Pickup completed';
+
+  @override
+  String get noticeBatchCollectedBody =>
+      'The driver collected your batch. See the confirmed count in the batch details.';
+
+  @override
+  String get noticeBatchPhotoRemovedTitle => 'A food photo was removed';
+
+  @override
+  String get noticeBatchPhotoRemovedBody =>
+      'EcoMeal removed a photo. See the reason on the home screen.';
+
+  @override
+  String get noticeRatingReceivedTitle => 'New rating';
+
+  @override
+  String get noticeRatingReceivedBody => 'A customer rated your food.';
+
+  @override
+  String get noticeGenericTitle => 'Notification';
+
+  @override
+  String get storeSettingsTitle => 'Settings';
+
+  @override
+  String storeSettingsAddress(String address, String time) {
+    return '$address ・ closes $time';
+  }
+
+  @override
+  String get storeSettingsInfoNote =>
+      'To change store details, use the web dashboard or contact us.';
+
+  @override
+  String get storeSettingsPush => 'App notifications';
+
+  @override
+  String get storeSettingsPushDenied =>
+      'Notifications are off in device settings';
+
+  @override
+  String get storeSettingsRatings => 'Customer ratings';
+
+  @override
+  String get storeSettingsInquiry => 'Contact';
+
+  @override
+  String get storeSettingsPrivacy => 'Privacy policy';
+
+  @override
+  String get storeSettingsDeleteAccount => 'Request account deletion';
+
+  @override
+  String storeSettingsVersion(String version) {
+    return 'EcoMeal Store $version';
+  }
+
+  @override
+  String get adminMfaTitle => 'Two-factor authentication';
+
+  @override
+  String get adminMfaLead =>
+      'Enter the 6-digit code shown in your authenticator app.';
+
+  @override
+  String get adminMfaCodeLabel => 'Verification code';
+
+  @override
+  String get adminMfaVerify => 'Verify';
+
+  @override
+  String get adminMfaOtherAccount => 'Sign in with another account';
+
+  @override
+  String get adminMfaSetupTitle => 'Set up two-factor authentication';
+
+  @override
+  String get adminMfaSetupLead =>
+      'Two-factor authentication is required for operations accounts.';
+
+  @override
+  String get adminMfaSetupStep1 =>
+      'On this device: tap \"Copy\" to copy the setup key, then paste it into \"Enter a setup key\" in your authenticator app (e.g. Google Authenticator). With another device, you can scan the QR code instead.';
+
+  @override
+  String get adminMfaSetupKey => 'Setup key';
+
+  @override
+  String get adminMfaCopy => 'Copy';
+
+  @override
+  String get adminMfaCopied => 'Setup key copied';
+
+  @override
+  String get adminMfaSetupStep2 => 'Enter the 6-digit code shown in the app.';
+
+  @override
+  String get adminMfaSetupDone => 'Finish setup';
+
+  @override
+  String get adminMfaInvalidCode => 'Enter 6 digits';
+
+  @override
+  String get adminMfaWrongCode =>
+      'The code is incorrect. Enter the latest code shown in your authenticator app.';
+
+  @override
+  String get adminMfaFailed => 'Couldn\'t verify. Please try again later.';
+
+  @override
+  String get adminTabHome => 'Home';
+
+  @override
+  String get adminTabOperations => 'Operations';
+
+  @override
+  String get adminTabTasks => 'Tasks';
+
+  @override
+  String get adminTabSettings => 'Settings';
+
+  @override
+  String get adminDashboardTitle => 'Dashboard';
+
+  @override
+  String get adminTonight => 'Tonight\'s operations';
+
+  @override
+  String get adminRunning => 'Running';
+
+  @override
+  String get adminTrucksRunning => 'Trucks running';
+
+  @override
+  String get adminStopsDone => 'Stops done';
+
+  @override
+  String get adminReserved => 'Reserved';
+
+  @override
+  String get adminPickedUp => 'Picked up';
+
+  @override
+  String get adminNoRouteTonight => 'No operations tonight yet';
+
+  @override
+  String get adminNeedsAction => 'Needs action';
+
+  @override
+  String get adminTaskIssues => 'Open issue reports';
+
+  @override
+  String get adminTaskRestaurants => 'Stores awaiting approval';
+
+  @override
+  String get adminTaskLicenses => 'Licenses to review';
+
+  @override
+  String get adminTaskInquiries => 'New inquiries';
+
+  @override
+  String adminTaskLatest(String name, String time) {
+    return 'Latest: $name ・ $time';
+  }
+
+  @override
+  String adminTaskIssueLatest(String number, String category, String time) {
+    return '$number \"$category\" ・ $time';
+  }
+
+  @override
+  String adminTaskLicenseLatest(String name, String time) {
+    return '$name ・ $time';
+  }
+
+  @override
+  String adminTaskInquiryTypes(int partner, int other) {
+    return 'Partner applications $partner ・ Other $other';
+  }
+
+  @override
+  String get adminTaskNone => 'None';
+
+  @override
+  String adminDateTime(String date, String time) {
+    return '$date $time';
+  }
+
+  @override
+  String get adminSettingsTitle => 'Settings';
+
+  @override
+  String get adminMfaOn => 'Two-factor on';
+
+  @override
+  String get adminNotifications => 'Notifications';
+
+  @override
+  String get adminPrefIssues => 'Issue reports';
+
+  @override
+  String get adminPrefRestaurants => 'Store applications';
+
+  @override
+  String get adminPrefLicenses => 'License submissions';
+
+  @override
+  String get adminPrefInquiries => 'Inquiries';
+
+  @override
+  String get adminPrefSaveFailed => 'Couldn\'t change the notification setting';
+
+  @override
+  String get adminPushOff => 'Notifications are off on this device';
+
+  @override
+  String get adminPushEnable => 'Turn on';
+
+  @override
+  String get adminTwoFactor => 'Two-factor authentication';
+
+  @override
+  String get adminTwoFactorOn => 'On';
+
+  @override
+  String get adminOpenWebAdmin => 'Open the web dashboard';
+
+  @override
+  String adminVersion(String version) {
+    return 'EcoMeal Admin $version (TestFlight)';
+  }
+
+  @override
+  String get noticeIssueReportedTitle => 'New issue report';
+
+  @override
+  String get noticeIssueReportedBody =>
+      'A customer reported a problem with an order.';
+
+  @override
+  String get noticeLicenseSubmittedTitle => 'License review requested';
+
+  @override
+  String get noticeLicenseSubmittedBody =>
+      'A driver submitted a license for review.';
+
+  @override
+  String get noticeInquiryReceivedTitle => 'New inquiry';
+
+  @override
+  String get noticeInquiryReceivedBody => 'A new inquiry has arrived.';
+
+  @override
+  String get noticeRestaurantAppliedTitle => 'New store application';
+
+  @override
+  String get noticeRestaurantAppliedBody => 'A restaurant applied to join.';
+
+  @override
+  String get adminTasksTitle => 'Tasks';
+
+  @override
+  String get adminTasksSubtitle => 'Issues, reviews, licenses, inquiries';
+
+  @override
+  String adminSegIssues(int count) {
+    return 'Issues $count';
+  }
+
+  @override
+  String adminSegRestaurants(int count) {
+    return 'Reviews $count';
+  }
+
+  @override
+  String adminSegLicenses(int count) {
+    return 'Licenses $count';
+  }
+
+  @override
+  String adminSegInquiries(int count) {
+    return 'Inquiries $count';
+  }
+
+  @override
+  String get adminIssueOpen => 'Open';
+
+  @override
+  String get adminIssueResolved => 'Resolved';
+
+  @override
+  String adminIssueLine(String message, String stop, String price) {
+    return '$message ($stop ・ $price)';
+  }
+
+  @override
+  String adminIssueMeta(String time, String name) {
+    return '$time ・ customer $name';
+  }
+
+  @override
+  String adminIssueRefunded(String amount) {
+    return 'Refunded $amount ・ answered';
+  }
+
+  @override
+  String get adminIssueNoRefund => 'No refund ・ answered';
+
+  @override
+  String get adminIssuesEmpty => 'No issue reports';
+
+  @override
+  String get adminIssueOrder => 'Order';
+
+  @override
+  String adminIssueOrderValue(String price) {
+    return 'Mystery bag ・ $price (tax incl.)';
+  }
+
+  @override
+  String get adminIssuePickup => 'Pickup';
+
+  @override
+  String get adminIssueRestaurant => 'Store';
+
+  @override
+  String get adminIssueRefundLabel => 'Refund';
+
+  @override
+  String get adminIssueFull => 'Full';
+
+  @override
+  String adminIssueRefundHint(String amount) {
+    return 'Up to $amount. You can also choose ¥0 (no refund).';
+  }
+
+  @override
+  String get adminIssueNoRefundHint =>
+      'No refund (¥0). The customer only receives your answer.';
+
+  @override
+  String get adminIssueAnswerLabel => 'Answer to the customer';
+
+  @override
+  String get adminIssueSubmitRefund => 'Refund and resolve';
+
+  @override
+  String get adminIssueSubmitNoRefund => 'Resolve';
+
+  @override
+  String get adminIssueSending => 'Sending…';
+
+  @override
+  String get adminIssueErrorTitle => 'Couldn\'t send';
+
+  @override
+  String get adminIssueErrorBody =>
+      'Check your connection and try again. Your refund amount and answer are kept. No refund has been made yet.';
+
+  @override
+  String get adminIssueRetry => 'Send again';
+
+  @override
+  String adminIssueErrAmount(String amount) {
+    return 'Enter an amount from 0 to $amount';
+  }
+
+  @override
+  String get adminIssueErrAnswer => 'Enter an answer to the customer';
+
+  @override
+  String get adminIssueErrAlready => 'This report has already been resolved';
+
+  @override
+  String get adminIssueResolvedToast => 'Marked as resolved';
+
+  @override
+  String get adminRestTitle => 'Store reviews';
+
+  @override
+  String get adminRestPending => 'Pending';
+
+  @override
+  String get adminRestRejected => 'Rejected';
+
+  @override
+  String get adminRestApproved => 'Approved';
+
+  @override
+  String get adminRestPendingBadge => 'Pending';
+
+  @override
+  String adminRestApplied(String time) {
+    return 'Applied $time';
+  }
+
+  @override
+  String get adminRestHasPl => 'PL insurance PDF attached';
+
+  @override
+  String get adminRestNoPl => 'No PL insurance PDF';
+
+  @override
+  String get adminRestEmpty => 'No stores here';
+
+  @override
+  String get adminRestName => 'Store';
+
+  @override
+  String get adminRestAddress => 'Address';
+
+  @override
+  String get adminRestContact => 'Contact';
+
+  @override
+  String get adminRestClosing => 'Closes at';
+
+  @override
+  String get adminRestApplicant => 'Applicant';
+
+  @override
+  String get adminRestPlDoc => 'PL insurance certificate';
+
+  @override
+  String get adminRestPlOpen => 'Open certificate (PDF)';
+
+  @override
+  String get adminRestPlFailed => 'Couldn\'t open the certificate';
+
+  @override
+  String get adminRestReject => 'Reject';
+
+  @override
+  String get adminRestApprove => 'Approve';
+
+  @override
+  String get adminRestRejectTitle => 'Reason for rejection';
+
+  @override
+  String get adminRestRejectNote =>
+      'The reason is sent to the store by email and app (required, up to 500 characters).';
+
+  @override
+  String get adminRestReasonPl => 'PL certificate unreadable or expired';
+
+  @override
+  String get adminRestReasonContact => 'Address or contact can\'t be verified';
+
+  @override
+  String get adminRestReasonOther => 'Other';
+
+  @override
+  String get adminRestRejectSend => 'Send rejection';
+
+  @override
+  String get adminRestErrReason => 'Enter a reason (up to 500 characters)';
+
+  @override
+  String adminRestDecided(String name, String decision) {
+    return '$name: $decision';
+  }
+
+  @override
+  String get adminRestNotifyFailed =>
+      'The review is saved, but the email couldn\'t be sent. Resend it from the web dashboard.';
+
+  @override
+  String get adminRestRejectionReason => 'Reason';
+
+  @override
+  String get adminLicTitle => 'License review';
+
+  @override
+  String adminLicSubmitted(String time) {
+    return 'License ・ submitted $time';
+  }
+
+  @override
+  String get adminLicEmpty => 'No licenses waiting for review';
+
+  @override
+  String get adminLicImageFailed => 'Couldn\'t load the image';
+
+  @override
+  String get adminLicZoom => 'Zoom';
+
+  @override
+  String get adminLicTruck => 'Assigned truck';
+
+  @override
+  String get adminLicNoTruck => 'None';
+
+  @override
+  String get adminLicExpiry => 'Expiry date (from the image)';
+
+  @override
+  String get adminLicExpiryPick => 'Choose a date';
+
+  @override
+  String get adminLicVerifyNote =>
+      'Once verified, the driver can be assigned to shifts.';
+
+  @override
+  String get adminLicReject => 'Return';
+
+  @override
+  String get adminLicVerify => 'Verify';
+
+  @override
+  String get adminLicRejectTitle => 'Reason for returning';
+
+  @override
+  String get adminLicErrExpiry => 'Choose an expiry date (today or later)';
+
+  @override
+  String adminLicDone(String name) {
+    return 'Updated $name\'s license';
+  }
+
+  @override
+  String get adminInqTitle => 'Inquiries';
+
+  @override
+  String get adminInqNew => 'New';
+
+  @override
+  String get adminInqInProgress => 'In progress';
+
+  @override
+  String get adminInqDone => 'Done';
+
+  @override
+  String get adminInqTypePartner => 'Partner application';
+
+  @override
+  String get adminInqTypeDriver => 'Driver application';
+
+  @override
+  String get adminInqTypeContact => 'Inquiry';
+
+  @override
+  String get adminInqStatusNew => 'New';
+
+  @override
+  String get adminInqStatusInProgress => 'In progress';
+
+  @override
+  String get adminInqStatusDone => 'Done';
+
+  @override
+  String get adminInqStatusRejected => 'Declined';
+
+  @override
+  String get adminInqEmpty => 'No inquiries here';
+
+  @override
+  String get adminInqInviteOnWeb =>
+      'Accounts (invitations) are issued on the web dashboard.';
+
+  @override
+  String get adminInqStatusLabel => 'Status';
+
+  @override
+  String get adminInqNoteLabel => 'Internal note';
+
+  @override
+  String get adminInqSave => 'Save';
+
+  @override
+  String get adminInqSaved => 'Saved';
+
+  @override
+  String get adminSaveFailed =>
+      'Couldn\'t save. Check your connection and try again.';
+
+  @override
+  String get adminOpsTitle => 'Operations monitor';
+
+  @override
+  String adminOpsSubtitle(String date, int count) {
+    return '$date ・ $count trucks';
+  }
+
+  @override
+  String get adminOpsLive => 'Live';
+
+  @override
+  String adminOpsShowing(int count) {
+    return 'Showing $count trucks';
+  }
+
+  @override
+  String get adminOpsRunning => 'Running';
+
+  @override
+  String get adminOpsWaiting => 'Waiting';
+
+  @override
+  String get adminOpsDone => 'Done';
+
+  @override
+  String adminOpsNext(String driver, String stop) {
+    return '$driver ・ next: $stop';
+  }
+
+  @override
+  String get adminOpsEta => 'ETA';
+
+  @override
+  String adminOpsReserved(int count) {
+    return '$count reserved';
+  }
+
+  @override
+  String get adminOpsNoDriver => 'No driver';
+
+  @override
+  String get adminOpsMapUnavailable => 'Map unavailable (no Maps API key)';
+
+  @override
+  String get noticeReservationReceivedTitle => 'New reservations';
+
+  @override
+  String noticeReservationReceivedBody(String time, int count, int total) {
+    return '$count new for your batch selling until $time ($total in total).';
+  }
+
+  @override
+  String get noticeReservationReceivedFallback => 'Check the count in the app.';
+
+  @override
+  String get storeSettingsContract => 'About the partnership agreement';
+
+  @override
+  String get storeContractBody =>
+      'Your terms as a partner store (revenue share, settlement, transfers, food handling, etc.) are set out in the partnership agreement you signed with EcoMeal. The customer terms of use do not apply to stores. To check or change your agreement, contact us.';
+
+  @override
+  String get storeContractInquiry => 'Contact us';
 }

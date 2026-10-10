@@ -14,9 +14,10 @@ String _formatDate(DateTime d) {
 // định dạng/so ngày, không dùng để so sánh thời điểm với DateTime khác.
 DateTime toTokyo(DateTime t) => t.toUtc().add(const Duration(hours: 9));
 
-String todayInTokyo() {
-  return _formatDate(toTokyo(DateTime.now()));
-}
+// Ngày (YYYY-MM-DD) theo giờ Tokyo của 1 thời điểm bất kỳ (vd ngày nộp đơn — SCR-S00).
+String dateInTokyo(DateTime t) => _formatDate(toTokyo(t));
+
+String todayInTokyo() => dateInTokyo(DateTime.now());
 
 String tomorrowInTokyo() {
   return _formatDate(toTokyo(DateTime.now()).add(const Duration(days: 1)));

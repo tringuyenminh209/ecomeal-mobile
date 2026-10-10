@@ -4,6 +4,9 @@ import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/app_flavor.dart';
+import 'core/error_reporting.dart';
+import 'core/push_notifications.dart';
+import 'core/stripe_payments.dart';
 import 'core/supabase_client.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/locale_controller.dart';
@@ -20,8 +23,12 @@ Future<void> runEcoMealApp(AppFlavor flavor) async {
   if (flavor == AppFlavor.customer && lineChannelId.isNotEmpty && !kIsWeb) {
     await LineSDK.instance.setup(lineChannelId);
   }
+  // Stripe chỉ dùng ở app khách (SCR-M05/M09). Không có khoá → thanh toán giả (0043).
+  if (flavor == AppFlavor.customer) await initStripe();
+  // Thông báo app (0048, 0059): app khách, nhà hàng, vận hành. Mỗi app 1 Firebase app ID; thiếu cấu hình thì bỏ qua
+  if (flavor != AppFlavor.driver) await initPush(flavor);
   final prefs = await SharedPreferences.getInstance();
-  runApp(
+  await runWithErrorReporting(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
@@ -29,6 +36,7 @@ Future<void> runEcoMealApp(AppFlavor flavor) async {
       ],
       child: const EcoMealApp(),
     ),
+    appName: flavor.name,
   );
 }
 
@@ -38,18 +46,23 @@ class EcoMealApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeControllerProvider);
-    // App tài xế làm việc ban đêm trong cabin → toàn bộ app (kể cả màn đăng nhập SCR-D00 và các màn push lên) dùng bộ
-    // màu tối (EcoPalette.night). App khách giữ bộ màu sáng của Figma.
-    final isDriverApp = ref.watch(appFlavorProvider) == AppFlavor.driver;
+    // App tài xế (ban đêm trong cabin) và app vận hành (đêm vận hành) → toàn bộ app (kể cả màn đăng nhập và các màn push
+    // lên) dùng bộ màu tối (EcoPalette.night). App khách và app nhà hàng giữ bộ màu sáng của Figma.
+    final flavor = ref.watch(appFlavorProvider);
     return MaterialApp(
-      onGenerateTitle: (context) => isDriverApp ? context.l10n.driverAppTitle : context.l10n.appTitle,
+      onGenerateTitle: (context) => switch (flavor) {
+        AppFlavor.customer => context.l10n.appTitle,
+        AppFlavor.driver => context.l10n.driverAppTitle,
+        AppFlavor.store => context.l10n.storeAppTitle,
+        AppFlavor.admin => context.l10n.adminAppTitle,
+      },
       locale: locale,
       // gen-l10n sinh sẵn 2 danh sách này từ lib/l10n/app_*.arb — thêm ngôn ngữ mới chỉ cần thêm 1 file ARB.
       // localizationsDelegates còn nạp bản dịch của chính Material (nút OK/キャンセル của dialog, DatePicker...).
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       // Toàn bộ màu/chữ/nút/ô nhập theo Figma "00 Foundations" + "01 Components" — xem core/theme/app_theme.dart.
-      theme: buildAppTheme(dark: isDriverApp),
+      theme: buildAppTheme(dark: flavor.usesNightTheme),
       home: const RoleGate(),
     );
   }

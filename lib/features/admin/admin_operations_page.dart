@@ -1,0 +1,253 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
+import '../../core/jst_date.dart';
+import '../../core/maps.dart';
+import '../../core/theme/app_theme.dart';
+import '../../l10n/l10n.dart';
+import '../../widgets/skeleton.dart';
+import '../../widgets/state_panel.dart';
+import '../../widgets/status_badge.dart';
+import 'admin_gateway.dart';
+
+// Vị trí xe đổi mỗi 10 giây (GPS tài xế) — tải lại mỗi 20 giây khi màn đang mở (nhãn「ライブ」của Figma)
+const adminOperationsRefresh = Duration(seconds: 20);
+
+// SCR-A02 運行モニタ（563:1038）: bản đồ xe + điểm dừng, danh sách xe với điểm kế tiếp và giờ dự kiến
+class AdminOperationsPage extends ConsumerStatefulWidget {
+  const AdminOperationsPage({super.key});
+
+  @override
+  ConsumerState<AdminOperationsPage> createState() => _AdminOperationsPageState();
+}
+
+class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
+  Timer? _timer;
+  BitmapDescriptor? _truckIcon;
+  final _date = todayInTokyo();
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(adminOperationsRefresh, (_) => ref.invalidate(adminRoutesProvider(_date)));
+    if (isGoogleMapsConfigured) {
+      loadTruckMarkerIcon().then((icon) {
+        if (mounted) setState(() => _truckIcon = icon);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final eco = context.eco;
+    final locale = Localizations.localeOf(context).languageCode;
+    final routes = ref.watch(adminRoutesProvider(_date));
+    final list = routes.valueOrNull ?? const <AdminRoute>[];
+
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: () => ref.refresh(adminRoutesProvider(_date).future).then((_) {}, onError: (_) {}),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.adminOpsTitle, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                      Text(
+                        l10n.adminOpsSubtitle(formatServiceDate(_date, locale), list.length),
+                        style: TextStyle(fontSize: 13, color: eco.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.sensors_rounded, size: 16, color: eco.primary),
+                const SizedBox(width: 4),
+                Text(
+                  l10n.adminOpsLive,
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.primary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: SizedBox(height: 260, child: _map(list, l10n, eco)),
+            ),
+            const SizedBox(height: 14),
+            ...routes.when(
+              loading: () => [const SkeletonPulse(child: SkeletonBox(height: 160, radius: 16))],
+              error: (_, _) => [
+                StatePanel.error(
+                  title: l10n.storeLoadErrorTitle,
+                  message: l10n.storeLoadErrorBody,
+                  actionLabel: l10n.storeReload,
+                  onAction: () => ref.invalidate(adminRoutesProvider(_date)),
+                ),
+              ],
+              data: (rs) => rs.isEmpty
+                  ? [StatePanel(icon: Icons.local_shipping_outlined, title: l10n.adminNoRouteTonight)]
+                  : [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: eco.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: eco.border),
+                        ),
+                        child: Column(
+                          children: [
+                            for (final (i, r) in rs.indexed) ...[
+                              if (i > 0) Divider(height: 1, color: eco.border),
+                              _RouteTile(route: r),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _map(List<AdminRoute> routes, AppLocalizations l10n, EcoPalette eco) {
+    if (!isGoogleMapsConfigured) {
+      return ColoredBox(
+        color: eco.chip,
+        child: Center(
+          child: Text(l10n.adminOpsMapUnavailable, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
+        ),
+      );
+    }
+    final markers = <Marker>{
+      for (final r in routes)
+        if (r.lat != null && r.lng != null)
+          Marker(
+            markerId: MarkerId('truck-${r.id}'),
+            position: LatLng(r.lat!, r.lng!),
+            icon: _truckIcon ?? BitmapDescriptor.defaultMarker,
+            infoWindow: InfoWindow(title: r.plateNumber, snippet: r.driverName),
+          ),
+      for (final r in routes)
+        for (final (i, s) in r.stops.indexed)
+          Marker(
+            markerId: MarkerId('stop-${r.id}-$i'),
+            position: LatLng(s.lat, s.lng),
+            alpha: s.departed ? 0.4 : 1,
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+            infoWindow: InfoWindow(title: s.name),
+          ),
+    };
+    final first = routes.where((r) => r.lat != null).firstOrNull;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: first == null ? osakaCenter : LatLng(first.lat!, first.lng!),
+              zoom: 12,
+            ),
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            mapToolbarEnabled: false,
+            markers: markers,
+            style: mapStyleFor(Theme.of(context).brightness),
+          ),
+        ),
+        Positioned(
+          left: 12,
+          bottom: 12,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: eco.surface, borderRadius: BorderRadius.circular(999)),
+            child: Text(
+              l10n.adminOpsShowing(routes.where((r) => r.lat != null).length),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RouteTile extends StatelessWidget {
+  const _RouteTile({required this.route});
+  final AdminRoute route;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final eco = context.eco;
+    final r = route;
+    final next = r.nextStop;
+    final (label, tone) = switch (r.status) {
+      AdminRouteStatus.running => (l10n.adminOpsRunning, BadgeTone.soft),
+      AdminRouteStatus.waiting => (l10n.adminOpsWaiting, BadgeTone.neutral),
+      AdminRouteStatus.done => (l10n.adminOpsDone, BadgeTone.neutral),
+    };
+    return Padding(
+      key: Key('adminRoute-${r.id}'),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(color: eco.chip, borderRadius: BorderRadius.circular(10)),
+            child: Icon(Icons.local_shipping_outlined, size: 20, color: eco.textPrimary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(r.plateNumber, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                    ),
+                    const SizedBox(width: 8),
+                    StatusBadge(label: label, tone: tone),
+                  ],
+                ),
+                Text(
+                  l10n.adminOpsNext(r.driverName ?? l10n.adminOpsNoDriver, next?.name ?? '—'),
+                  style: TextStyle(fontSize: 12, color: eco.textSecondary),
+                ),
+                if (r.reservedCount != null)
+                  Text(
+                    l10n.adminOpsReserved(r.reservedCount!),
+                    style: TextStyle(fontSize: 11, color: eco.textSecondary),
+                  ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                next == null ? '—' : DateFormat('HH:mm').format(toTokyo(next.plannedTime)),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: eco.primary),
+              ),
+              Text(l10n.adminOpsEta, style: TextStyle(fontSize: 10, color: eco.textSecondary)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

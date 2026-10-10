@@ -18,6 +18,15 @@ abstract final class CustomerTab {
 // tài khoản đăng nhập sau luôn bắt đầu ở ホーム, không kế thừa tab của người trước.
 final customerTabProvider = StateProvider.autoDispose<int>((ref) => CustomerTab.home);
 
+// Thông báo của app khách đều về đơn đã đặt (hoàn tiền, xe tới, trả lời báo cáo, lô mới): đang mở app → tải lại đơn;
+// chạm thông báo → mở tab 予約 (PushRegistrar).
+void refreshOrdersAfterPush(BuildContext context, WidgetRef ref) => ref.invalidate(myOrdersProvider);
+
+void openOrdersFromPush(BuildContext context, WidgetRef ref) {
+  ref.invalidate(myOrdersProvider);
+  ref.read(customerTabProvider.notifier).state = CustomerTab.orders;
+}
+
 // Mobile/Bottom Navigation của Figma (88:246…): nền trắng, viền trên, không viên chỉ báo — màu/chữ lấy từ
 // navigationBarTheme (Chương 15 bước 5b).
 class CustomerShell extends ConsumerWidget {

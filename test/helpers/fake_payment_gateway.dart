@@ -32,6 +32,21 @@ class FakePaymentGateway implements PaymentGateway {
     return id;
   }
 
+  // Stripe (0047): server đọc hãng/4 số cuối từ Stripe — ở đây giả là Visa 4242
+  final stripeAdded = <String>[];
+
+  @override
+  Future<String> addStripeCard(String stripePaymentMethodId) async {
+    if (addError != null) throw addError!;
+    stripeAdded.add(stripePaymentMethodId);
+    final id = 'pm-${methods.length + 1}';
+    methods = [
+      ...methods,
+      PaymentMethod(id: id, brand: CardBrand.visa, last4: '4242', expMonth: 12, expYear: 2030, isDefault: methods.isEmpty),
+    ];
+    return id;
+  }
+
   @override
   Future<void> setDefaultPaymentMethod(String id) async {
     methods = [for (final m in methods) _copy(m, isDefault: m.id == id)];

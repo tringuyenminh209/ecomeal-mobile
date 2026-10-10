@@ -13,11 +13,19 @@ import 'package:ecomeal_mobile/features/auth/onboarding_page.dart';
 import 'package:ecomeal_mobile/features/auth/role_gate.dart';
 import 'package:ecomeal_mobile/app.dart';
 import 'package:ecomeal_mobile/core/app_flavor.dart';
-import 'package:ecomeal_mobile/features/auth/driver_login_page.dart';
+import 'package:ecomeal_mobile/features/auth/business_login_page.dart';
+import 'package:ecomeal_mobile/widgets/placeholder_screen.dart';
+import '../../helpers/fake_admin_gateway.dart';
+import '../../helpers/fake_store_gateway.dart';
+import 'package:ecomeal_mobile/features/admin/admin_gateway.dart';
+import 'package:ecomeal_mobile/features/admin/admin_mfa_gate.dart';
 import '../../helpers/test_app.dart';
+import 'package:ecomeal_mobile/features/store/store_gate.dart';
+import 'package:ecomeal_mobile/features/store/store_gateway.dart';
 import 'package:ecomeal_mobile/features/home/customer_home_page.dart';
 import 'package:ecomeal_mobile/features/home/home_gateway.dart';
 import 'package:ecomeal_mobile/features/driver/driver_gateway.dart';
+import 'package:ecomeal_mobile/features/legal/terms_gateway.dart';
 import 'package:ecomeal_mobile/features/orders/order_gateway.dart';
 import 'package:ecomeal_mobile/widgets/customer_shell.dart';
 import 'package:ecomeal_mobile/widgets/driver_shell.dart';
@@ -29,6 +37,8 @@ class MockHomeGateway extends Mock implements HomeGateway {}
 class MockOrderGateway extends Mock implements OrderGateway {}
 
 class MockDriverGateway extends Mock implements DriverGateway {}
+
+class MockTermsGateway extends Mock implements TermsGateway {}
 
 class MockSession extends Mock implements Session {}
 
@@ -62,6 +72,8 @@ void main() {
       final driver = MockDriverGateway();
       when(() => driver.fetchTonightRoute()).thenAnswer((_) async => null);
       when(() => driver.fetchIsActive()).thenAnswer((_) async => true);
+      final terms = MockTermsGateway();
+      when(() => terms.fetchAcceptedVersion('u-1')).thenAnswer((_) async => currentTermsVersion);
       final session = MockSession();
       final user = MockUser();
       when(() => session.user).thenReturn(user);
@@ -78,6 +90,7 @@ void main() {
             homeGatewayProvider.overrideWithValue(home),
             orderGatewayProvider.overrideWithValue(orders),
             driverGatewayProvider.overrideWithValue(driver),
+            termsGatewayProvider.overrideWithValue(terms),
             currentPositionProvider.overrideWith(
               (ref) => Future.error(Exception("GPS denied")),
             ),
@@ -196,6 +209,8 @@ void main() {
           driverGatewayProvider.overrideWithValue(driver),
           currentPositionProvider.overrideWith((ref) => Future.error(Exception('GPS denied'))),
           appFlavorProvider.overrideWithValue(flavor),
+          storeGatewayProvider.overrideWithValue(FakeStoreGateway()),
+          adminGatewayProvider.overrideWithValue(FakeAdminGateway()),
         ],
         child: const EcoMealApp(),
       ),
@@ -205,7 +220,7 @@ void main() {
 
   testWidgets('app tài xế, chưa đăng nhập → SCR-D00 (không có màn giới thiệu, không có 新規登録)', (tester) async {
     await pumpApp(tester, AppFlavor.driver);
-    expect(find.byType(DriverLoginPage), findsOneWidget);
+    expect(find.byType(BusinessLoginPage), findsOneWidget);
     expect(find.byType(OnboardingPage), findsNothing);
     expect(find.text(l10nJa.driverBadge), findsOneWidget);
     expect(find.text(l10nJa.driverAccountIssuedNote), findsOneWidget);
@@ -247,4 +262,52 @@ void main() {
     final ctx = tester.element(find.byType(DriverShell));
     expect(Theme.of(ctx).brightness, Brightness.dark);
   });
+
+  // ---- ADR-015: app nhà hàng / vận hành ----
+  testWidgets('app nhà hàng, chưa đăng nhập → SCR-S00: huy hiệu 店舗, không có 新規登録, theme sáng', (tester) async {
+    await pumpApp(tester, AppFlavor.store);
+    expect(find.byType(BusinessLoginPage), findsOneWidget);
+    expect(find.byType(OnboardingPage), findsNothing);
+    expect(find.text(l10nJa.storeBadge), findsOneWidget);
+    expect(find.text(l10nJa.storeLoginLead), findsOneWidget);
+    expect(find.text(l10nJa.storeLoginNote), findsOneWidget);
+    expect(find.text(l10nJa.signupTab), findsNothing);
+    expect(Theme.of(tester.element(find.byType(BusinessLoginPage))).brightness, Brightness.light);
+  });
+
+  testWidgets('app vận hành, chưa đăng nhập → SCR-A00: huy hiệu 運営, câu dẫn về 2段階認証, theme tối', (tester) async {
+    await pumpApp(tester, AppFlavor.admin);
+    expect(find.text(l10nJa.adminBadge), findsOneWidget);
+    expect(find.text(l10nJa.adminLoginLead), findsOneWidget);
+    expect(find.text(l10nJa.driverAccountIssuedNote), findsNothing);
+    expect(Theme.of(tester.element(find.byType(BusinessLoginPage))).brightness, Brightness.dark);
+  });
+
+  testWidgets('app nhà hàng + chủ quán → StoreGate (quán chưa đăng ký → hướng dẫn đăng ký trên Web)', (tester) async {
+    await pumpApp(tester, AppFlavor.store, role: 'restaurant_owner');
+    expect(find.byType(StoreGate), findsOneWidget);
+    expect(find.text(l10nJa.storeNotRegisteredTitle), findsOneWidget);
+    expect(find.text(l10nJa.storeOnlyAppTitle), findsNothing);
+  });
+
+  testWidgets('app vận hành + admin chưa qua 2 bước → SCR-A00 nhập mã', (tester) async {
+    await pumpApp(tester, AppFlavor.admin, role: 'admin');
+    expect(find.byType(AdminMfaCodePage), findsOneWidget);
+  });
+
+  for (final role in ['customer', 'driver', 'admin']) {
+    testWidgets('app nhà hàng + tài khoản $role → 「店舗専用アプリです」', (tester) async {
+      await pumpApp(tester, AppFlavor.store, role: role);
+      expect(find.text(l10nJa.storeOnlyAppTitle), findsOneWidget);
+      expect(find.byType(PlaceholderScreen), findsNothing);
+    });
+  }
+
+  for (final role in ['customer', 'driver', 'restaurant_owner']) {
+    testWidgets('app vận hành + tài khoản $role → 「運営専用アプリです」', (tester) async {
+      await pumpApp(tester, AppFlavor.admin, role: role);
+      expect(find.text(l10nJa.adminOnlyAppTitle), findsOneWidget);
+      expect(find.byType(PlaceholderScreen), findsNothing);
+    });
+  }
 }

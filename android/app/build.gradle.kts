@@ -43,10 +43,12 @@ android {
         versionName = flutter.versionName
     }
 
-    // ADR-007: 1 codebase → 2 app. Chọn bằng --flavor (và -t cho điểm khởi động Dart):
-    //   app khách : flutter run --flavor customer                          (lib/main.dart)
-    //   app tài xế: flutter run --flavor driver -t lib/main_driver.dart
-    // Icon của app tài xế nằm ở src/driver/res (sinh bằng design/logo-kit/rev04/export-app-icons.cjs).
+    // ADR-007 / ADR-015: 1 codebase → 4 app. Chọn bằng --flavor (và -t cho điểm khởi động Dart):
+    //   app khách   : flutter run --flavor customer                          (lib/main.dart)
+    //   app tài xế  : flutter run --flavor driver -t lib/main_driver.dart
+    //   app nhà hàng: flutter run --flavor store -t lib/main_store.dart
+    //   app vận hành: flutter run --flavor admin -t lib/main_admin.dart
+    // Icon của từng app nằm ở src/<flavor>/res (sinh bằng design/logo-kit/rev04/export-app-icons.cjs).
     // Key Google Maps Android giới hạn theo package — package của app tài xế phải được thêm vào giới hạn của key.
     flavorDimensions += "app"
     productFlavors {
@@ -58,6 +60,17 @@ android {
             dimension = "app"
             applicationId = "com.ecomeal.ecomeal_driver"
             resValue("string", "app_name", "EcoMeal Driver")
+        }
+        // ADR-015: app cho nhà hàng / vận hành (lib/main_store.dart, lib/main_admin.dart)
+        create("store") {
+            dimension = "app"
+            applicationId = "com.ecomeal.ecomeal_store"
+            resValue("string", "app_name", "EcoMeal Store")
+        }
+        create("admin") {
+            dimension = "app"
+            applicationId = "com.ecomeal.ecomeal_admin"
+            resValue("string", "app_name", "EcoMeal Admin")
         }
     }
 

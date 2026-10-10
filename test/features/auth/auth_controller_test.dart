@@ -151,13 +151,14 @@ void main() {
         password: 'password123',
         name: '山田太郎',
         languageCode: 'en',
+        termsVersion: '2026-10-09',
       );
 
       verify(
         () => gateway.signUp(
           email: 'b@test.local',
           password: 'password123',
-          data: {'name': '山田太郎', 'preferred_language': 'en'},
+          data: {'name': '山田太郎', 'preferred_language': 'en', 'terms_version': '2026-10-09'},
         ),
       ).called(1);
     },

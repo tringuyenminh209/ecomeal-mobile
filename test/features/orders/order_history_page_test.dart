@@ -4,24 +4,33 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ecomeal_mobile/features/orders/order_gateway.dart';
 import 'package:ecomeal_mobile/features/orders/order_history_page.dart';
+import 'package:ecomeal_mobile/features/orders/receipt_page.dart';
+import 'package:ecomeal_mobile/features/profile/profile_gateway.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import '../../helpers/test_app.dart';
 
 class MockOrderGateway extends Mock implements OrderGateway {}
+
+class MockProfileGateway extends Mock implements ProfileGateway {}
 
 // id phải có dạng UUID thật: orderDisplayNumber()/pickupManualCode() đọc 4 ký tự hex cuối của orders.id.
 // Id kiểu 'o-1' làm card ném RangeError/FormatException ngay lúc build (đã bắt được khi chạy thật).
 
 void main() {
   late MockOrderGateway gateway;
+  late MockProfileGateway profile;
 
   setUp(() {
     gateway = MockOrderGateway();
+    profile = MockProfileGateway();
+    when(() => profile.fetchMyProfile())
+        .thenAnswer((_) async => const UserProfile(name: '春香 美香', nameKana: null, email: 'mika@example.jp'));
   });
 
   Future<void> pumpPage(WidgetTester tester, {Locale locale = const Locale('ja')}) {
     return tester.pumpWidget(
       ProviderScope(
-        overrides: [orderGatewayProvider.overrideWithValue(gateway)],
+        overrides: [orderGatewayProvider.overrideWithValue(gateway), profileGatewayProvider.overrideWithValue(profile)],
         child: testApp(const OrderHistoryPage(), locale: locale),
       ),
     );
@@ -44,6 +53,8 @@ void main() {
             createdAt: DateTime(2026, 10, 2, 10, 0),
             plannedPickupTime: DateTime.now().add(const Duration(hours: 5)),
             stopName: '大阪学生寮前',
+            taxRate: 8,
+            taxAmount: 0,
           ),
           OrderSummary(
             id: '00000000-0000-0000-0000-00000000a002',
@@ -52,6 +63,8 @@ void main() {
             createdAt: DateTime(2026, 9, 28, 10, 0),
             plannedPickupTime: DateTime(2026, 9, 28, 19, 40),
             stopName: '西成区民センター前',
+            taxRate: 8,
+            taxAmount: 0,
           ),
         ]);
     await pumpPage(tester);
@@ -76,6 +89,8 @@ void main() {
             createdAt: DateTime.now(),
             plannedPickupTime: DateTime.now().add(const Duration(hours: 5)),
             stopName: '大阪学生寮前',
+            taxRate: 8,
+            taxAmount: 0,
           ),
         ]);
     when(() => gateway.cancelOrder('00000000-0000-0000-0000-00000000a003')).thenAnswer((_) async => const CancelOrderResult(orderId: '00000000-0000-0000-0000-00000000a003', refundAmount: 780));
@@ -99,6 +114,8 @@ void main() {
             createdAt: DateTime.now(),
             plannedPickupTime: DateTime.now().add(const Duration(minutes: 10)),
             stopName: '大阪学生寮前',
+            taxRate: 8,
+            taxAmount: 0,
           ),
         ]);
     when(() => gateway.cancelOrder('00000000-0000-0000-0000-00000000a004')).thenAnswer((_) async => const CancelOrderResult(orderId: '00000000-0000-0000-0000-00000000a004', refundAmount: 0));
@@ -130,6 +147,8 @@ void main() {
             createdAt: DateTime.now(),
             plannedPickupTime: DateTime.now().add(const Duration(hours: 5)),
             stopName: '大阪学生寮前',
+            taxRate: 8,
+            taxAmount: 0,
           ),
         ]);
     await pumpPage(tester);
@@ -152,6 +171,8 @@ void main() {
             createdAt: DateTime.utc(2026, 9, 28, 1, 0),
             plannedPickupTime: DateTime.utc(2026, 9, 28, 10, 40), // = 19:40 JST
             stopName: '西成区民センター前',
+            taxRate: 8,
+            taxAmount: 0,
           ),
         ]);
     await pumpPage(tester, locale: const Locale('en'));
@@ -162,5 +183,99 @@ void main() {
     expect(find.text('Picked up'), findsOneWidget);
     expect(find.text('Sep 28 19:40'), findsOneWidget);
     expect(find.text('受け取り済み'), findsNothing);
+  });
+  testWidgets('giá ghi 「税込」; chỉ đơn đã nhận có nút 領収書 → SCR-M13 với tiền thuế của đơn (0046)', (tester) async {
+    when(() => gateway.fetchMyOrders()).thenAnswer((_) async => [
+          OrderSummary(
+            id: '00000000-0000-0000-0000-00000000b001',
+            status: 'picked_up',
+            pricePaid: 620,
+            createdAt: DateTime.utc(2026, 9, 28, 1, 0),
+            plannedPickupTime: DateTime.utc(2026, 9, 28, 10, 40), // 2026-09-28 19:40 JST
+            stopName: '西成区民センター前',
+            taxRate: 8,
+            taxAmount: 45,
+          ),
+          OrderSummary(
+            id: '00000000-0000-0000-0000-00000000b002',
+            status: 'refunded',
+            pricePaid: 840,
+            createdAt: DateTime.utc(2026, 9, 17, 1, 0),
+            plannedPickupTime: DateTime.utc(2026, 9, 17, 11, 20),
+            stopName: '大阪学生寮前',
+            taxRate: 8,
+            taxAmount: 62,
+          ),
+        ]);
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.text('¥620（税込）'), findsOneWidget);
+    expect(find.text('¥840（税込）'), findsOneWidget);
+    expect(find.byKey(const Key('receiptButton')), findsOneWidget); // đơn hoàn tiền không có biên lai
+
+    await tester.tap(find.byKey(const Key('receiptButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ReceiptPage), findsOneWidget);
+    expect(find.text('春香 美香 様'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('receiptAmount'))).data, '¥620（税込）');
+    expect(tester.widget<Text>(find.byKey(const Key('receiptTax'))).data, '¥45');
+    expect(find.text('8%対象（税込）'), findsOneWidget);
+    expect(find.text('2026年9月28日'), findsOneWidget); // ご利用日 = ngày nhận theo giờ Tokyo
+  });
+
+  OrderSummary pickedUp({int? rating, Duration ago = const Duration(hours: 2)}) => OrderSummary(
+        id: '00000000-0000-0000-0000-00000000b001',
+        status: 'picked_up',
+        pricePaid: 620,
+        createdAt: DateTime.now().subtract(ago),
+        plannedPickupTime: DateTime.now().subtract(ago),
+        stopName: '大阪学生寮前',
+        taxRate: 8,
+        taxAmount: 46,
+        rating: rating,
+      );
+
+  testWidgets('0054: đơn đã nhận chưa đánh giá → chạm ★4 → bảng → gửi kèm câu → tải lại, thẻ hiện 「あなたの評価」', (tester) async {
+    var rated = false;
+    when(() => gateway.fetchMyOrders()).thenAnswer((_) async => [pickedUp(rating: rated ? 4 : null)]);
+    when(() => gateway.rateOrder(orderId: any(named: 'orderId'), rating: any(named: 'rating'), comment: any(named: 'comment')))
+        .thenAnswer((_) async => rated = true);
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('ratingPrompt')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('ratingStar4')));
+    await tester.pumpAndSettle();
+    expect(find.text('満足'), findsOneWidget); // bảng mở với 4 sao đã chọn
+
+    await tester.enterText(find.byKey(const Key('ratingComment')), '  温かかったです ');
+    await tester.tap(find.byKey(const Key('submitRatingButton')));
+    await tester.pumpAndSettle();
+
+    verify(() => gateway.rateOrder(orderId: '00000000-0000-0000-0000-00000000b001', rating: 4, comment: '温かかったです')).called(1);
+    expect(find.text('評価を送信しました。ありがとうございました'), findsOneWidget);
+    expect(find.byKey(const Key('ratedNote')), findsOneWidget);
+    expect(find.byKey(const Key('ratingPrompt')), findsNothing);
+  });
+
+  testWidgets('0054: quá 7 ngày → không mời; server báo E-RATING-410 → câu lỗi trong bảng', (tester) async {
+    when(() => gateway.fetchMyOrders()).thenAnswer((_) async => [pickedUp(ago: const Duration(days: 8))]);
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('ratingPrompt')), findsNothing);
+
+    when(() => gateway.fetchMyOrders()).thenAnswer((_) async => [pickedUp()]);
+    when(() => gateway.rateOrder(orderId: any(named: 'orderId'), rating: any(named: 'rating'), comment: any(named: 'comment')))
+        .thenThrow(const PostgrestException(message: 'E-RATING-410: rating period has ended'));
+    await tester.pumpWidget(const SizedBox()); // bỏ ProviderScope cũ để đọc lại danh sách
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('ratingStar2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('submitRatingButton')));
+    await tester.pumpAndSettle();
+    expect(find.text('受け取りから7日を過ぎたため評価できません'), findsOneWidget);
   });
 }

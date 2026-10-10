@@ -8,8 +8,11 @@ import '../../widgets/ecomeal_logo.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/labeled_field.dart';
 import 'auth_widgets.dart';
+import '../legal/legal_pages.dart';
+import '../legal/terms_gateway.dart';
 import 'locale_controller.dart';
 import 'reset_password_view.dart';
+import 'social_login.dart';
 
 // SCR-M02 ログイン・新規登録 — khớp các frame Figma "SCR-M02 *": logo, 2 tab dạng nút bo tròn, tiêu đề lớn,
 // form nhãn-trên-ô, nút chính full-width, dòng chuyển tab ở đáy màn.
@@ -72,6 +75,7 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
                         _AuthMode.login => LoginForm(
                           onGoToSignup: _showSignup,
                           onForgotPassword: _showResetPassword,
+                          belowSubmit: const SocialLoginButtons(), // 0057: chỉ app khách
                         ),
                         _AuthMode.signup => _SignupTab(onBackToLogin: _showLogin),
                         _AuthMode.resetPassword => ResetPasswordView(onBackToLogin: _showLogin),
@@ -138,11 +142,13 @@ class LoginForm extends ConsumerStatefulWidget {
     this.onGoToSignup,
     this.lead,
     this.footerNote,
+    this.belowSubmit,
   });
   final VoidCallback onForgotPassword;
   final VoidCallback? onGoToSignup;
   final String? lead; // null = câu dẫn của SCR-M02
   final String? footerNote;
+  final Widget? belowSubmit; // 0057: nút LINE・Apple (SCR-M02). App tài xế (SCR-D00) không có
 
   @override
   ConsumerState<LoginForm> createState() => _LoginFormState();
@@ -255,6 +261,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             onPressed: _isSubmitting ? null : _submit,
             child: authSubmitChild(_isSubmitting, context.l10n.loginButton),
           ),
+          if (widget.belowSubmit != null) widget.belowSubmit!,
           const Spacer(),
           const SizedBox(height: 24),
           // UC-28 (レビュー第64回): trước đây dòng này bị bỏ vì chưa có UC/API đặt lại mật khẩu.
@@ -300,6 +307,7 @@ class _SignupTabState extends ConsumerState<_SignupTab> {
   final _passwordController = TextEditingController();
   bool _isSubmitting = false;
   bool _passwordVisible = false;
+  bool _agreedToTerms = false; // UC-36: chưa tick thì 「登録する」 disabled (Figma 420:1077)
   String? _errorMessage; // lỗi của cả form → banner
   String? _emailError; // E-AUTH-409 → viền đỏ + chữ đỏ dưới ô email (Figma "新規登録 / Error")
   bool _confirmationSent = false; // UC-25 bước⑤: trạng thái "確認メール送信済み"
@@ -328,6 +336,7 @@ class _SignupTabState extends ConsumerState<_SignupTab> {
             password: _passwordController.text,
             name: _nameController.text.trim(),
             languageCode: languageCode,
+            termsVersion: currentTermsVersion,
           );
       if (mounted) setState(() => _confirmationSent = true);
     } on AuthException catch (err) {
@@ -485,9 +494,14 @@ class _SignupTabState extends ConsumerState<_SignupTab> {
             ),
           ),
           const SizedBox(height: 16),
+          _TermsConsentField(
+            value: _agreedToTerms,
+            onChanged: (v) => setState(() => _agreedToTerms = v),
+          ),
+          const SizedBox(height: 16),
           FilledButton(
             key: const Key('signupSubmitButton'),
-            onPressed: _isSubmitting ? null : _submit,
+            onPressed: _isSubmitting || !_agreedToTerms ? null : _submit,
             child: authSubmitChild(_isSubmitting, context.l10n.signupButton),
           ),
           const Spacer(),
@@ -499,6 +513,66 @@ class _SignupTabState extends ConsumerState<_SignupTab> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// Ô đồng ý của SCR-M02 新規登録 (Figma 420:1077): checkbox + câu có 2 link (利用規約 → SCR-M10, プライバシーポリシー → SCR-M11).
+// Mở link là push trang mới nên form đăng ký vẫn giữ nội dung đã nhập khi quay lại.
+class _TermsConsentField extends StatelessWidget {
+  const _TermsConsentField({required this.value, required this.onChanged});
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    const linkStyle = TextStyle(
+      color: AppColors.primary,
+      fontWeight: FontWeight.w700,
+      decoration: TextDecoration.underline,
+    );
+    Widget link(String label, LegalDocument doc, Key key) => GestureDetector(
+          key: key,
+          onTap: () => openLegalDocument(context, doc),
+          child: Text(label, style: linkStyle.copyWith(fontSize: 13)),
+        );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Checkbox(
+          key: const Key('signupTermsCheckbox'),
+          value: value,
+          onChanged: (v) => onChanged(v ?? false),
+          visualDensity: VisualDensity.compact,
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Wrap thay cho TextSpan + recognizer: mỗi link là 1 widget riêng → bấm được, test tìm được theo Key.
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    if (l10n.signupConsentBefore.isNotEmpty) Text(l10n.signupConsentBefore, style: const TextStyle(fontSize: 13)),
+                    link(l10n.legalTermsTitle, LegalDocument.terms, const Key('signupTermsLink')),
+                    Text(l10n.signupConsentBetween, style: const TextStyle(fontSize: 13)),
+                    link(l10n.legalPrivacyTitle, LegalDocument.privacy, const Key('signupPrivacyLink')),
+                    if (l10n.signupConsentAfter.isNotEmpty) Text(l10n.signupConsentAfter, style: const TextStyle(fontSize: 13)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.signupConsentHint,
+                  style: const TextStyle(fontSize: 11, height: 1.5, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

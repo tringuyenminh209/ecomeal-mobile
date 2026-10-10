@@ -1,10 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../payment/payment_api.dart';
 
-// Lỗi create_order (API-010, 0043) → màn hình kết quả của SCR-M05.
+// Lỗi khi đặt + trả tiền (create_order 0043 hoặc stripe-pay-order 0047) → màn hình kết quả của SCR-M05.
 enum PaymentFailure {
   declined, // E-PAY-402 → カード拒否
   cardExpired, // E-PAY-410 → カード拒否 (câu "hết hạn")
   methodMissing, // E-PAY-404 → thẻ vừa bị xoá ở máy khác: chọn lại thẻ
+  couponUnavailable, // E-COUPON-404/409/410 (0056) → coupon vừa được dùng ở máy khác / hết hạn: tải lại coupon
+  rateLimited, // E-RATE-429 (0052) → thanh toán quá nhiều lần trong 1 giờ: chưa giữ tiền, thử lại sau
   unknown, // mất mạng / quá giờ → 結果確認待ち: server có thể ĐÃ tạo đơn
   other, // hết hàng, giới hạn ngày… → khung lỗi đặt hàng như trước
 }
@@ -12,10 +15,14 @@ enum PaymentFailure {
 PaymentFailure classifyPaymentError(Object error) {
   // Server đã trả lời (có mã lỗi) → biết chắc kết quả. Còn lại (Timeout, Socket, ClientException…) thì
   // request có thể đã tới server và commit — không được coi là thất bại, phải cho khách kiểm tra lại.
-  if (error is! PostgrestException) return PaymentFailure.unknown;
-  final text = error.message;
-  if (text.contains('E-PAY-402')) return PaymentFailure.declined;
-  if (text.contains('E-PAY-410')) return PaymentFailure.cardExpired;
-  if (text.contains('E-PAY-404')) return PaymentFailure.methodMissing;
-  return PaymentFailure.other;
+  if (error is! PostgrestException && error is! PaymentApiException) return PaymentFailure.unknown;
+  return switch (paymentErrorCode(error)) {
+    'E-PAY-402' => PaymentFailure.declined,
+    'E-PAY-410' => PaymentFailure.cardExpired,
+    'E-PAY-404' => PaymentFailure.methodMissing,
+    'E-RATE-429' => PaymentFailure.rateLimited,
+    'E-COUPON-404' || 'E-COUPON-409' || 'E-COUPON-410' => PaymentFailure.couponUnavailable,
+    'E-PAY-504' => PaymentFailure.unknown, // Stripe không trả lời kịp: có thể đã giữ/chốt tiền
+    _ => PaymentFailure.other,
+  };
 }
