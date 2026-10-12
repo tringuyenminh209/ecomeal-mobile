@@ -3,6 +3,12 @@ import '../../core/rpc_error.dart';
 import '../../l10n/l10n.dart';
 import 'store_gateway.dart';
 
+// Tỉ lệ phần của quán (revenue_share_pct, numeric): 25.00 → "25", 22.5 → "22.5" (S01, S06 và bước xác nhận S02)
+String formatSharePct(double v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
+
+// Phần của quán ước tính (tối đa): bán hết với giá hiện tại × tỉ lệ — cùng cách tính với Web W03 (CreateSurplusBatchPage)
+int estimatedStoreShare({required int qty, required int price, required double sharePct}) => (qty * price * sharePct / 100).floor();
+
 // allergen_types không có cột thứ tự (bài học 第49回) → thứ tự cố định theo seed 0002 và Figma SCR-S02.
 // 8 品目 đầu là 特定原材料 (表示義務), 20 品目 sau là 表示推奨.
 const allergenCodeOrder = [

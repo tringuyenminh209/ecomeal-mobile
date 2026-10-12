@@ -2224,7 +2224,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeReviewPendingBody =>
-      'EcoMeal is reviewing your application. We will notify you by email and in the app (usually within 2 business days).';
+      'EcoMeal is reviewing your registration. We\'ll email you the result.';
 
   @override
   String get storeFieldName => 'Store';
@@ -2240,7 +2240,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeReviewRejectedBody =>
-      'You can fix the details and apply again from the web dashboard.';
+      'To apply again with corrected details, contact us from Inquiries.';
 
   @override
   String get storeRejectionReasonLabel => 'Reason';
@@ -2269,12 +2269,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String storeRegisterDeadline(String time, String remaining) {
-    return 'Deadline $time ($remaining left)';
+    return 'Aim for $time ($remaining left)';
   }
 
   @override
   String storeRegisterDeadlinePassed(String time) {
-    return 'Past the $time deadline';
+    return 'Past the $time target. You can still register until the truck leaves your shop';
   }
 
   @override
@@ -2339,7 +2339,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeNoBatchesBody =>
-      'If you expect leftovers, register an estimate by 16:00. It will be added to tonight\'s route.';
+      'If food may be left over, register it around 3–4 pm. Tonight\'s truck will come to pick it up.';
 
   @override
   String get storeLoadErrorTitle => 'Couldn\'t load';
@@ -2514,13 +2514,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeQtyLabel => 'Expected quantity';
 
   @override
-  String get storeQtyUnit => 'pcs';
+  String get storeQtyUnit => 'meals';
 
   @override
-  String get storeQtyDecrease => 'Decrease';
+  String get storeQtyDecrease => 'One meal fewer';
 
   @override
-  String get storeQtyIncrease => 'Increase';
+  String get storeQtyIncrease => 'One meal more';
 
   @override
   String get storePriceLabel => 'Unit price (tax incl.)';
@@ -2621,7 +2621,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String storeConfirmQtyValue(int qty) {
-    return '$qty';
+    return '$qty meals';
   }
 
   @override
@@ -2640,7 +2640,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeConfirmNote =>
-      'Once registered, it joins tonight\'s route and customers can start reserving.';
+      'Once registered, tonight\'s truck will come to pick it up and customers can reserve.';
+
+  @override
+  String get storeConfirmPreviewTitle => 'What customers will see';
+
+  @override
+  String storeConfirmPreviewPrice(String price) {
+    return 'Price now $price';
+  }
+
+  @override
+  String get storeConfirmPreviewPriceNote =>
+      'It drops further as the selling time ends';
+
+  @override
+  String get storeConfirmEstimate => 'Your share (estimate)';
+
+  @override
+  String storeConfirmEstimateValue(String amount) {
+    return 'Up to $amount';
+  }
+
+  @override
+  String storeConfirmEstimateNote(String pct) {
+    return 'If all sell at today\'s price (your share $pct%). Less if prices drop or some go unsold.';
+  }
+
+  @override
+  String get storeConfirmPreviewFailed =>
+      'Couldn\'t calculate the price. You can still register.';
 
   @override
   String get storeConfirmSubmit => 'Register';
@@ -2683,7 +2712,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeDoneHome => 'Back to home';
 
   @override
-  String get storeErrQty => 'Enter at least 1';
+  String get storeErrQty => 'Choose at least 1 meal';
 
   @override
   String get storeErrPrice => 'Enter a price of at least ¥1';
@@ -2868,7 +2897,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeInquiryHint =>
-      'We usually reply within 1 business day by email and app notification.';
+      'We reply to your registered email address. You can check the status in the list below.';
 
   @override
   String get storeInquirySend => 'Send';
@@ -3030,7 +3059,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeSettingsInfoNote =>
-      'To change store details, use the web dashboard or contact us.';
+      'To change your shop details, contact us from Inquiries.';
 
   @override
   String get storeSettingsPush => 'App notifications';

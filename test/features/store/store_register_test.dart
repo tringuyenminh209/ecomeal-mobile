@@ -76,10 +76,13 @@ void main() {
   group('SCR-S02', () {
     late FakeStoreGateway gateway;
     late List<String> registered;
+    var previewFails = false;
     setUp(() {
       gateway = FakeStoreGateway(allergenTypes: _catalog);
+      previewFails = false;
       registered = [];
     });
+
 
     Future<void> pump(WidgetTester tester, {PhotoPicker? picker}) async {
       // フォーム全体が一度に描画される高さ（ListView は画面外の項目を作らない）
@@ -90,6 +93,11 @@ void main() {
         overrides: [
           storeGatewayProvider.overrideWithValue(gateway),
           photoPickerProvider.overrideWithValue(picker ?? (_) async => null),
+          // 値段は calc_current_price（サーバー）— テストでは 7割の値段を返す
+          storePricePreviewProvider.overrideWith((ref, k) async {
+            if (previewFails) throw Exception('rpc');
+            return (k.unitPrice * 0.7).floor();
+          }),
         ],
         child: testApp(StoreRegisterPage(restaurant: _restaurant(), onRegistered: registered.add)),
       ));
@@ -134,6 +142,30 @@ void main() {
       final d = gateway.drafts.single;
       expect(d.allergenTypeIds, isEmpty);
       expect(d.noAllergens, isTrue);
+    });
+
+    testWidgets('確認: お客様に見える今の値段と、お店の取り分の目安（数 × 今の値段 × 取り分）', (tester) async {
+      await pump(tester);
+      await tester.tap(find.byKey(const Key('storeQtyPlus')));
+      await tester.pump();
+      await tester.enterText(find.byKey(const Key('storePriceField')), '600');
+      await tapNoAllergens(tester);
+      await tester.tap(find.byKey(const Key('storeReviewButton')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.storeConfirmPreviewTitle), findsOneWidget);
+      expect(find.text(l10nJa.storeConfirmPreviewPrice('¥420')), findsOneWidget);
+      // 2食 × ¥420 × 20% = ¥168
+      expect(find.text(l10nJa.storeConfirmEstimateValue('¥168')), findsOneWidget);
+      expect(find.text(l10nJa.storeConfirmEstimateNote('20')), findsOneWidget);
+    });
+
+    testWidgets('確認: 値段を計算できなくても登録はできる', (tester) async {
+      previewFails = true;
+      await pump(tester);
+      await tester.enterText(find.byKey(const Key('storePriceField')), '600');
+      await tapNoAllergens(tester);
+      await openSheetAndConfirm(tester);
+      expect(gateway.drafts, hasLength(1));
     });
 
     testWidgets('よく使う12品目を Figma の順で表示、閉店時刻が販売期限の初期値', (tester) async {
@@ -181,7 +213,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('storeQtyPlus')));
       await tester.pump();
-      expect(tester.widget<Text>(find.byKey(const Key('storeQtyValue'))).textSpan!.toPlainText(), '3 個');
+      expect(tester.widget<Text>(find.byKey(const Key('storeQtyValue'))).textSpan!.toPlainText(), '3 食');
       await tester.enterText(find.byKey(const Key('storePriceField')), '780');
       await tester.tap(find.widgetWithText(FilterChip, '卵'));
       await tester.tap(find.byKey(const Key('storeIngredientAdd')));

@@ -126,8 +126,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeLoginLead => 'EcoMeal から発行された店舗用アカウントでログインしてください。';
 
   @override
-  String get storeLoginNote =>
-      '店舗の新規登録は Web 管理画面（ecomeal-pi.vercel.app）から申し込めます。';
+  String get storeLoginNote => 'お店の新しい登録は Web（ecomeal-pi.vercel.app）から申し込めます。';
 
   @override
   String get adminBadge => '運営';
@@ -2117,8 +2116,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeReviewPendingTitle => '審査中です';
 
   @override
-  String get storeReviewPendingBody =>
-      '運営が登録内容を確認しています。結果はメールとアプリの通知でお知らせします（通常2営業日以内）。';
+  String get storeReviewPendingBody => 'EcoMeal が登録の内容を確認しています。結果はメールでお知らせします。';
 
   @override
   String get storeFieldName => '店舗名';
@@ -2133,7 +2131,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeReviewRejectedTitle => '承認できませんでした';
 
   @override
-  String get storeReviewRejectedBody => '内容を修正して、Web 管理画面からもう一度申請できます。';
+  String get storeReviewRejectedBody => '内容を見直してもう一度申し込みたい場合は、お問い合わせからご連絡ください。';
 
   @override
   String get storeRejectionReasonLabel => '却下の理由';
@@ -2143,7 +2141,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeNotRegisteredBody =>
-      'Web 管理画面から店舗の登録を申し込んでください。審査のあと、このアプリで余剰を登録できます。';
+      'Web（ecomeal-pi.vercel.app）からお店の登録を申し込んでください。承認されると、このアプリで今日の余りを登録できます。';
 
   @override
   String get storeTabHome => 'ホーム';
@@ -2152,22 +2150,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeTabRegister => '登録';
 
   @override
-  String get storeTabSettlement => '精算';
+  String get storeTabSettlement => '入金';
 
   @override
   String get storeTabSettings => '設定';
 
   @override
-  String get storeRegisterCta => '今日の余剰を登録';
+  String get storeRegisterCta => '今日の余りを登録';
 
   @override
   String storeRegisterDeadline(String time, String remaining) {
-    return '締め切り $time（あと$remaining）';
+    return '目安 $timeまで（あと$remaining）';
   }
 
   @override
   String storeRegisterDeadlinePassed(String time) {
-    return '締め切り $time を過ぎています';
+    return '目安の $time を過ぎました。トラックがお店を出るまでは登録できます';
   }
 
   @override
@@ -2188,7 +2186,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeTodayBatches => '今日の出品';
 
   @override
-  String get storeBatchStatusEstimated => '概算';
+  String get storeBatchStatusEstimated => '回収待ち';
 
   @override
   String get storeBatchStatusOnSale => '販売中';
@@ -2198,7 +2196,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String storeSellBy(String time) {
-    return '販売期限 $time';
+    return '販売の終わり $time';
   }
 
   @override
@@ -2208,12 +2206,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String storeBatchQtyConfirmed(int estimated, int confirmed) {
-    return '概算 $estimated個 → 確定 $confirmed個';
+    return '予定 $estimated食 → 受け取り $confirmed食';
   }
 
   @override
   String storeBatchQtyEstimated(int estimated) {
-    return '概算 $estimated個（回収待ち）';
+    return '予定 $estimated食（回収待ち）';
   }
 
   @override
@@ -2231,7 +2229,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeNoBatchesBody =>
-      '余りそうな料理があれば、16:00 までに概算で登録してください。今夜のルートに組み込まれます。';
+      '余りそうな料理があれば、15〜16時頃を目安に登録してください。今夜のトラックが受け取りに来ます。';
 
   @override
   String get storeLoadErrorTitle => '読み込めませんでした';
@@ -2251,11 +2249,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeMonthPayout => '今月の還元額';
+  String get storeMonthPayout => '今月のお店の取り分';
 
   @override
   String storeSharePct(String pct) {
-    return '還元率 $pct%';
+    return '取り分 $pct%';
   }
 
   @override
@@ -2276,20 +2274,20 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String storeBatchPriceLine(String price, String time) {
-    return '$price・販売期限 $time';
+    return '$price・販売の終わり $time';
   }
 
   @override
-  String get storeStatConfirmed => '確定';
+  String get storeStatConfirmed => '回収した数';
 
   @override
-  String get storeStatEstimated => '概算';
+  String get storeStatEstimated => '出せそうな数';
 
   @override
   String get storeStatReserved => '予約';
 
   @override
-  String get storeStatPickedUp => '受取';
+  String get storeStatPickedUp => 'お渡し済み';
 
   @override
   String get storeStatRemaining => '残り';
@@ -2301,15 +2299,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeProgress => '進み具合';
 
   @override
-  String get storeStepEstimated => '概算登録';
+  String get storeStepEstimated => '登録';
 
   @override
   String storeStepEstimatedDetail(int qty) {
-    return '$qty個で登録';
+    return '$qty食で登録';
   }
 
   @override
-  String get storeStepCollected => '回収・数量確定';
+  String get storeStepCollected => 'ドライバーが受け取り';
 
   @override
   String storeStepCollectedPlanned(String time) {
@@ -2334,7 +2332,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String storeStepOnSaleDetail(int count) {
-    return '$countか所の受取地点で販売';
+    return '$countか所の受け取り場所で販売';
   }
 
   @override
@@ -2344,7 +2342,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeStepEndedDetail => '売れ残りは寄付または廃棄として記録';
 
   @override
-  String get storeStopsRemaining => '受取地点ごとの残り';
+  String get storeStopsRemaining => '受け取り場所ごとの残り';
 
   @override
   String get storeAutoUpdate => '自動更新';
@@ -2356,7 +2354,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String storeStopAllocated(int allocated) {
-    return '/$allocated個';
+    return '/$allocated食';
   }
 
   @override
@@ -2371,10 +2369,10 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeRegisterTitle => '余剰を登録';
+  String get storeRegisterTitle => '今日の余りを登録';
 
   @override
-  String get storeRegisterSubtitle => '概算 — 回収時にドライバーが数量を確定します';
+  String get storeRegisterSubtitle => '出せそうな数で登録 — 実際の数はドライバーが受け取るときに数えます';
 
   @override
   String get storeRequired => '必須';
@@ -2401,22 +2399,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeQtyLabel => '用意できそうな数';
 
   @override
-  String get storeQtyUnit => '個';
+  String get storeQtyUnit => '食';
 
   @override
-  String get storeQtyDecrease => '1個減らす';
+  String get storeQtyDecrease => '1食減らす';
 
   @override
-  String get storeQtyIncrease => '1個増やす';
+  String get storeQtyIncrease => '1食増やす';
 
   @override
-  String get storePriceLabel => '単価（税込）';
+  String get storePriceLabel => '1食の値段（税込）';
 
   @override
-  String get storePriceHint => '販売期限が近づくと、アプリで自動的に値引きされます（30〜70%）。';
+  String get storePriceHint => '販売の終わりが近づくと、お客様に出す値段は自動で下がります（30〜70%引き）。';
 
   @override
-  String get storeSellByLabel => '販売期限';
+  String get storeSellByLabel => '販売の終わり';
 
   @override
   String get storeSellByToday => '本日';
@@ -2453,10 +2451,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeAllergenSheetNote => '選んだ内容は、閉じても登録画面に残ります。';
 
   @override
-  String get storeAllergenMandatory => '表示義務（特定原材料・8品目）';
+  String get storeAllergenMandatory => '表示が必要なもの（8品目）';
 
   @override
-  String get storeAllergenRecommended => '表示推奨（20品目）';
+  String get storeAllergenRecommended => 'できれば表示するもの（20品目）';
 
   @override
   String get storeAllergenClear => 'すべて解除';
@@ -2506,7 +2504,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String storeConfirmQtyValue(int qty) {
-    return '$qty個';
+    return '$qty食';
   }
 
   @override
@@ -2524,7 +2522,34 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeConfirmNote => '登録すると今夜のルートに組み込まれ、お客様の予約受付が始まります。';
+  String get storeConfirmNote => '登録すると今夜のトラックが受け取りに来て、お客様が予約できるようになります。';
+
+  @override
+  String get storeConfirmPreviewTitle => 'お客様にはこう見えます';
+
+  @override
+  String storeConfirmPreviewPrice(String price) {
+    return '今の値段 $price';
+  }
+
+  @override
+  String get storeConfirmPreviewPriceNote => '販売の終わりが近づくと、さらに下がります';
+
+  @override
+  String get storeConfirmEstimate => 'お店の取り分（目安）';
+
+  @override
+  String storeConfirmEstimateValue(String amount) {
+    return '最大 $amount';
+  }
+
+  @override
+  String storeConfirmEstimateNote(String pct) {
+    return '今の値段で全部売れたとき（取り分 $pct%）。値下がりや売れ残りがあると少なくなります。';
+  }
+
+  @override
+  String get storeConfirmPreviewFailed => '値段を計算できませんでした。登録はこのままできます。';
 
   @override
   String get storeConfirmSubmit => '登録する';
@@ -2541,7 +2566,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeDoneTitle => '登録しました';
 
   @override
-  String get storeDoneBody => '今夜のルートに組み込まれました。予約が入るとお知らせします。';
+  String get storeDoneBody => '今夜のトラックが受け取りに来ます。予約が入るとお知らせします。';
 
   @override
   String get storeDoneCollection => '回収予定';
@@ -2552,7 +2577,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeDoneRoute => 'ルート';
+  String get storeDoneRoute => '今夜のトラック';
 
   @override
   String storeDoneRouteMore(String names) {
@@ -2566,13 +2591,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeDoneHome => 'ホームへ';
 
   @override
-  String get storeErrQty => '1個以上を指定してください';
+  String get storeErrQty => '1食以上にしてください';
 
   @override
-  String get storeErrPrice => '単価は1円以上で入力してください';
+  String get storeErrPrice => '値段は1円以上にしてください';
 
   @override
-  String get storeErrSellByPast => '販売期限は現在より後の時刻にしてください';
+  String get storeErrSellByPast => '販売の終わりは、今より後の時刻にしてください';
 
   @override
   String get storeErrIngredientName => '原材料名を入力してください';
@@ -2582,33 +2607,33 @@ class AppLocalizationsJa extends AppLocalizations {
       '写真をアップロードできませんでした。通信状態を確認して再度お試しいただくか、写真を外して登録してください。（まだ登録されていません）';
 
   @override
-  String get storeErrNotApproved => '店舗の承認が完了していないため、登録できません。';
+  String get storeErrNotApproved => 'お店の承認がまだのため、登録できません。';
 
   @override
   String get storeErrPhotoInvalid => '写真を登録できませんでした。写真を選び直して、もう一度お試しください。';
 
   @override
   String get storeErrNoTruck =>
-      '本日の担当トラックが割り当てられていないため、登録できません。EcoMeal運営にお問い合わせください。';
+      '今夜のトラックがまだ決まっていないため、登録できません。EcoMeal にお問い合わせください。';
 
   @override
-  String get storeErrNoStops => '受取地点が登録されていないため、登録できません。EcoMeal運営にお問い合わせください。';
+  String get storeErrNoStops =>
+      '受け取り場所がまだ用意されていないため、登録できません。EcoMeal にお問い合わせください。';
 
   @override
-  String get storeErrNoStopsLeft =>
-      '本日の運行ルートでは、店舗の集荷後に販売できる受取地点が残っていないため、登録できません。';
+  String get storeErrNoStopsLeft => '今夜のトラックが、お店のあとに回る受け取り場所が残っていないため、登録できません。';
 
   @override
-  String get storeErrTruckDeparted => '本日はトラックが既に店舗を出発したため、これ以上登録できません。';
+  String get storeErrTruckDeparted => '今夜のトラックはもうお店を出たため、これ以上登録できません。';
 
   @override
   String get storeErrRegisterFailed => '登録できませんでした。通信状態を確認して、もう一度お試しください。';
 
   @override
-  String get storeSettlementTitle => '精算';
+  String get storeSettlementTitle => '入金';
 
   @override
-  String get storeSettlementSubtitle => '月ごとの売上と還元額';
+  String get storeSettlementSubtitle => '月ごとの売上とお店の取り分';
 
   @override
   String storeSettlementCurrent(String month) {
@@ -2616,30 +2641,30 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeSettlementCutoff => '月末締め';
+  String get storeSettlementCutoff => '月末にまとめて計算';
 
   @override
   String storeSettlementEstimate(String amount) {
-    return '還元見込み $amount';
+    return '取り分の見込み $amount';
   }
 
   @override
   String storeSettlementCurrentSub(String sales, int orders, String pct) {
-    return '売上 $sales・$orders食・還元率 $pct%';
+    return '売上 $sales・$orders食・取り分 $pct%';
   }
 
   @override
-  String get storeSettlementStatements => '精算書';
+  String get storeSettlementStatements => '入金明細';
 
   @override
-  String get storeSettlementConfirmed => '確定';
+  String get storeSettlementConfirmed => '金額決定';
 
   @override
   String get storeSettlementPaid => '振込済み';
 
   @override
   String storeSettlementRowConfirmed(String date, int orders) {
-    return '$date 確定・$orders食';
+    return '$date 金額決定・$orders食';
   }
 
   @override
@@ -2648,16 +2673,17 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeSettlementNote => '毎月末で締めて運営が確定します。振込が済むと、振込日がここに表示されます。';
+  String get storeSettlementNote =>
+      'EcoMeal が月末にまとめて金額を決めます。振込が済むと、振込日がここに出ます。';
 
   @override
-  String get storeSettlementEmptyTitle => '精算書はまだありません';
+  String get storeSettlementEmptyTitle => '入金明細はまだありません';
 
   @override
-  String get storeSettlementEmptyBody => '月末に締めたあと、運営が確定するとここに表示されます。';
+  String get storeSettlementEmptyBody => '月が終わり、EcoMeal が金額を決めるとここに出ます。';
 
   @override
-  String get storeNoticeTitle => '支払通知書';
+  String get storeNoticeTitle => 'お支払いのお知らせ';
 
   @override
   String storeNoticeFor(String month) {
@@ -2671,7 +2697,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String storeNoticeIssued(String date) {
-    return '発行: EcoMeal 運営チーム・$date';
+    return '発行: EcoMeal・$date';
   }
 
   @override
@@ -2689,7 +2715,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeNoticePayout => 'お支払額';
 
   @override
-  String get storeNoticeConfirmedAt => '確定日';
+  String get storeNoticeConfirmedAt => '金額が決まった日';
 
   @override
   String get storeNoticePaidAt => '振込日';
@@ -2698,11 +2724,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeNoticeUnpaid => '未振込（振込後に表示）';
 
   @override
-  String get storeNoticeNumber => '精算番号';
+  String get storeNoticeNumber => '明細番号';
 
   @override
   String get storeNoticeFootnote =>
-      '還元額は受け取りが完了した注文だけで、注文ごとの還元率で計算しています（返金・失効した注文は含みません）。';
+      'お店の取り分は、お客様が受け取った注文だけで、注文ごとの割合で計算しています（返金や期限切れの注文は入りません）。';
 
   @override
   String get storeNoticePrintOnWeb => 'Web で印刷・PDF保存';
@@ -2736,13 +2762,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeInquiryTitle => 'お問い合わせ';
 
   @override
-  String get storeInquirySubtitle => '運営へのご連絡';
+  String get storeInquirySubtitle => 'EcoMeal へのご連絡';
 
   @override
   String get storeInquiryLabel => 'お問い合わせ内容';
 
   @override
-  String get storeInquiryHint => '通常1営業日以内に、メールとアプリの通知でお返事します。';
+  String get storeInquiryHint => 'お返事はご登録のメールアドレスに届きます。対応の状況は下の一覧で確認できます。';
 
   @override
   String get storeInquirySend => '送信する';
@@ -2815,29 +2841,29 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noticeRestaurantReviewedBody => '審査が完了しました。結果をご確認ください。';
 
   @override
-  String get noticeSettlementConfirmedTitle => '精算が確定しました';
+  String get noticeSettlementConfirmedTitle => '入金額が決まりました';
 
   @override
-  String get noticeSettlementConfirmedBody => '精算画面で金額をご確認ください。';
+  String get noticeSettlementConfirmedBody => '入金の画面で金額をご確認ください。';
 
   @override
   String get noticeSettlementPaidTitle => 'お振込みが完了しました';
 
   @override
-  String get noticeSettlementPaidBody => '精算画面で振込日をご確認ください。';
+  String get noticeSettlementPaidBody => '入金の画面で振込日をご確認ください。';
 
   @override
   String get noticeBatchCollectedTitle => '回収が完了しました';
 
   @override
   String get noticeBatchCollectedBody =>
-      'ドライバーが料理を回収しました。確定した数量は出品の詳細でご確認ください。';
+      'ドライバーが料理を受け取りました。受け取った数は出品の詳細でご確認ください。';
 
   @override
   String get noticeBatchPhotoRemovedTitle => '料理の写真が外されました';
 
   @override
-  String get noticeBatchPhotoRemovedBody => '運営が写真を外しました。理由はホームでご確認ください。';
+  String get noticeBatchPhotoRemovedBody => 'EcoMeal が写真を外しました。理由はホームでご確認ください。';
 
   @override
   String get noticeRatingReceivedTitle => '新しい評価が届きました';
@@ -2895,7 +2921,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeSettingsInfoNote => '店舗情報の変更は Web 管理画面またはお問い合わせから。';
+  String get storeSettingsInfoNote => 'お店の情報を変えたいときは、お問い合わせからご連絡ください。';
 
   @override
   String get storeSettingsPush => 'アプリの通知';
@@ -3488,7 +3514,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeContractBody =>
-      '店舗のご利用条件（還元率・精算・振込・食品の取り扱いなど）は、EcoMeal と締結した提携契約に定めています。お客様向けの利用規約は店舗には適用されません。契約内容の確認や変更のご相談はお問い合わせからご連絡ください。';
+      'お店のご利用条件（取り分・入金・振込・食品の扱いなど）は、EcoMeal と結んだ提携契約に書いてあります。お客様向けの利用規約はお店には当てはまりません。契約の確認や変更のご相談は、お問い合わせからご連絡ください。';
 
   @override
   String get storeContractInquiry => 'お問い合わせ';

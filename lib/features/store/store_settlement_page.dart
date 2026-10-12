@@ -11,9 +11,9 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import 'store_gateway.dart';
+import 'store_register_logic.dart';
 import 'store_layout.dart';
 
-String _pct(double v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
 String _md(DateTime t, String locale) => DateFormat.MMMd(locale).format(DateTime.parse(dateInTokyo(t)));
 String _ym(String periodMonth, String locale) => DateFormat.yMMM(locale).format(DateTime.parse(periodMonth));
 
@@ -90,7 +90,7 @@ class StoreSettlementPage extends ConsumerWidget {
                       l10n.storeSettlementCurrentSub(
                         formatYen(revenue.revenue),
                         revenue.orders,
-                        _pct(revenue.sharePct),
+                        formatSharePct(revenue.sharePct),
                       ),
                       style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9)),
                     ),

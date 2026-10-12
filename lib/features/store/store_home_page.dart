@@ -13,6 +13,7 @@ import '../../widgets/status_badge.dart';
 import '../notifications/notification_inbox.dart';
 import 'store_batch_detail_page.dart';
 import 'store_gateway.dart';
+import 'store_register_logic.dart';
 import 'store_layout.dart';
 import 'store_ratings_page.dart';
 
@@ -372,7 +373,6 @@ class StoreBatchCard extends StatelessWidget {
   }
 }
 
-String _pct(double v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
 
 class _RevenueCards extends ConsumerWidget {
   const _RevenueCards({required this.restaurantId, this.stacked = false});
@@ -426,7 +426,7 @@ class _RevenueCards extends ConsumerWidget {
         card(
           l10n.storeMonthPayout,
           revenue == null ? '—' : formatYen(revenue.payout),
-          revenue == null ? '' : l10n.storeSharePct(_pct(revenue.sharePct)),
+          revenue == null ? '' : l10n.storeSharePct(formatSharePct(revenue.sharePct)),
           const Key('storeMonthPayout'),
         ),
       ],

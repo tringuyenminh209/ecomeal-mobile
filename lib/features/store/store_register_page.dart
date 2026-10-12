@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/photo_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/yen.dart';
+import '../home/home_gateway.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/error_banner.dart';
 import 'store_gateway.dart';
@@ -134,6 +135,8 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
       context: context,
       isScrollControlled: true,
       builder: (_) => _ConfirmSheet(
+        restaurantId: widget.restaurant.id,
+        sellByAt: _sellByAt,
         qty: _qty,
         price: int.parse(_price.text),
         sellBy: context.l10n.storeSellByValue(
@@ -756,14 +759,25 @@ class _IngredientDialogState extends State<_IngredientDialog> {
 }
 
 // Sheet xác nhận (554:388)
-class _ConfirmSheet extends StatelessWidget {
+// Giá khách thấy ngay lúc này cho bước xác nhận S02 — gọi calc_current_price qua HomeGateway (cùng hàm app khách dùng;
+// app không tự tính giá, BR-008). Tách thành provider để test thay được.
+final storePricePreviewProvider = FutureProvider.autoDispose.family<int, ({int unitPrice, DateTime sellByAt})>(
+  (ref, k) async =>
+      (await ref.watch(homeGatewayProvider).calcCurrentPrice(unitPrice: k.unitPrice, expiresAt: k.sellByAt)).currentPrice,
+);
+
+class _ConfirmSheet extends ConsumerWidget {
   const _ConfirmSheet({
+    required this.restaurantId,
+    required this.sellByAt,
     required this.qty,
     required this.price,
     required this.sellBy,
     required this.allergens,
     required this.ingredients,
   });
+  final String restaurantId;
+  final DateTime sellByAt;
   final int qty;
   final int price;
   final String sellBy;
@@ -771,7 +785,7 @@ class _ConfirmSheet extends StatelessWidget {
   final List<BatchIngredient> ingredients;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final eco = context.eco;
     String ingredientLabel(BatchIngredient i) => i.origin.isEmpty ? i.name : '${i.name}（${i.origin}）';
@@ -815,6 +829,8 @@ class _ConfirmSheet extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 8),
+            _PreviewBlock(restaurantId: restaurantId, qty: qty, price: price, sellByAt: sellByAt),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: eco.primarySoft, borderRadius: BorderRadius.circular(12)),
@@ -865,6 +881,74 @@ class _NoAllergensBox extends StatelessWidget {
         controlAffinity: ListTileControlAffinity.leading,
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
         title: Text(context.l10n.storeNoAllergens, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+      ),
+    );
+  }
+}
+
+// Bước xác nhận S02 (2026-10-12, giống cột phải của Web W03): khách sẽ thấy gì, giá lúc này và phần của quán ước tính.
+// Lỗi tính giá không chặn việc đăng — chỉ báo không tính được.
+class _PreviewBlock extends ConsumerWidget {
+  const _PreviewBlock({required this.restaurantId, required this.qty, required this.price, required this.sellByAt});
+  final String restaurantId;
+  final int qty;
+  final int price;
+  final DateTime sellByAt;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final eco = context.eco;
+    final preview = ref.watch(storePricePreviewProvider((unitPrice: price, sellByAt: sellByAt)));
+    final share = ref.watch(storeMonthRevenueProvider(restaurantId)).valueOrNull?.sharePct;
+    final now = preview.valueOrNull;
+    return Container(
+      key: const Key('storeConfirmPreview'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: eco.surface,
+        border: Border.all(color: eco.border),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.storeConfirmPreviewTitle, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
+          const SizedBox(height: 6),
+          Text(l10n.partnerStore, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.primary)),
+          Text(l10n.mysteryBag, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          if (preview.isLoading)
+            const LinearProgressIndicator()
+          else if (now == null)
+            Text(l10n.storeConfirmPreviewFailed, style: TextStyle(fontSize: 12, color: eco.textSecondary))
+          else ...[
+            Text(
+              l10n.storeConfirmPreviewPrice(formatYen(now)),
+              key: const Key('storeConfirmPreviewPrice'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            Text(l10n.storeConfirmPreviewPriceNote, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
+            if (share != null) ...[
+              const Divider(height: 20),
+              Row(
+                children: [
+                  Expanded(child: Text(l10n.storeConfirmEstimate, style: const TextStyle(fontSize: 13))),
+                  Text(
+                    l10n.storeConfirmEstimateValue(formatYen(estimatedStoreShare(qty: qty, price: now, sharePct: share))),
+                    key: const Key('storeConfirmEstimate'),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: eco.primary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                l10n.storeConfirmEstimateNote(formatSharePct(share)),
+                style: TextStyle(fontSize: 12, color: eco.textSecondary),
+              ),
+            ],
+          ],
+        ],
       ),
     );
   }
