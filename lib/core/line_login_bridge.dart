@@ -13,13 +13,14 @@ class LineSdkLoginBridge implements LineLoginBridge {
   @override
   Future<String> obtainIdToken() async {
     // 'openid' là bắt buộc — thiếu scope này LINE chỉ cấp access token, không có ID token để verify.
-    // botPrompt 'aggressive': sau màn đồng ý, LINE mở thêm màn mời kết bạn với Official Account đã liên kết
-    // với channel (@939hqcxi, チャネル基本設定 → 友だち追加オプション). LINE CHỈ gửi tin push cho người đã kết
-    // bạn — thiếu bước này thì liên kết thành công nhưng thông báo "xe sắp tới" (UC-24, send-proximity-notification)
-    // không bao giờ tới được khách, và Edge Function gửi thất bại trong im lặng.
+    // botPrompt 'normal': ô 「友だち追加」 (đánh sẵn) nằm ngay trên màn đồng ý của LINE, kết bạn với Official Account đã
+    // liên kết với channel (@939hqcxi, チャネル基本設定 → 友だち追加オプション). LINE CHỈ gửi tin push cho người đã kết
+    // bạn (UC-24, send-proximity-notification). Không dùng 'aggressive': nó mở thêm màn kết bạn ở MỌI lần đăng nhập, kể cả
+    // người đã là bạn (「友だち追加済み / 戻る」 — 2026-10-12, chủ dự án thấy phiền khi đăng nhập lại). Ai bỏ ô kết bạn
+    // vẫn kết bạn lại được bằng 「LINEでトークを開く」 ở SCR-M07.
     final result = await LineSDK.instance.login(
       scopes: const ['profile', 'openid'],
-      option: LoginOption(false, 'aggressive'),
+      option: LoginOption(false, 'normal'),
     );
     final idToken = result.accessToken.idTokenRaw;
     if (idToken == null) {
