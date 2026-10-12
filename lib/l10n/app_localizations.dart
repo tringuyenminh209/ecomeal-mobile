@@ -6372,6 +6372,24 @@ abstract class AppLocalizations {
   /// **'受取地点に停車している Eco-Truck（車体に EcoMeal のロゴ）で、この QR を見せてください。読み取れないときは上のコードを伝えてください。トラックの位置と到着予定は、ホームの地図でも確認できます。'**
   String get activeOrderFindBody;
 
+  /// No description provided for @activeOrderPickedUp.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取りました'**
+  String get activeOrderPickedUp;
+
+  /// No description provided for @pickupCompleteTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取り完了'**
+  String get pickupCompleteTitle;
+
+  /// No description provided for @pickupCompleteBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'ご利用ありがとうございました。'**
+  String get pickupCompleteBody;
+
   /// No description provided for @leftoverAutoRecordNote.
   ///
   /// In ja, this message translates to:

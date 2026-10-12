@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/l10n.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/confirm_dialog.dart';
+import '../../widgets/skeleton.dart';
 import '../../widgets/state_panel.dart';
 import 'add_card_page.dart';
 import 'card_widgets.dart';
@@ -39,7 +40,8 @@ class PaymentMethodsPage extends ConsumerWidget {
         ),
       ),
       body: methodsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        // Khung xương theo bố cục (Figma SCR-M09 / Loading): tiêu đề nhỏ + 2 thẻ + nút thêm thẻ
+        loading: () => const SkeletonList(heights: [14, 64, 64, 49], padding: EdgeInsets.fromLTRB(20, 16, 20, 24)),
         error: (_, __) => Center(
           child: StatePanel.error(
             title: l10n.errorPaymentMethodsLoad,

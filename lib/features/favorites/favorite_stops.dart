@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/haptics.dart';
+import '../../core/motion.dart';
 import '../../core/supabase_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
@@ -71,6 +73,7 @@ class FavoriteStarButton extends ConsumerStatefulWidget {
 
 class _FavoriteStarButtonState extends ConsumerState<FavoriteStarButton> {
   bool _saving = false;
+  bool _justToggled = false;
 
   // Nút này nằm ở SCR-M04, nơi nút 「予約する」 cố định ở cuối màn: SnackBar nổi lên phía trên nút (không che, không chặn thao tác), tự tắt sau 4 giây
   SnackBar _snack(String text) => SnackBar(
@@ -87,6 +90,8 @@ class _FavoriteStarButtonState extends ConsumerState<FavoriteStarButton> {
     try {
       await ref.read(favoriteStopsGatewayProvider).setFavorite(widget.stopLocationId, isFavorite: !current);
       ref.invalidate(myFavoriteStopsProvider);
+      _justToggled = true; // chỉ nảy khi chính người dùng vừa bật, không nảy lúc mở màn đã có ★
+      Haptics.selection();
       messenger.showSnackBar(_snack(current ? l10n.favoriteRemoved : l10n.favoriteAdded));
     } catch (e) {
       messenger.showSnackBar(_snack(favoriteErrorMessage(e, l10n)));
@@ -113,10 +118,18 @@ class _FavoriteStarButtonState extends ConsumerState<FavoriteStarButton> {
           backgroundColor: isFavorite ? context.eco.primarySoft : null,
           side: isFavorite ? null : BorderSide(color: context.eco.border),
         ),
-        icon: Icon(
-          isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-          size: 22,
-          color: isFavorite ? context.eco.primary : context.eco.textSecondary,
+        // Vừa bật → sao nảy từ 0.6 lên (vượt nhẹ quá 1 rồi về, Figma "Favorite: off → pop → on"); tắt thì đổi ngay
+        icon: TweenAnimationBuilder<double>(
+          key: ValueKey(isFavorite),
+          tween: Tween(begin: isFavorite && _justToggled ? 0.6 : 1, end: 1),
+          duration: Motion.of(context, Motion.small),
+          curve: Motion.pop,
+          builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
+          child: Icon(
+            isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+            size: 22,
+            color: isFavorite ? context.eco.primary : context.eco.textSecondary,
+          ),
         ),
       ),
     );

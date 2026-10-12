@@ -3519,6 +3519,15 @@ class AppLocalizationsJa extends AppLocalizations {
       '受取地点に停車している Eco-Truck（車体に EcoMeal のロゴ）で、この QR を見せてください。読み取れないときは上のコードを伝えてください。トラックの位置と到着予定は、ホームの地図でも確認できます。';
 
   @override
+  String get activeOrderPickedUp => '受け取りました';
+
+  @override
+  String get pickupCompleteTitle => '受け取り完了';
+
+  @override
+  String get pickupCompleteBody => 'ご利用ありがとうございました。';
+
+  @override
   String get leftoverAutoRecordNote =>
       '寄付しなかった分は、最後の販売地点を出発してから1時間後に「売れ残り（廃棄）」として自動で記録されます。寄付する場合は、それまでに記録してください。';
 

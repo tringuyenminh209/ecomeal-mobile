@@ -12,8 +12,10 @@ import 'home_gateway.dart';
 // MysteryBagCard của Figma: tên cửa hàng ẩn (02_要件定義書 §6.1 → "EcoMeal提携店"), nhãn cố định
 // "ミステリーバッグ", GIÁ HIỆN TẠI (không phải unit_price), thời gian còn lại, số túi còn.
 class BatchCard extends ConsumerWidget {
-  const BatchCard({super.key, required this.listing});
+  const BatchCard({super.key, required this.listing, this.heroScope = 'nearby'});
   final BatchListing listing;
+  // Danh sách chứa thẻ — phần của tag Hero (batchPhotoHeroTag)
+  final String heroScope;
 
   // Chiều cao hàng thẻ ngang (Figma 168). Nhân theo cỡ chữ hệ thống: chữ to lên mà hàng giữ 168 thì nội dung thẻ tràn
   // (vạch vàng-đen). Chặn ở 1.8 lần — cỡ chữ lớn nhất của Android/iOS vẫn vừa mà hàng không chiếm hết màn hình.
@@ -36,6 +38,7 @@ class BatchCard extends ConsumerWidget {
         )
         .valueOrNull;
 
+    final heroTag = batchPhotoHeroTag(batchId: listing.batchId, routeStopId: listing.routeStopId, scope: heroScope);
     return SizedBox(
       width: 300,
       child: Card(
@@ -51,6 +54,8 @@ class BatchCard extends ConsumerWidget {
                   stopName: listing.stopName,
                   stopLocationId: listing.stopLocationId,
                   plannedPickupTime: listing.plannedPickupTime,
+                  heroTag: listing.photoUrl == null ? null : heroTag,
+                  heroPhotoUrl: listing.photoUrl,
                 ),
               ),
             );
@@ -98,7 +103,7 @@ class BatchCard extends ConsumerWidget {
                     ),
                     if (listing.photoUrl != null) ...[
                       const SizedBox(width: 12),
-                      BatchPhoto(photoUrl: listing.photoUrl, width: 72, height: 72, radius: 12),
+                      BatchPhoto(photoUrl: listing.photoUrl, width: 72, height: 72, radius: 12, heroTag: heroTag),
                     ],
                   ],
                 ),

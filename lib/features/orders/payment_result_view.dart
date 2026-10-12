@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
+import '../../widgets/animated_check.dart';
 import '../payment/card_widgets.dart';
 import '../payment/payment_gateway.dart';
 
@@ -49,7 +50,7 @@ class PaymentResultView extends StatelessWidget {
           l10n.paymentProcessingTitle,
           l10n.paymentProcessingBody,
         ),
-      PaymentPhase.done => (Icon(Icons.check, size: 34, color: eco.primary), eco.primary, eco.primarySoft, l10n.paymentDoneTitle, l10n.paymentDoneBody),
+      PaymentPhase.done => (const SizedBox.shrink(), eco.primary, eco.primarySoft, l10n.paymentDoneTitle, l10n.paymentDoneBody),
       PaymentPhase.declined => (
           Icon(Icons.priority_high, size: 34, color: eco.error),
           eco.error,
@@ -78,13 +79,16 @@ class PaymentResultView extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
         children: [
           Center(
-            child: Container(
-              width: 76,
-              height: 76,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: soft, shape: BoxShape.circle),
-              child: icon,
-            ),
+            // Thanh toán xong: vòng tròn nảy lên + nét ✓ được vẽ (khoảnh khắc ăn mừng, cùng lúc rung success)
+            child: phase == PaymentPhase.done
+                ? AnimatedCheck(key: const Key('paymentDoneCheck'), size: 76, color: tint, background: soft)
+                : Container(
+                    width: 76,
+                    height: 76,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: soft, shape: BoxShape.circle),
+                    child: icon,
+                  ),
           ),
           const SizedBox(height: 20),
           Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),

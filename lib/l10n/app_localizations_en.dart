@@ -3665,6 +3665,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show this QR code at the Eco-Truck parked at the pickup point (EcoMeal logo on the side). If it cannot be scanned, tell the driver the code above. You can also see where the truck is and when it arrives on the Home map.';
 
   @override
+  String get activeOrderPickedUp => 'Picked up';
+
+  @override
+  String get pickupCompleteTitle => 'Pickup complete';
+
+  @override
+  String get pickupCompleteBody => 'Thank you for using EcoMeal.';
+
+  @override
   String get leftoverAutoRecordNote =>
       'Meals you do not donate are recorded automatically as unsold (discarded) one hour after you leave the last sales stop. Record any donation before then.';
 

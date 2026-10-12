@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
+import '../../widgets/skeleton.dart';
 import '../../widgets/state_panel.dart';
 import 'favorite_stops.dart';
 
@@ -16,7 +17,8 @@ class FavoriteStopsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.favoriteStopsTitle)),
       body: favoritesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        // Khung xương theo bố cục danh sách (Figma SCR-M16 / Loading)
+        loading: () => const SkeletonList(heights: [76, 76, 76], padding: EdgeInsets.fromLTRB(20, 16, 20, 24)),
         error: (_, __) => Center(
           child: StatePanel.error(
             title: l10n.errorLoadTitle,

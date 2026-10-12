@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/motion.dart';
 
 // Số thay đổi theo thời gian thực (giá giảm theo bậc BR-008, phút còn lại): giá trị cũ mờ đi, giá trị mới trượt lên
 // từ dưới — mắt thấy "vừa đổi" thay vì số nhảy âm thầm. Người dùng bật "giảm chuyển động" → đổi ngay, không trượt.
@@ -12,12 +13,11 @@ class ValueChange extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     return AnimatedSwitcher(
-      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 280),
-      reverseDuration: reduceMotion ? Duration.zero : const Duration(milliseconds: 160),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
+      duration: Motion.of(context, Motion.small),
+      reverseDuration: Motion.of(context, Motion.tap),
+      switchInCurve: Motion.enter,
+      switchOutCurve: Motion.exit,
       layoutBuilder: (current, previous) => Stack(alignment: alignment, children: [...previous, ?current]),
       transitionBuilder: (child, animation) => FadeTransition(
         opacity: animation,

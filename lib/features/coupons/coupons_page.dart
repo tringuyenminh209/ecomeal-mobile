@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
+import '../../widgets/skeleton.dart';
 import '../../widgets/state_panel.dart';
 import '../legal/legal_pages.dart';
 import 'coupons.dart';
@@ -27,7 +28,8 @@ class CouponsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.couponsTitle)),
       body: referralAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        // Khung xương theo bố cục (Figma SCR-M19 / Loading): thẻ mã giới thiệu + 2 phiếu
+        loading: () => const SkeletonList(heights: [132, 96, 96], padding: EdgeInsets.fromLTRB(20, 16, 20, 24)),
         error: (_, __) => Center(
           child: StatePanel.error(
             title: l10n.errorLoadTitle,

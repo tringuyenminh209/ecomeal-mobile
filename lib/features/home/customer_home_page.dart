@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import '../../core/motion.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/jst_date.dart';
 import '../../core/line_official_account.dart';
@@ -18,6 +19,7 @@ import '../profile/profile_gateway.dart';
 import 'batch_card.dart';
 import 'home_gateway.dart';
 import 'sort_by_proximity.dart';
+import 'truck_glide.dart';
 import 'truck_route_section.dart';
 import '../../widgets/skeleton.dart';
 
@@ -428,14 +430,69 @@ class _Map extends StatefulWidget {
   State<_Map> createState() => _MapState();
 }
 
-class _MapState extends State<_Map> {
+class _MapState extends State<_Map> with SingleTickerProviderStateMixin {
   GoogleMapController? _controller;
   BitmapDescriptor? _truckIcon;
+
+  // Xe trượt tới vị trí mới (truck_glide.dart): _from → vị trí lúc bắt đầu trượt, _shown → vị trí đang vẽ.
+  // Chỉ setState khi sang bước mới (truckGlideSteps), không phải mỗi frame.
+  late final AnimationController _glide;
+  final Map<String, LatLng> _from = {};
+  final Map<String, LatLng> _shown = {};
+  int _glideStep = truckGlideSteps;
 
   @override
   void initState() {
     super.initState();
+    // Tạo ngay (không lazy): nếu lần đầu chạm tới ở dispose() thì tạo Ticker trên cây đã gỡ → lỗi
+    _glide = AnimationController(vsync: this, duration: Motion.marker)..addListener(_onGlideTick);
     _loadTruckIcon();
+    for (final t in widget.trucks) {
+      if (t.position case final p?) _shown[t.truckId] = LatLng(p.lat, p.lng);
+    }
+  }
+
+  LatLng? _target(String truckId) {
+    for (final t in widget.trucks) {
+      if (t.truckId == truckId && t.position != null) return LatLng(t.position!.lat, t.position!.lng);
+    }
+    return null;
+  }
+
+  void _startGlide() {
+    final reduced = Motion.reduced(context);
+    var gliding = false;
+    _from.clear();
+    for (final t in widget.trucks) {
+      final p = t.position;
+      if (p == null) continue;
+      final to = LatLng(p.lat, p.lng);
+      final from = _shown[t.truckId];
+      if (!reduced && from != null && shouldGlide(from, to)) {
+        _from[t.truckId] = from;
+        gliding = true;
+      } else {
+        _shown[t.truckId] = to;
+      }
+    }
+    _shown.removeWhere((id, _) => _target(id) == null);
+    if (gliding) {
+      _glideStep = 0;
+      _glide.forward(from: 0);
+    }
+  }
+
+  void _onGlideTick() {
+    final step = (_glide.value * truckGlideSteps).floor();
+    if (step == _glideStep) return;
+    final t = Motion.move.transform(_glide.value);
+    setState(() {
+      _glideStep = step;
+      for (final MapEntry(key: id, value: from) in _from.entries) {
+        final to = _target(id);
+        if (to != null) _shown[id] = lerpLatLng(from, to, t);
+      }
+    });
   }
 
   Future<void> _loadTruckIcon() async {
@@ -447,6 +504,7 @@ class _MapState extends State<_Map> {
   void didUpdateWidget(covariant _Map oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.myPosition == null && widget.myPosition != null) _locate();
+    if (!identical(oldWidget.trucks, widget.trucks)) _startGlide();
   }
 
   void _locate() {
@@ -460,6 +518,7 @@ class _MapState extends State<_Map> {
 
   @override
   void dispose() {
+    _glide.dispose();
     _controller?.dispose();
     super.dispose();
   }
@@ -506,7 +565,7 @@ class _MapState extends State<_Map> {
               if (truck.position case final p?)
                 Marker(
                   markerId: MarkerId('truck_${truck.truckId}'),
-                  position: LatLng(p.lat, p.lng),
+                  position: _shown[truck.truckId] ?? LatLng(p.lat, p.lng),
                   icon: _truckIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
                   // Xe đang chọn nổi lên trên các xe khác; nhãn "n号車" khớp tiêu đề sheet.
                   zIndexInt: truck.truckId == widget.selectedTruckId ? 1 : 0,

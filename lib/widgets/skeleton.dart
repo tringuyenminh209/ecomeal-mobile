@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/motion.dart';
 import '../core/theme/app_theme.dart';
 
 // Khung xương lúc tải (06 §3 Loading: "giữ khung bố cục"). Mỗi màn tự xếp các SkeletonBox theo đúng bố cục thật,
@@ -21,7 +22,7 @@ class _SkeletonPulseState extends State<SkeletonPulse> with SingleTickerProvider
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (Motion.reduced(context)) {
       _controller.stop();
       _controller.value = 0;
     } else if (!_controller.isAnimating) {

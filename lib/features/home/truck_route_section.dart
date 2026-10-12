@@ -86,7 +86,7 @@ class TruckRouteSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           itemCount: here.length,
           separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (_, index) => BatchCard(listing: here[index]),
+          itemBuilder: (_, index) => BatchCard(listing: here[index], heroScope: 'route'),
         ),
       ),
       const SizedBox(height: 8),

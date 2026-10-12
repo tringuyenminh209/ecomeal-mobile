@@ -59,12 +59,18 @@ class BatchDetailPage extends ConsumerWidget {
     required this.stopName,
     required this.plannedPickupTime,
     this.stopLocationId,
+    this.heroTag,
+    this.heroPhotoUrl,
   });
   final String batchId;
   final String routeStopId;
   final String stopName;
   final DateTime plannedPickupTime;
   final String? stopLocationId; // 0053: có thì hiện nút ☆ お気に入り ở thẻ 受け取り
+  // Mở từ thẻ có ảnh (SCR-M03): ảnh của thẻ "bay" lên thành ảnh đầu trang. Ảnh hiện ngay cả lúc chi tiết còn đang tải
+  // (heroPhotoUrl lấy từ thẻ) — nếu đợi tải xong mới có Hero đích thì hiệu ứng không chạy.
+  final String? heroTag;
+  final String? heroPhotoUrl;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,7 +84,7 @@ class BatchDetailPage extends ConsumerWidget {
       child: Scaffold(
       appBar: AppBar(title: Text(l10n.batchDetailTitle)),
       body: detailAsync.when(
-        loading: () => const _DetailSkeleton(),
+        loading: () => _DetailSkeleton(heroTag: heroTag, heroPhotoUrl: heroPhotoUrl),
         error: (_, __) => Center(
           child: StatePanel.error(
             title: l10n.errorLoadTitle,
@@ -94,6 +100,7 @@ class BatchDetailPage extends ConsumerWidget {
           stopName: stopName,
           plannedPickupTime: plannedPickupTime,
           stopLocationId: stopLocationId,
+          heroTag: heroTag,
         ),
       ),
       ),
@@ -108,12 +115,14 @@ class _BatchDetailBody extends ConsumerWidget {
     required this.stopName,
     required this.plannedPickupTime,
     this.stopLocationId,
+    this.heroTag,
   });
   final BatchDetail batch;
   final String routeStopId;
   final String stopName;
   final DateTime plannedPickupTime;
   final String? stopLocationId;
+  final String? heroTag;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -150,7 +159,7 @@ class _BatchDetailBody extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
-              BatchPhoto(photoUrl: batch.photoUrl, height: 210),
+              BatchPhoto(photoUrl: batch.photoUrl, height: 210, heroTag: heroTag),
               const SizedBox(height: 16),
               Align(
                 alignment: Alignment.centerLeft,
@@ -433,30 +442,42 @@ class _ChipWrap extends StatelessWidget {
 
 // Loading của Figma (134:583): giữ đúng khung ảnh / tiêu đề / giá / thẻ nhận hàng bằng khối xám.
 class _DetailSkeleton extends StatelessWidget {
-  const _DetailSkeleton();
+  const _DetailSkeleton({this.heroTag, this.heroPhotoUrl});
+  final String? heroTag;
+  final String? heroPhotoUrl;
 
   @override
   Widget build(BuildContext context) {
     Widget block(double height, {double? width, double radius = 8}) =>
         SkeletonBox(height: height, width: width, radius: radius);
-    return SkeletonPulse(
-      child: ListView(
+    // Ảnh của thẻ (Hero) đứng ngoài nhịp sáng-tối: chỉ phần chữ đang tải mới nhấp nháy
+    final heroTag = this.heroTag;
+    return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       children: [
-        block(210, radius: 16),
+        if (heroTag != null)
+          BatchPhoto(photoUrl: heroPhotoUrl, height: 210, heroTag: heroTag)
+        else
+          SkeletonPulse(child: block(210, radius: 16)),
         const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: block(24, width: 110, radius: 999),
+        SkeletonPulse(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: block(24, width: 110, radius: 999),
+              ),
+              const SizedBox(height: 12),
+              Align(alignment: Alignment.centerLeft, child: block(26, width: 180)),
+              const SizedBox(height: 12),
+              Align(alignment: Alignment.centerLeft, child: block(32, width: 140)),
+              const SizedBox(height: 16),
+              block(72, radius: 12),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
-        Align(alignment: Alignment.centerLeft, child: block(26, width: 180)),
-        const SizedBox(height: 12),
-        Align(alignment: Alignment.centerLeft, child: block(32, width: 140)),
-        const SizedBox(height: 16),
-        block(72, radius: 12),
       ],
-      ),
     );
   }
 }
