@@ -7,6 +7,7 @@ import '../../core/rpc_error.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/yen.dart';
 import '../../l10n/l10n.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import '../orders/order_helpers.dart';
 import 'admin_gateway.dart';
@@ -34,6 +35,7 @@ class AdminIssuePage extends ConsumerStatefulWidget {
 class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
   late final _amount = TextEditingController(text: '${widget.issue.refundable}');
   final _answer = TextEditingController();
+  final _scroll = ScrollController();
   bool _sending = false;
   bool _failed = false;
   String? _amountError;
@@ -49,6 +51,7 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
   void dispose() {
     _amount.dispose();
     _answer.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -62,6 +65,21 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
       _answerError = answer.isEmpty ? l10n.adminIssueErrAnswer : null;
     });
     if (refund == null || answer.isEmpty) return;
+    // 返金はお金が動き取り消せない — 注文・店舗・金額を出して確認する。送信エラー後の「もう一度送信する」は確認済みなので聞かない
+    if (!_failed) {
+      final order = orderDisplayNumber(issue.orderId);
+      final ok = await showConfirmDialog(
+        context,
+        title: refund > 0 ? l10n.adminIssueConfirmRefundTitle(formatYen(refund)) : l10n.adminIssueConfirmNoRefundTitle,
+        message: refund > 0
+            ? l10n.adminIssueConfirmRefundBody(order, issue.restaurantName, formatYen(refund))
+            : l10n.adminIssueConfirmNoRefundBody(order, issue.restaurantName),
+        cancelLabel: l10n.back,
+        confirmLabel: refund > 0 ? l10n.adminIssueConfirmRefundAction : l10n.adminIssueSubmitNoRefund,
+        confirmKey: const Key('adminIssueConfirm'),
+      );
+      if (ok != true || !mounted) return;
+    }
     setState(() {
       _sending = true;
       _failed = false;
@@ -84,6 +102,10 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
       }
       // Giữ nguyên số tiền và câu trả lời để gửi lại (bài học 第50回)
       setState(() => _failed = true);
+      // Khung lỗi nằm cuối danh sách, sát thanh nút cố định — cuộn tới để đọc được hết
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scroll.hasClients) _scroll.animateTo(_scroll.position.maxScrollExtent, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      });
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -132,7 +154,8 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
       body: AbsorbPointer(
         absorbing: _sending,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          controller: _scroll,
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             Container(
               padding: const EdgeInsets.all(16),

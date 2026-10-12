@@ -154,12 +154,19 @@ void main() {
     await pumpPage(tester);
     await tester.pumpAndSettle();
 
-    expect(find.text('大阪学生寮前で1袋を確保しました。受け取り時はQRコードを提示し、読み取れない場合は下記コードを伝えてください。'), findsOneWidget);
-    expect(find.text('手動入力：A7C2'), findsOneWidget);
+    expect(find.text(l10nJa.allocatedExplanation('大阪学生寮前')), findsOneWidget);
+    // QR と手動入力コードは「受け取りの案内」（SCR-M18）に移した — 先にキャンセルの確認をしてから開く
+    final open = find.byKey(const Key('openActiveOrder_00000000-0000-0000-0000-00000000a7c2'));
+    expect(open, findsOneWidget);
     // Figma 78:192 không vẽ nút huỷ cho thẻ allocated, nhưng 06 (レビュー第25回) cho huỷ mọi đơn pending/allocated.
     await tester.ensureVisible(find.byKey(const Key('cancelOrderButton')));
     expect(find.byKey(const Key('cancelOrderButton')), findsOneWidget);
     expect(find.text('受取予定の30分前まで無料キャンセル'), findsOneWidget);
+    await tester.ensureVisible(open);
+    await tester.tap(open);
+    await tester.pumpAndSettle();
+    expect(find.text('手動入力：A7C2'), findsOneWidget);
+    expect(find.text(l10nJa.activeOrderTitle), findsOneWidget);
   });
 
   testWidgets('locale en → nhãn tiếng Anh, ngày dạng "Sep 28 19:40" (giờ Tokyo)', (tester) async {

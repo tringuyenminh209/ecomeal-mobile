@@ -532,10 +532,27 @@ class _TermsConsentField extends StatelessWidget {
       fontWeight: FontWeight.w700,
       decoration: TextDecoration.underline,
     );
-    Widget link(String label, LegalDocument doc, Key key) => GestureDetector(
+    // Vùng chạm ≥ 44px quanh chữ 13px (review page 02: link và ô tick quá nhỏ để bấm)
+    Widget link(String label, LegalDocument doc, Key key) => InkWell(
           key: key,
           onTap: () => openLegalDocument(context, doc),
-          child: Text(label, style: linkStyle.copyWith(fontSize: 13)),
+          borderRadius: BorderRadius.circular(6),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Align(widthFactor: 1, child: Text(label, style: linkStyle.copyWith(fontSize: 13))),
+            ),
+          ),
+        );
+    // Chữ thường của câu đồng ý cũng bật/tắt ô tick (giống nhãn của checkbox)
+    Widget plain(String text) => GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onChanged(!value),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Align(widthFactor: 1, child: Text(text, style: const TextStyle(fontSize: 13))),
+          ),
         );
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,11 +561,10 @@ class _TermsConsentField extends StatelessWidget {
           key: const Key('signupTermsCheckbox'),
           value: value,
           onChanged: (v) => onChanged(v ?? false),
-          visualDensity: VisualDensity.compact,
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(top: 10),
+            padding: const EdgeInsets.only(top: 2),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -556,11 +572,11 @@ class _TermsConsentField extends StatelessWidget {
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    if (l10n.signupConsentBefore.isNotEmpty) Text(l10n.signupConsentBefore, style: const TextStyle(fontSize: 13)),
+                    if (l10n.signupConsentBefore.isNotEmpty) plain(l10n.signupConsentBefore),
                     link(l10n.legalTermsTitle, LegalDocument.terms, const Key('signupTermsLink')),
-                    Text(l10n.signupConsentBetween, style: const TextStyle(fontSize: 13)),
+                    plain(l10n.signupConsentBetween),
                     link(l10n.legalPrivacyTitle, LegalDocument.privacy, const Key('signupPrivacyLink')),
-                    if (l10n.signupConsentAfter.isNotEmpty) Text(l10n.signupConsentAfter, style: const TextStyle(fontSize: 13)),
+                    if (l10n.signupConsentAfter.isNotEmpty) plain(l10n.signupConsentAfter),
                   ],
                 ),
                 const SizedBox(height: 4),

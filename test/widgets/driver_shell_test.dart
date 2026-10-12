@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ecomeal_mobile/features/driver/driver_gateway.dart';
+import 'package:ecomeal_mobile/features/driver/driver_report.dart' show DriverReportSheet;
 import 'package:ecomeal_mobile/features/driver/gps_reporter.dart';
 import 'package:ecomeal_mobile/widgets/driver_shell.dart';
 import 'package:ecomeal_mobile/widgets/skeleton.dart';
+import '../features/driver/driver_test_data.dart';
 import '../helpers/test_app.dart';
 
 class _MockDriverGateway extends Mock implements DriverGateway {}
@@ -38,5 +40,19 @@ void main() {
     expect(find.text(l10nJa.errorLoadTitle), findsOneWidget);
     expect(find.text(l10nJa.retry), findsOneWidget);
     expect(find.text(l10nJa.noSalesTonight), findsNothing);
+  });
+
+  testWidgets('SCR-D01: 今夜の運行があるときだけ「運営に連絡」→ SCR-D06 のシート', (tester) async {
+    await tester.pumpWidget(_shell(() async => routeFixture));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('driverReportButton')));
+    await tester.pumpAndSettle();
+    expect(find.byType(DriverReportSheet), findsOneWidget);
+  });
+
+  testWidgets('SCR-D01: 今夜の運行がない（routeId なし）→ ボタンを出さない', (tester) async {
+    await tester.pumpWidget(_shell(() async => TonightRoute(truck: routeFixture.truck, routeId: null, stops: const [])));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('driverReportButton')), findsNothing);
   });
 }

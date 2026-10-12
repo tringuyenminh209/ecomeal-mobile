@@ -147,10 +147,27 @@ void main() {
       await tester.enterText(find.byKey(const Key('adminIssueAnswer')), '申し訳ありません');
       await tester.tap(find.byKey(const Key('adminIssueSubmit')));
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('adminIssueConfirm')));
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('adminIssueError')), findsOneWidget);
       expect(find.text(l10nJa.adminIssueRetry), findsOneWidget);
       expect(tester.widget<TextField>(find.byKey(const Key('adminIssueAnswer'))).controller!.text, '申し訳ありません');
       expect(tester.widget<TextField>(find.byKey(const Key('adminIssueAmount'))).controller!.text, '620');
+    });
+
+    testWidgets('返金: 金額・注文・店舗を出して確認し、戻るなら送らない', (tester) async {
+      _tall(tester);
+      final tasks = FakeAdminTasksGateway();
+      await tester.pumpWidget(_app(AdminIssuePage(issue: _issue()), tasks));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('adminIssueAnswer')), '全額を返金しました');
+      await tester.tap(find.byKey(const Key('adminIssueSubmit')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.adminIssueConfirmRefundTitle('¥620')), findsOneWidget);
+      expect(find.textContaining('ベーカリー ナミ'), findsWidgets);
+      await tester.tap(find.text(l10nJa.back));
+      await tester.pumpAndSettle();
+      expect(tasks.actions, isEmpty);
     });
 
     testWidgets('送信できたら閉じる', (tester) async {
@@ -160,6 +177,9 @@ void main() {
       await tester.enterText(find.byKey(const Key('adminIssueAmount')), '0');
       await tester.enterText(find.byKey(const Key('adminIssueAnswer')), '対象外です');
       await tester.tap(find.byKey(const Key('adminIssueSubmit')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.adminIssueConfirmNoRefundTitle), findsOneWidget);
+      await tester.tap(find.byKey(const Key('adminIssueConfirm')));
       await tester.pumpAndSettle();
       expect(tasks.actions, ['resolve:i-1:0:対象外です']);
       expect(find.byType(AdminIssuePage), findsNothing);
@@ -171,6 +191,8 @@ void main() {
       await _open(tester);
       await tester.enterText(find.byKey(const Key('adminIssueAnswer')), '回答');
       await tester.tap(find.byKey(const Key('adminIssueSubmit')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('adminIssueConfirm')));
       await tester.pumpAndSettle();
       expect(find.text(l10nJa.adminIssueErrAlready), findsOneWidget);
       expect(find.byType(AdminIssuePage), findsNothing);
@@ -203,8 +225,22 @@ void main() {
       await _open(tester);
       await tester.tap(find.byKey(const Key('adminRestApprove')));
       await tester.pumpAndSettle();
+      expect(find.text(l10nJa.adminRestApproveConfirmTitle('Nami Bakery')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('adminRestApproveConfirm')));
+      await tester.pumpAndSettle();
       expect(tasks.actions, ['approve:r-1']);
       expect(find.text(l10nJa.adminRestNotifyFailed), findsOneWidget);
+    });
+
+    testWidgets('承認: 確認で戻ったら承認しない', (tester) async {
+      final tasks = FakeAdminTasksGateway();
+      await tester.pumpWidget(_app(AdminRestaurantPage(restaurant: _restaurant()), tasks));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('adminRestApprove')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nJa.back));
+      await tester.pumpAndSettle();
+      expect(tasks.actions, isEmpty);
     });
 
     testWidgets('承認済みの店舗にはボタンを出さない', (tester) async {
@@ -281,6 +317,55 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('adminInq-q-new')), findsOneWidget);
       expect(find.byKey(const Key('adminInq-q-done')), findsNothing);
+    });
+  });
+
+  group('運行の連絡（SCR-D06 → 0067）', () {
+    AdminDriverReport report({bool open = true}) => AdminDriverReport(
+          id: open ? 'dr-1' : 'dr-2',
+          category: open ? 'delay' : 'vehicle',
+          delayMinutes: open ? 20 : null,
+          message: open ? '渋滞で中之島公園の出発が遅れています' : null,
+          isOpen: open,
+          resolution: open ? null : '代わりの車両を手配',
+          createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
+          plateNumber: '大阪 500 あ 12-34',
+          driverName: '佐藤 健太',
+          nextStopName: open ? '大阪学生寮前' : null,
+        );
+    Widget page(FakeAdminTasksGateway tasks) =>
+        _app(Scaffold(body: AdminTasksPage(task: AdminTask.driverReports, onSelect: (_) {})), tasks);
+
+    testWidgets('一覧（種類・遅れの分数・次の停車）→ タップで対応内容を書いて対応済み', (tester) async {
+      final tasks = FakeAdminTasksGateway(driverReports: [report(), report(open: false)]);
+      await tester.pumpWidget(page(tasks));
+      await tester.pumpAndSettle();
+      expect(find.text('${l10nJa.driverReportDelay}・${l10nJa.driverReportMinutes(20)}'), findsOneWidget);
+      expect(find.text('渋滞で中之島公園の出発が遅れています'), findsOneWidget);
+      expect(find.textContaining('大阪学生寮前'), findsOneWidget);
+      expect(find.text('代わりの車両を手配'), findsOneWidget); // 対応済みは対応内容を表示
+      expect(find.textContaining(l10nJa.adminDriverReportNoStop), findsOneWidget);
+      await tester.tap(find.byKey(const Key('adminDriverReport-dr-1')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.adminDriverReportResolveNote), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('adminRejectReason')), '20:10 受取のお客様へ遅れを連絡');
+      await tester.tap(find.byKey(const Key('adminRejectSend')));
+      await tester.pumpAndSettle();
+      expect(tasks.actions, ['driverReport:dr-1:20:10 受取のお客様へ遅れを連絡']);
+      expect(find.text(l10nJa.adminDriverReportDone), findsOneWidget);
+    });
+
+    testWidgets('ほかの運営が先に対応済み（E-REPORT-409）→ その旨を表示', (tester) async {
+      final tasks = FakeAdminTasksGateway(driverReports: [report()])
+        ..writeError = const PostgrestException(message: 'E-REPORT-409: already resolved');
+      await tester.pumpWidget(page(tasks));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('adminDriverReport-dr-1')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('adminRejectReason')), '対応しました');
+      await tester.tap(find.byKey(const Key('adminRejectSend')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.adminDriverReportAlready), findsOneWidget);
     });
   });
 }

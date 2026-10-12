@@ -716,7 +716,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cardTokenNote =>
-      'Card details are tokenized securely. Never share your CVC.';
+      'Card numbers are not stored on EcoMeal\'s servers; the payment provider keeps them secure. Never share your security code.';
 
   @override
   String get cardTermsNote =>
@@ -823,11 +823,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pendingExplanation =>
-      'The driver is checking the quantity. If there is a shortage, meals are allocated per pickup point in order of reservation (FIFO). Anything not allocated is refunded automatically.';
+      'The driver is checking the quantity. If there are not enough meals, they are reserved at each pickup point in the order the reservations were made. Anything we can\'t reserve is refunded automatically.';
 
   @override
   String allocatedExplanation(String stopName) {
-    return 'One bag is reserved for you at $stopName. Show the QR code at pickup; if it cannot be scanned, tell the driver the code below.';
+    return 'One bag is reserved for you at $stopName. Open the pickup guide for your QR code, time and place.';
   }
 
   @override
@@ -971,14 +971,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorBatchAlreadyConfirmed =>
-      'This batch has already been confirmed';
+      'The quantity for this food has already been confirmed';
 
   @override
   String get errorStopNotOnRoute =>
-      'The selected stops are not on this batch\'s route';
+      'The selected stops are not on the route for this food';
 
   @override
-  String get errorStopClosed => 'This stop has already been closed';
+  String get errorStopClosed => 'You have already departed from this stop';
 
   @override
   String get errorTemperatureRange =>
@@ -1020,11 +1020,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coldChainNotice =>
-      'Check that chilled items are 10°C or below. Contact the operations team if not.';
+      'Check that chilled items are 10℃ or below. Contact the operations team if not.';
 
   @override
   String get coldChainOverLimit =>
-      'Above the limit (10℃ or below). This lot can\'t be collected or sold.';
+      'Above the limit (10℃ or below). This food can\'t be collected or sold.';
 
   @override
   String get distributionStopsLabel => 'Distribute to stops';
@@ -1068,11 +1068,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rejectPickupButton => 'Don\'t collect (over temperature limit)';
 
   @override
-  String get rejectPickupDialogTitle => 'Don\'t collect this lot?';
+  String get rejectPickupDialogTitle => 'Don\'t collect this food?';
 
   @override
   String rejectPickupDialogBody(String celsius) {
-    return 'The core temperature is $celsius℃, above the limit (10℃ or below). This lot won\'t be sold; all reservations are refunded and customers are notified. The temperature record is kept.';
+    return 'The core temperature is $celsius℃, above the limit (10℃ or below). This food won\'t be sold; all reservations are refunded and customers are notified. The temperature record is kept.';
   }
 
   @override
@@ -1097,7 +1097,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPendingPickup => 'No unconfirmed pickups at this store';
 
   @override
-  String get selectBatchToPickUp => 'Select a batch to pick up';
+  String get selectBatchToPickUp => 'Select the food to pick up';
 
   @override
   String get tonightRouteTitle => 'Tonight\'s route';
@@ -1185,7 +1185,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPickupsTonight => 'No pickups scheduled tonight';
 
   @override
-  String get gpsSending => 'Sending GPS';
+  String get gpsSending => 'Sharing location';
 
   @override
   String get driverAccountSubtitle => 'Driver account';
@@ -1199,17 +1199,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorWalkupNotConfirmed =>
-      'Walk-up sales require a confirmed batch';
+      'Confirm the quantity before selling without a reservation';
 
   @override
-  String get errorBatchExpired => 'This batch is past its sell-by time';
+  String get errorBatchExpired => 'This food is past its sell-by time';
 
   @override
   String get errorDonationExceedsStock =>
       'Donation quantity exceeds the remaining stock';
 
   @override
-  String get errorDonationNotConfirmed => 'Donations require a confirmed batch';
+  String get errorDonationNotConfirmed =>
+      'Confirm the quantity before recording a donation';
 
   @override
   String get errorDonationStopsOpen =>
@@ -1266,7 +1267,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String departWarning(int count) {
-    return '$count reservations are still waiting. If you depart, they will be treated as no-show / expired and will not be refunded.';
+    return '$count reservations are still waiting. If you depart, they will be treated as not picked up (expired) and will not be refunded.';
   }
 
   @override
@@ -1303,6 +1304,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reservationHandoffTab => 'Reservations';
 
   @override
+  String get walkupTab => 'Walk-up';
+
+  @override
   String get handedOverLabel => 'Handed over';
 
   @override
@@ -1321,10 +1325,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manualCodeFallback => 'Can\'t scan the QR? Enter the code';
 
   @override
-  String get batchLabel => 'Batch';
+  String get batchLabel => 'Food';
 
   @override
-  String get noWalkupBatches => 'No batches can be sold at this stop';
+  String get noWalkupBatches => 'No food can be sold at this stop';
 
   @override
   String mealsRemaining(int qty) {
@@ -1378,7 +1382,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String donationRecorded(int remaining) {
-    return 'Donation recorded ($remaining meals left in this batch)';
+    return 'Donation recorded ($remaining meals of this food left)';
   }
 
   @override
@@ -1389,7 +1393,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can record donations after departing from every sales stop (no more sales are possible then, so the remaining stock is final).';
 
   @override
-  String get noConfirmedBatches => 'No confirmed batches';
+  String get noConfirmedBatches => 'No food with a confirmed quantity';
 
   @override
   String get donationQtyLabel => 'Donation quantity';
@@ -1497,7 +1501,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legalPrivacyTitle => 'Privacy Policy';
 
   @override
-  String get legalEnactedOn => 'Effective: October 9, 2026';
+  String get legalEnactedOn =>
+      'Revised: October 11, 2026 (effective October 9, 2026)';
 
   @override
   String get legalDemoNotice =>
@@ -1518,7 +1523,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get termsArticle2Body =>
-      'You register with an email address and password. Keep your details accurate and do not share your password. If we find misuse, we may suspend the account.';
+      'You register with an email address and password, LINE, or Apple. Keep your details accurate and do not share your password. If you register with LINE or Apple, these terms apply to your EcoMeal account in the same way. If we find misuse, we may suspend the account.';
 
   @override
   String get termsArticle3Title => 'Article 3 (Products)';
@@ -1553,7 +1558,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get termsArticle7Body =>
-      'Your location is used on your device to show nearby pickup points and is not stored on our servers. If you link LINE, the EcoMeal official account sends you truck-arrival and refund notices.';
+      'Your location is used on your device to show nearby pickup points and is not stored on our servers. Notices (truck arriving, refunds, answers to your problem reports, new food bags at favourite pickup points) come to the app if app notifications are on. If they are off and you have linked LINE, they come from the EcoMeal official account on LINE. Truck-arrival notices go to LINE if you have linked LINE.';
 
   @override
   String get termsArticle8Title => 'Article 8 (Profile photo)';
@@ -1582,7 +1587,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacySection1Body =>
-      'Registration details (email address, display name, furigana, profile photo), reservation and purchase history, payment methods (card brand, last four digits and expiry only), your LINE user ID if you link LINE, the content of your inquiries, how you use the app (records of opening food bags and the reservation screen), error information (error details, device type, app version), and a device identifier for sending notifications. We do not collect or store card numbers or security codes; our payment provider receives them directly.';
+      'Registration details (email address, display name, furigana, profile photo), reservation and purchase history, payment methods (card brand, last four digits and expiry only), your LINE user ID if you sign in with or link LINE, the ID and email address Apple provides if you sign in with Apple (including Apple\'s private relay address), the content of your inquiries, how you use the app (records of opening food bags and the reservation screen), error information (error details, device type, app version), and a device identifier for sending notifications. We do not collect or store card numbers or security codes; our payment provider receives them directly.';
 
   @override
   String get privacySection2Title => '2. Location';
@@ -2278,7 +2283,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storePhotoRemovedAck => 'Got it';
 
   @override
-  String get storeTodayBatches => 'Today\'s batches';
+  String get storeTodayBatches => 'Today\'s listings';
 
   @override
   String get storeBatchStatusEstimated => 'Estimate';
@@ -2320,7 +2325,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get storeNoBatchesTitle => 'No batches today yet';
+  String get storeNoBatchesTitle => 'No listings today yet';
 
   @override
   String get storeNoBatchesBody =>
@@ -2365,7 +2370,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeRatingsNone => 'No ratings yet';
 
   @override
-  String get storeBatchDetailTitle => 'Batch details';
+  String get storeBatchDetailTitle => 'Listing details';
 
   @override
   String storeBatchPriceLine(String price, String time) {
@@ -2459,7 +2464,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'If fewer items are collected than reserved, the earliest reservations are kept and the rest are refunded automatically.';
 
   @override
-  String get storeBatchNotFound => 'This batch was not found';
+  String get storeBatchNotFound => 'This listing was not found';
 
   @override
   String storeTemperature(String celsius) {
@@ -2655,7 +2660,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get storeDoneViewBatch => 'View batch';
+  String get storeDoneViewBatch => 'View listing';
 
   @override
   String get storeDoneHome => 'Back to home';
@@ -2674,7 +2679,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeErrPhotoUpload =>
-      'Couldn\'t upload the photo. Check your connection and try again, or remove the photo. (The batch has not been registered yet.)';
+      'Couldn\'t upload the photo. Check your connection and try again, or remove the photo. (Nothing has been registered yet.)';
 
   @override
   String get storeErrNotApproved =>
@@ -2940,7 +2945,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noticeBatchCollectedBody =>
-      'The driver collected your batch. See the confirmed count in the batch details.';
+      'The driver collected your food. See the confirmed count in the listing details.';
 
   @override
   String get noticeBatchPhotoRemovedTitle => 'A food photo was removed';
@@ -3554,14 +3559,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminOpsNoDriver => 'No driver';
 
   @override
-  String get adminOpsMapUnavailable => 'Map unavailable (no Maps API key)';
+  String get adminOpsMapUnavailable =>
+      'Map unavailable (map setup is not finished)';
 
   @override
   String get noticeReservationReceivedTitle => 'New reservations';
 
   @override
   String noticeReservationReceivedBody(String time, int count, int total) {
-    return '$count new for your batch selling until $time ($total in total).';
+    return '$count new for your listing selling until $time ($total in total).';
   }
 
   @override
@@ -3576,4 +3582,206 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeContractInquiry => 'Contact us';
+
+  @override
+  String adminRestApproveConfirmTitle(String name) {
+    return 'Approve $name?';
+  }
+
+  @override
+  String get adminRestApproveConfirmBody =>
+      'Once approved, the store can register surplus food in the store app, and the store contact receives a notification email.';
+
+  @override
+  String adminLicVerifyConfirmTitle(String name) {
+    return 'Mark $name’s licence as verified?';
+  }
+
+  @override
+  String adminLicVerifyConfirmBody(String date) {
+    return 'The expiry date $date is saved and this driver can be assigned to shifts.';
+  }
+
+  @override
+  String adminIssueConfirmRefundTitle(String amount) {
+    return 'Refund $amount?';
+  }
+
+  @override
+  String adminIssueConfirmRefundBody(
+    String order,
+    String restaurant,
+    String amount,
+  ) {
+    return '$amount is refunded to the customer’s payment method for $order ($restaurant) and your answer is sent. Refunds cannot be undone.';
+  }
+
+  @override
+  String get adminIssueConfirmNoRefundTitle => 'Resolve without a refund?';
+
+  @override
+  String adminIssueConfirmNoRefundBody(String order, String restaurant) {
+    return 'Only your answer is sent to the customer for $order ($restaurant). You cannot refund later.';
+  }
+
+  @override
+  String get adminMfaLostDevice =>
+      'If you lost your phone or deleted your authenticator app, you cannot sign in. Ask another EcoMeal administrator to reset your two-factor authentication.';
+
+  @override
+  String get adminIssueConfirmRefundAction => 'Refund';
+
+  @override
+  String get activeOrderOpen => 'Open pickup guide';
+
+  @override
+  String get activeOrderTitle => 'Pickup guide';
+
+  @override
+  String get activeOrderPlace => 'Pickup point';
+
+  @override
+  String get activeOrderTime => 'Pickup time';
+
+  @override
+  String activeOrderBefore(String time, int minutes) {
+    return 'Arrives at $time · in $minutes min';
+  }
+
+  @override
+  String activeOrderWindow(String end) {
+    return 'The truck is parked at the pickup point now (until $end)';
+  }
+
+  @override
+  String get activeOrderOver =>
+      'The truck has left this pickup point. If you could not collect your meal, use Report a problem in your reservations or contact us.';
+
+  @override
+  String get activeOrderFindTitle => 'How to find the truck';
+
+  @override
+  String get activeOrderFindBody =>
+      'Show this QR code at the Eco-Truck parked at the pickup point (EcoMeal logo on the side). If it cannot be scanned, tell the driver the code above. You can also see where the truck is and when it arrives on the Home map.';
+
+  @override
+  String get leftoverAutoRecordNote =>
+      'Meals you do not donate are recorded automatically as unsold (discarded) one hour after you leave the last sales stop. Record any donation before then.';
+
+  @override
+  String get driverReportButton => 'Contact operations (delay or problem)';
+
+  @override
+  String get driverReportTitle => 'Contact operations';
+
+  @override
+  String get driverReportLead =>
+      'The operations team is notified and contacts customers whose reservations are affected. For urgent safety problems, stop somewhere safe first.';
+
+  @override
+  String get driverReportDelay => 'Running late (next stop)';
+
+  @override
+  String get driverReportVehicle => 'Vehicle trouble (breakdown or accident)';
+
+  @override
+  String get driverReportFood =>
+      'Food or temperature problem (e.g. refused a pickup)';
+
+  @override
+  String get driverReportOther => 'Other';
+
+  @override
+  String driverReportMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get driverReportMinutesMax => '30+ min';
+
+  @override
+  String get driverReportMessageHint =>
+      'Describe the situation (optional; required for Other)';
+
+  @override
+  String get driverReportSend => 'Send to operations';
+
+  @override
+  String get driverReportSent =>
+      'Sent to operations. Keep driving safely while you wait for them to contact you.';
+
+  @override
+  String get driverReportSelect => 'Choose what happened';
+
+  @override
+  String get driverReportNeedMessage =>
+      'For Other, please describe the situation';
+
+  @override
+  String get driverReportNoRoute =>
+      'You can\'t send this because you have no route tonight';
+
+  @override
+  String get driverReportDuplicate =>
+      'You just sent this kind of message. Wait about a minute and try again';
+
+  @override
+  String get driverReportError =>
+      'Couldn\'t send. Try again somewhere with a better signal';
+
+  @override
+  String get adminTaskDriverReports => 'Open driver messages';
+
+  @override
+  String adminTaskDriverReportLatest(
+    String plate,
+    String category,
+    String time,
+  ) {
+    return '$plate \"$category\" · $time';
+  }
+
+  @override
+  String adminSegDriverReports(int count) {
+    return 'Drivers $count';
+  }
+
+  @override
+  String get adminDriverReportsEmpty => 'No messages from drivers';
+
+  @override
+  String adminDriverReportMeta(String time, String driver, String stop) {
+    return '$time · $driver · next stop $stop';
+  }
+
+  @override
+  String get adminDriverReportNoStop => 'none (route finished)';
+
+  @override
+  String get adminDriverReportResolveTitle => 'Mark as handled';
+
+  @override
+  String get adminDriverReportResolveNote =>
+      'Record what you did (for example, contacting customers). Customers are not contacted automatically.';
+
+  @override
+  String get adminDriverReportResolveSend => 'Mark as handled';
+
+  @override
+  String get adminDriverReportDone => 'Marked as handled';
+
+  @override
+  String get adminDriverReportAlready =>
+      'Another team member already marked this as handled';
+
+  @override
+  String get adminDriverReportError =>
+      'Couldn\'t mark this as handled. Please try again';
+
+  @override
+  String get noticeDriverReportedTitle => 'Message from a driver';
+
+  @override
+  String get noticeDriverReportedBody =>
+      'A driver reported a delay or problem on tonight\'s route.';
 }

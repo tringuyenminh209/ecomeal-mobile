@@ -39,6 +39,7 @@ class OrderSummary {
     this.issue,
     this.rating,
     this.discountAmount = 0,
+    this.stopDepartedAt,
   });
   final String id;
   final String status;
@@ -51,6 +52,7 @@ class OrderSummary {
   final OrderIssue? issue; // 0050: null = chưa báo cáo
   final int? rating; // 0054: số sao đã đánh giá (1〜5), null = chưa đánh giá
   final int discountAmount; // 0056: tiền coupon đã trừ (pricePaid là số khách thật sự trả)
+  final DateTime? stopDepartedAt; // route_stops.actual_departure_at: xe đã rời điểm nhận (SCR-M18 受け取りの案内)
 }
 
 abstract class OrderGateway {
@@ -175,7 +177,7 @@ class SupabaseOrderGateway implements OrderGateway {
     // khác, !inner sẽ làm MẤT CẢ ĐƠN khỏi lịch sử (không báo lỗi); left join chỉ mất tên điểm.
     final rows = await _client
         .from('orders')
-        .select('id, status, price_paid, discount_amount, tax_rate, tax_amount, created_at, route_stops!inner(planned_time, stop_locations(name)), order_issues(status, refund_amount, resolution), order_ratings(rating)')
+        .select('id, status, price_paid, discount_amount, tax_rate, tax_amount, created_at, route_stops!inner(planned_time, actual_departure_at, stop_locations(name)), order_issues(status, refund_amount, resolution), order_ratings(rating)')
         .eq('user_id', userId)
         .order('created_at', ascending: false) as List;
 
@@ -195,6 +197,7 @@ class SupabaseOrderGateway implements OrderGateway {
         issue: _issueOf(row['order_issues']),
         rating: _ratingOf(row['order_ratings']),
         discountAmount: (row['discount_amount'] as int?) ?? 0,
+        stopDepartedAt: stop['actual_departure_at'] == null ? null : DateTime.parse(stop['actual_departure_at'] as String),
       );
     }).toList();
   }

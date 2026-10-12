@@ -101,7 +101,7 @@ void main() {
     await tester.tap(find.byKey(const Key('confirmPickupButton')));
     await tester.pumpAndSettle();
 
-    expect(find.text('このロットは既に確定済みです'), findsOneWidget);
+    expect(find.text('この料理の数量はすでに確定しています'), findsOneWidget);
   });
 
   // レビュー第30回: lỗi mạng → server đã rollback cả 2 việc, nên lần bấm sau gửi lại ĐẦY ĐỦ (số lượng + nhiệt độ).
@@ -124,7 +124,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('confirmPickupButton')));
     await tester.pumpAndSettle();
-    expect(find.text('確定登録に失敗しました。もう一度お試しください'), findsOneWidget);
+    expect(find.text('数量を確定できませんでした。もう一度お試しください'), findsOneWidget);
     expect(find.text('30食の受け取りを確定'), findsOneWidget); // nút giữ nguyên, không đổi sang "chỉ gửi nhiệt độ"
 
     await tester.tap(find.byKey(const Key('confirmPickupButton')));
@@ -139,13 +139,13 @@ void main() {
     await pumpPage(tester);
     await tester.enterText(find.byKey(const Key('temperatureField')), '12.5');
     await tester.pump();
-    expect(find.text('基準（10℃以下）を超えています。このロットは回収・販売できません。'), findsOneWidget);
+    expect(find.text('基準（10℃以下）を超えています。この料理は回収・販売できません。'), findsOneWidget);
     expect(find.text('回収しない（温度基準外）'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('confirmPickupButton')));
     await tester.pumpAndSettle();
-    expect(find.text('このロットを回収しませんか？'), findsOneWidget);
-    expect(find.textContaining('芯温が12.5℃で'), findsOneWidget);
+    expect(find.text('この料理を回収しませんか？'), findsOneWidget);
+    expect(find.textContaining('中心温度が12.5℃で'), findsOneWidget);
     await tester.tap(find.text('キャンセル'));
     await tester.pumpAndSettle();
 
@@ -193,7 +193,7 @@ void main() {
 
     expect(find.text('Confirm pickup'), findsOneWidget);
     expect(find.text("Don't collect (over temperature limit)"), findsOneWidget);
-    expect(find.text("Above the limit (10℃ or below). This lot can't be collected or sold."), findsOneWidget);
+    expect(find.text("Above the limit (10℃ or below). This food can't be collected or sold."), findsOneWidget);
     expect(find.text('集荷を確認'), findsNothing);
   });
 }

@@ -10,6 +10,7 @@ import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import 'driver_gateway.dart';
 import 'driver_profile_page.dart';
+import 'driver_report.dart';
 import 'driver_route_helpers.dart';
 import 'gps_reporter.dart';
 import 'pickup_confirm_page.dart';
@@ -26,8 +27,21 @@ class DriverHomePage extends ConsumerWidget {
     final routeAsync = ref.watch(tonightRouteProvider);
     final gps = ref.watch(gpsReporterProvider);
     final l10n = context.l10n;
+    // SCR-D06: chỉ khi đêm nay có tuyến (server cũng chặn: E-REPORT-404). Cố định ở đáy như Figma 16:16731
+    final hasRouteTonight = routeAsync.valueOrNull?.routeId != null;
 
     return Scaffold(
+      bottomNavigationBar: hasRouteTonight
+          ? SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: OutlinedButton.icon(
+                key: const Key('driverReportButton'),
+                onPressed: () => openDriverReportSheet(context),
+                icon: const Icon(Icons.support_agent),
+                label: Text(l10n.driverReportButton),
+              ),
+            )
+          : null,
       body: SafeArea(
         child: routeAsync.when(
           // Khung: header xe, bản đồ 220, 3 thẻ tóm tắt / điểm dừng

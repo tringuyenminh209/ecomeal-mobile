@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
+import 'active_order_page.dart';
 import 'order_gateway.dart';
 import 'order_helpers.dart';
 import 'order_rating.dart';
@@ -326,7 +326,13 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
               body: l10n.allocatedExplanation(order.stopName),
             ),
             const SizedBox(height: 10),
-            _PickupQr(orderId: order.id),
+            // QR lớn, điểm nhận, giờ và cách tìm xe nằm ở màn 受け取りの案内 — thẻ chỉ giữ trạng thái và 1 hành động
+            FilledButton.icon(
+              key: Key('openActiveOrder_${order.id}'),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ActiveOrderPage(order: order))),
+              icon: const Icon(Icons.qr_code_2),
+              label: Text(l10n.activeOrderOpen),
+            ),
           ],
           if (showCancel) ...[
             const SizedBox(height: 10),
@@ -402,57 +408,6 @@ class _NoteBox extends StatelessWidget {
           Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           Text(body, style: const TextStyle(fontSize: 11, height: 1.6, color: AppColors.textSecondary)),
-        ],
-      ),
-    );
-  }
-}
-
-// Khối "受け取りQR" của Figma 78:192: tiêu đề + mã thủ công ở 2 đầu, QR trắng trên nền xanh đậm, chú thích.
-class _PickupQr extends StatelessWidget {
-  const _PickupQr({required this.orderId});
-  final String orderId;
-
-  // Nền xanh đậm chỉ dùng cho khối QR (tăng tương phản khi tài xế quét) — không phải token chung.
-  static const _qrBackground = Color(0xFF1F3A2B);
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(l10n.pickupQrTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-              Text(
-                l10n.manualCodeLabel(pickupManualCode(orderId)),
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            decoration: BoxDecoration(color: _qrBackground, borderRadius: BorderRadius.circular(8)),
-            alignment: Alignment.center,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(8)),
-              // QR mã hoá orders.id đầy đủ — khớp UC-23 "ドライバーがQRコードまたは予約番号を確認" (xem box-warn đầu chương)
-              child: QrImageView(data: orderId, size: 140),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(l10n.pickupQrCaption, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
         ],
       ),
     );

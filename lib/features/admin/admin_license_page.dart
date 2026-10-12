@@ -5,6 +5,7 @@ import '../../core/jst_date.dart';
 import '../../core/rpc_error.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import 'admin_gateway.dart';
 import 'admin_restaurant_page.dart' show AdminReasonSheet, maxRejectionReasonLength;
@@ -53,6 +54,18 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
     if (verify && (_expiresOn == null || _expiresOn!.compareTo(todayInTokyo()) < 0)) {
       setState(() => _expiryError = l10n.adminLicErrExpiry);
       return;
+    }
+    // 確認済みにするとシフトに入れられるようになる — 名前と有効期限を出して確認する
+    if (verify) {
+      final ok = await showConfirmDialog(
+        context,
+        title: l10n.adminLicVerifyConfirmTitle(widget.license.name),
+        message: l10n.adminLicVerifyConfirmBody(_expiresOn!.replaceAll('-', '/')),
+        cancelLabel: l10n.back,
+        confirmLabel: l10n.adminLicVerify,
+        confirmKey: const Key('adminLicVerifyConfirm'),
+      );
+      if (ok != true || !mounted) return;
     }
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);

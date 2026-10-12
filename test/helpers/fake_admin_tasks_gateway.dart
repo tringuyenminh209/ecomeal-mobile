@@ -2,11 +2,12 @@ import 'package:ecomeal_mobile/features/admin/admin_tasks_gateway.dart';
 
 // Tab 対応 giả: danh sách cố định, ghi lại thao tác; [writeError] != null → mọi thao tác ghi ném lỗi này
 class FakeAdminTasksGateway implements AdminTasksGateway {
-  FakeAdminTasksGateway({this.issues = const [], this.restaurants = const [], this.licenses = const [], this.inquiries = const []});
+  FakeAdminTasksGateway({this.issues = const [], this.restaurants = const [], this.licenses = const [], this.inquiries = const [], this.driverReports = const []});
   List<AdminIssue> issues;
   List<AdminRestaurant> restaurants;
   List<AdminLicense> licenses;
   List<AdminInquiry> inquiries;
+  List<AdminDriverReport> driverReports;
   Object? writeError;
   bool notifyOk = true;
   final actions = <String>[];
@@ -46,4 +47,9 @@ class FakeAdminTasksGateway implements AdminTasksGateway {
   @override
   Future<void> updateInquiry(String inquiryId, {required String status, String? note}) async =>
       _write('inquiry:$inquiryId:$status:${note ?? ''}');
+  @override
+  Future<List<AdminDriverReport>> fetchDriverReports() async => driverReports;
+  @override
+  Future<void> resolveDriverReport(String reportId, {required String resolution}) async =>
+      _write('driverReport:$reportId:$resolution');
 }

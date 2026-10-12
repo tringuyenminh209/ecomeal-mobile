@@ -211,7 +211,7 @@ class _StopHandoffPageState extends ConsumerState<StopHandoffPage> {
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                   children: [
                     _ModeTabs(
-                      labels: [l10n.reservationHandoffTab, 'Walk-up'],
+                      labels: [l10n.reservationHandoffTab, l10n.walkupTab],
                       selected: _tab,
                       onSelect: (i) => setState(() => _tab = i),
                     ),

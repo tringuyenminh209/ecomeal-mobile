@@ -43,10 +43,12 @@ class AuthSwitchPrompt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Vùng chạm ≥ 44px (review page 02: 「パスワードを忘れた方は」「再送する」 quá nhỏ để bấm)
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         child: Text.rich(
           TextSpan(
             text: '$prompt ',

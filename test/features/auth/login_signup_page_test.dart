@@ -56,9 +56,12 @@ void main() {
       find.byKey(const Key('signupPasswordField')),
       '1234567',
     );
+    FocusManager.instance.primaryFocus?.unfocus(); // ô nhập đang mở tay cầm chọn chữ đè lên ô tick
+    await tester.pump();
     await tester.ensureVisible(find.byKey(const Key('signupTermsCheckbox')));
     await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
     await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('signupSubmitButton')));
     await tester.tap(find.byKey(const Key('signupSubmitButton')));
     await tester.pumpAndSettle();
     expect(find.text('パスワードは8文字以上で入力してください'), findsOneWidget);
@@ -227,9 +230,12 @@ void main() {
         find.byKey(const Key('signupPasswordField')),
         'password123',
       );
+      FocusManager.instance.primaryFocus?.unfocus(); // ô nhập đang mở tay cầm chọn chữ đè lên ô tick
+      await tester.pump();
       await tester.ensureVisible(find.byKey(const Key('signupTermsCheckbox')));
       await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
       await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('signupSubmitButton')));
       await tester.tap(find.byKey(const Key('signupSubmitButton')));
       await tester.pumpAndSettle();
 
@@ -266,9 +272,12 @@ void main() {
         find.byKey(const Key('signupPasswordField')),
         'password123',
       );
+      FocusManager.instance.primaryFocus?.unfocus(); // ô nhập đang mở tay cầm chọn chữ đè lên ô tick
+      await tester.pump();
       await tester.ensureVisible(find.byKey(const Key('signupTermsCheckbox')));
       await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
       await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('signupSubmitButton')));
       await tester.tap(find.byKey(const Key('signupSubmitButton')));
       await tester.pumpAndSettle();
 
@@ -306,9 +315,12 @@ void main() {
         find.byKey(const Key('signupPasswordField')),
         'password123',
       );
+      FocusManager.instance.primaryFocus?.unfocus(); // ô nhập đang mở tay cầm chọn chữ đè lên ô tick
+      await tester.pump();
       await tester.ensureVisible(find.byKey(const Key('signupTermsCheckbox')));
       await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
       await tester.pump();
+      await tester.ensureVisible(find.byKey(const Key('signupSubmitButton')));
       await tester.tap(find.byKey(const Key('signupSubmitButton')));
       await tester.pumpAndSettle();
 
@@ -349,9 +361,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('山田太郎'), findsOneWidget);
 
+    FocusManager.instance.primaryFocus?.unfocus(); // ô nhập đang mở tay cầm chọn chữ đè lên ô tick
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('signupTermsCheckbox')));
     await tester.tap(find.byKey(const Key('signupTermsCheckbox')));
     await tester.pump();
     expect(submit().onPressed, isNotNull);
+    await tester.ensureVisible(find.byKey(const Key('signupSubmitButton')));
     await tester.tap(find.byKey(const Key('signupSubmitButton')));
     await tester.pumpAndSettle();
     final data = verify(

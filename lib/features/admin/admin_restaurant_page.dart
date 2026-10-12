@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import 'admin_gateway.dart';
 import 'admin_tasks_gateway.dart';
@@ -65,6 +66,20 @@ class _AdminRestaurantPageState extends ConsumerState<AdminRestaurantPage> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  // 承認は取り消せず通知メールも飛ぶ — 対象の店舗名を出して確認してから実行する
+  Future<void> _approve() async {
+    final l10n = context.l10n;
+    final ok = await showConfirmDialog(
+      context,
+      title: l10n.adminRestApproveConfirmTitle(widget.restaurant.name),
+      message: l10n.adminRestApproveConfirmBody,
+      cancelLabel: l10n.back,
+      confirmLabel: l10n.adminRestApprove,
+      confirmKey: const Key('adminRestApproveConfirm'),
+    );
+    if (ok == true && mounted) await _decide(approve: true);
   }
 
   Future<void> _reject() async {
@@ -201,7 +216,7 @@ class _AdminRestaurantPageState extends ConsumerState<AdminRestaurantPage> {
                     Expanded(
                       child: FilledButton(
                         key: const Key('adminRestApprove'),
-                        onPressed: _busy ? null : () => _decide(approve: true),
+                        onPressed: _busy ? null : _approve,
                         child: Text(l10n.adminRestApprove),
                       ),
                     ),

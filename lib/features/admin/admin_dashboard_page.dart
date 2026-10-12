@@ -8,11 +8,12 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import '../notifications/notification_inbox.dart';
+import '../driver/driver_report.dart' show driverReportCategoryLabel;
 import '../orders/order_helpers.dart';
 import 'admin_gateway.dart';
 
-// Mục của tab 対応 (SCR-A04 565:1160: 問題報告 / 審査 / 免許 / 問合せ)
-enum AdminTask { issues, restaurants, licenses, inquiries }
+// Mục của tab 対応 (SCR-A04 565:1160: 問題報告 / 運行の連絡 (SCR-D06, 0067) / 審査 / 免許 / 問合せ)
+enum AdminTask { issues, driverReports, restaurants, licenses, inquiries }
 
 // SCR-A01 ダッシュボード（562:1045 / Loading 562:1197）. [onOpenTask]: thẻ việc → tab 対応 đúng mục.
 class AdminDashboardPage extends ConsumerWidget {
@@ -78,7 +79,7 @@ class AdminDashboardPage extends ConsumerWidget {
             const SizedBox(height: 10),
             ...badges.when(
               loading: () => [
-                for (var i = 0; i < 4; i++) ...[
+                for (var i = 0; i < 5; i++) ...[
                   const SkeletonPulse(child: SkeletonBox(height: 68, radius: 14)),
                   const SizedBox(height: 10),
                 ],
@@ -96,6 +97,7 @@ class AdminDashboardPage extends ConsumerWidget {
                 final issue = b.latestIssue;
                 final restaurant = b.latestRestaurant;
                 final license = b.latestLicense;
+                final report = b.latestDriverReport;
                 // Web と同じ区分: パートナー申込 = restaurant、それ以外（ドライバー応募・お問い合わせ）は「その他」
                 final partner = b.newInquiryTypes['restaurant'] ?? 0;
                 final other = b.newInquiries - partner;
@@ -112,6 +114,19 @@ class AdminDashboardPage extends ConsumerWidget {
                             time(issue.createdAt),
                           ),
                     b.openIssues,
+                  ),
+                  (
+                    AdminTask.driverReports,
+                    Icons.support_agent,
+                    l10n.adminTaskDriverReports,
+                    report == null
+                        ? l10n.adminTaskNone
+                        : l10n.adminTaskDriverReportLatest(
+                            report.plateNumber,
+                            driverReportCategoryLabel(report.category, l10n),
+                            time(report.createdAt),
+                          ),
+                    b.openDriverReports,
                   ),
                   (
                     AdminTask.restaurants,

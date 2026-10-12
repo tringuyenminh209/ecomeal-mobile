@@ -72,6 +72,14 @@ class FavoriteStarButton extends ConsumerStatefulWidget {
 class _FavoriteStarButtonState extends ConsumerState<FavoriteStarButton> {
   bool _saving = false;
 
+  // Nút này nằm ở SCR-M04, nơi nút 「予約する」 cố định ở cuối màn: SnackBar nổi lên phía trên nút (không che, không chặn thao tác), tự tắt sau 4 giây
+  SnackBar _snack(String text) => SnackBar(
+        content: Text(text),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+        duration: const Duration(seconds: 4),
+      );
+
   Future<void> _toggle(bool current) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
@@ -79,9 +87,9 @@ class _FavoriteStarButtonState extends ConsumerState<FavoriteStarButton> {
     try {
       await ref.read(favoriteStopsGatewayProvider).setFavorite(widget.stopLocationId, isFavorite: !current);
       ref.invalidate(myFavoriteStopsProvider);
-      messenger.showSnackBar(SnackBar(content: Text(current ? l10n.favoriteRemoved : l10n.favoriteAdded)));
+      messenger.showSnackBar(_snack(current ? l10n.favoriteRemoved : l10n.favoriteAdded));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(favoriteErrorMessage(e, l10n))));
+      messenger.showSnackBar(_snack(favoriteErrorMessage(e, l10n)));
     } finally {
       if (mounted) setState(() => _saving = false);
     }

@@ -37,7 +37,7 @@ void main() {
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.physicalSize = const Size(1080, 3000);
     addTearDown(tester.view.reset);
     await tester.pumpWidget(ProviderScope(
       overrides: [driverGatewayProvider.overrideWithValue(driverGateway), handoffGatewayProvider.overrideWithValue(handoffGateway)],
@@ -84,7 +84,7 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => handoffGateway.recordDonation(batchId: 'batch-1', quantity: 6, note: 'しぶやフードサポート')).called(1);
-    expect(find.text('寄付を記録しました（このロットの残り 0食）'), findsOneWidget);
+    expect(find.text('寄付を記録しました（この料理の残り 0食）'), findsOneWidget);
   });
 
   testWidgets('tặng vượt số còn lại → câu lỗi E-INV-001 của API-016', (tester) async {

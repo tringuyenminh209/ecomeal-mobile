@@ -132,7 +132,7 @@ void main() {
     });
     await pumpPage(tester);
 
-    await tester.tap(find.text('Walk-up'));
+    await tester.tap(find.text('予約なし販売'));
     await tester.pumpAndSettle();
     expect(find.text('残り 1食'), findsOneWidget);
     expect(find.text('Stop rB'), findsOneWidget); // tên lô = tên điểm thu gom của nhà hàng đó
@@ -153,7 +153,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('departButton')));
     await tester.pumpAndSettle();
-    expect(find.text('1件の予約が引き渡し待ちです。出発すると、これらの予約は「no-show / 失効」として扱われ、返金対象外になります。'), findsOneWidget);
+    expect(find.text('1件の予約が引き渡し待ちです。出発すると、これらの予約は「受け取りなし（失効）」として扱われ、返金されません。'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('confirmDepartButton')));
     await tester.pumpAndSettle();

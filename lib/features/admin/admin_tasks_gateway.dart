@@ -36,6 +36,32 @@ class AdminIssue {
   final String? customerName; // null: tài khoản đã xoá
 }
 
+// 運行の連絡（SCR-D06 → API-086, 0067）
+class AdminDriverReport {
+  const AdminDriverReport({
+    required this.id,
+    required this.category,
+    required this.delayMinutes,
+    required this.message,
+    required this.isOpen,
+    required this.resolution,
+    required this.createdAt,
+    required this.plateNumber,
+    required this.driverName,
+    required this.nextStopName,
+  });
+  final String id;
+  final String category; // delay | vehicle | food | other
+  final int? delayMinutes; // chỉ khi delay (30 = 30分以上)
+  final String? message;
+  final bool isOpen;
+  final String? resolution;
+  final DateTime createdAt;
+  final String plateNumber;
+  final String? driverName; // null: tài khoản đã xoá
+  final String? nextStopName; // điểm chưa rời đầu tiên lúc đọc; null: đã chạy hết tuyến
+}
+
 class AdminRestaurant {
   const AdminRestaurant({
     required this.id,
@@ -131,6 +157,8 @@ abstract class AdminTasksGateway {
   Future<void> reviewLicense(String driverId, {required bool verify, String? expiresOn, String? reason});
   Future<List<AdminInquiry>> fetchInquiries();
   Future<void> updateInquiry(String inquiryId, {required String status, String? note});
+  Future<List<AdminDriverReport>> fetchDriverReports();
+  Future<void> resolveDriverReport(String reportId, {required String resolution});
 }
 
 class SupabaseAdminTasksGateway implements AdminTasksGateway {
@@ -292,6 +320,30 @@ class SupabaseAdminTasksGateway implements AdminTasksGateway {
     'update_inquiry_status',
     params: {'p_inquiry_id': inquiryId, 'p_status': status, 'p_admin_note': note},
   );
+
+  @override
+  Future<List<AdminDriverReport>> fetchDriverReports() async {
+    final data = await _client.rpc('get_driver_reports') as List;
+    return [
+      for (final j in data.cast<Map<String, dynamic>>())
+        AdminDriverReport(
+          id: j['id'] as String,
+          category: j['category'] as String,
+          delayMinutes: j['delay_minutes'] as int?,
+          message: j['message'] as String?,
+          isOpen: j['status'] == 'open',
+          resolution: j['resolution'] as String?,
+          createdAt: DateTime.parse(j['created_at'] as String),
+          plateNumber: j['plate_number'] as String,
+          driverName: j['driver_name'] as String?,
+          nextStopName: j['next_stop_name'] as String?,
+        ),
+    ];
+  }
+
+  @override
+  Future<void> resolveDriverReport(String reportId, {required String resolution}) =>
+      _client.rpc('resolve_driver_report', params: {'p_report_id': reportId, 'p_resolution': resolution});
 }
 
 final adminTasksGatewayProvider = Provider<AdminTasksGateway>(
@@ -309,4 +361,7 @@ final adminLicensesProvider = FutureProvider.autoDispose<List<AdminLicense>>(
 );
 final adminInquiriesProvider = FutureProvider.autoDispose<List<AdminInquiry>>(
   (ref) => ref.watch(adminTasksGatewayProvider).fetchInquiries(),
+);
+final adminDriverReportsProvider = FutureProvider.autoDispose<List<AdminDriverReport>>(
+  (ref) => ref.watch(adminTasksGatewayProvider).fetchDriverReports(),
 );

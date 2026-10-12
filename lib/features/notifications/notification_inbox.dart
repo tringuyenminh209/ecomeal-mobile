@@ -146,6 +146,11 @@ String _reservationBody(Map<String, dynamic>? p, AppLocalizations l10n) {
     body: l10n.noticeLicenseSubmittedBody,
     icon: Icons.badge_outlined,
   ),
+  'driver_reported' => (
+    title: l10n.noticeDriverReportedTitle,
+    body: l10n.noticeDriverReportedBody,
+    icon: Icons.support_agent,
+  ),
   'inquiry_received' => (
     title: l10n.noticeInquiryReceivedTitle,
     body: l10n.noticeInquiryReceivedBody,

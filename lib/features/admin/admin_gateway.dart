@@ -40,6 +40,8 @@ class AdminBadges {
     this.latestRestaurant,
     this.latestLicense,
     this.newInquiryTypes = const {},
+    this.openDriverReports = 0,
+    this.latestDriverReport,
   });
   final int openIssues;
   final int pendingRestaurants;
@@ -49,6 +51,8 @@ class AdminBadges {
   final ({String name, DateTime createdAt})? latestRestaurant;
   final ({String driverName, DateTime? submittedAt})? latestLicense;
   final Map<String, int> newInquiryTypes; // inquiries.type → số câu hỏi mới
+  final int openDriverReports; // 0067: 運行の連絡 chưa xử lý
+  final ({String plateNumber, String category, DateTime createdAt})? latestDriverReport;
 }
 
 class AdminTonight {
@@ -221,6 +225,7 @@ class SupabaseAdminGateway implements AdminGateway {
     final issue = j['latest_issue'] as Map<String, dynamic>?;
     final restaurant = j['latest_restaurant'] as Map<String, dynamic>?;
     final license = j['latest_license'] as Map<String, dynamic>?;
+    final report = j['latest_driver_report'] as Map<String, dynamic>?;
     return AdminBadges(
       openIssues: j['open_issues'] as int,
       pendingRestaurants: j['pending_restaurants'] as int,
@@ -243,6 +248,15 @@ class SupabaseAdminGateway implements AdminGateway {
               submittedAt: license['submitted_at'] == null ? null : DateTime.parse(license['submitted_at'] as String),
             ),
       newInquiryTypes: (j['new_inquiry_types'] as Map<String, dynamic>).map((k, v) => MapEntry(k, v as int)),
+      // 0067 より前のサーバーにはキーが無い → 0 件として扱う
+      openDriverReports: j['open_driver_reports'] as int? ?? 0,
+      latestDriverReport: report == null
+          ? null
+          : (
+              plateNumber: report['plate_number'] as String,
+              category: report['category'] as String,
+              createdAt: DateTime.parse(report['created_at'] as String),
+            ),
     );
   }
 

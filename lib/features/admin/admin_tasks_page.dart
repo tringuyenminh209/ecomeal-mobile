@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/rpc_error.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/yen.dart';
 import '../../l10n/l10n.dart';
@@ -8,6 +9,7 @@ import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import '../orders/order_helpers.dart';
+import '../driver/driver_report.dart' show driverReportCategoryLabel, driverReportDelayLabel;
 import 'admin_dashboard_page.dart' show AdminTask;
 import 'admin_gateway.dart';
 import 'admin_inquiry_page.dart';
@@ -29,6 +31,7 @@ class AdminTasksPage extends ConsumerWidget {
     final b = ref.watch(adminBadgesProvider).valueOrNull;
     final segments = [
       (AdminTask.issues, l10n.adminSegIssues(b?.openIssues ?? 0)),
+      (AdminTask.driverReports, l10n.adminSegDriverReports(b?.openDriverReports ?? 0)),
       (AdminTask.restaurants, l10n.adminSegRestaurants(b?.pendingRestaurants ?? 0)),
       (AdminTask.licenses, l10n.adminSegLicenses(b?.pendingLicenses ?? 0)),
       (AdminTask.inquiries, l10n.adminSegInquiries(b?.newInquiries ?? 0)),
@@ -68,6 +71,7 @@ class AdminTasksPage extends ConsumerWidget {
           Expanded(
             child: switch (task) {
               AdminTask.issues => const _IssuesList(),
+              AdminTask.driverReports => const _DriverReportsList(),
               AdminTask.restaurants => const _RestaurantsList(),
               AdminTask.licenses => const _LicensesList(),
               AdminTask.inquiries => const _InquiriesList(),
@@ -105,6 +109,7 @@ class _AsyncList<T> extends ConsumerWidget {
                 ref.invalidate(adminRestaurantsProvider);
                 ref.invalidate(adminLicensesProvider);
                 ref.invalidate(adminInquiriesProvider);
+                ref.invalidate(adminDriverReportsProvider);
               },
             ),
           ),
@@ -117,6 +122,7 @@ class _AsyncList<T> extends ConsumerWidget {
                 ref.invalidate(adminRestaurantsProvider);
                 ref.invalidate(adminLicensesProvider);
                 ref.invalidate(adminInquiriesProvider);
+                ref.invalidate(adminDriverReportsProvider);
               },
               child: items.isEmpty
                   ? ListView(
@@ -225,6 +231,88 @@ class _IssuesList extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               i.customerName == null ? time : l10n.adminIssueMeta(time, i.customerName!),
+              style: TextStyle(fontSize: 11, color: eco.textSecondary),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// 運行の連絡（SCR-D06 → 0067）: 未対応を先に。タップ → 対応内容を書いて対応済み（お客様への連絡は運営が別に行う）
+class _DriverReportsList extends ConsumerWidget {
+  const _DriverReportsList();
+
+  Future<void> _resolve(BuildContext context, WidgetRef ref, AdminDriverReport r) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final resolution = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => AdminReasonSheet(
+        title: l10n.adminDriverReportResolveTitle,
+        note: l10n.adminDriverReportResolveNote,
+        sendLabel: l10n.adminDriverReportResolveSend,
+      ),
+    );
+    if (resolution == null || resolution.length > maxRejectionReasonLength) return;
+    try {
+      await ref.read(adminTasksGatewayProvider).resolveDriverReport(r.id, resolution: resolution);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.adminDriverReportDone)));
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(rpcErrorCode(e) == 'E-REPORT-409' ? l10n.adminDriverReportAlready : l10n.adminDriverReportError),
+        ),
+      );
+    }
+    ref.invalidate(adminDriverReportsProvider);
+    ref.invalidate(adminBadgesProvider);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final eco = context.eco;
+    final locale = Localizations.localeOf(context).languageCode;
+    return _AsyncList<AdminDriverReport>(
+      provider: adminDriverReportsProvider,
+      empty: l10n.adminDriverReportsEmpty,
+      itemBuilder: (context, r) {
+        final time = inboxTimeLabel(r.createdAt, DateTime.now(), l10n, locale);
+        final category = driverReportCategoryLabel(r.category, l10n);
+        final delay = r.delayMinutes;
+        final detail = r.isOpen ? r.message : r.resolution;
+        return _Card(
+          key: Key('adminDriverReport-${r.id}'),
+          onTap: r.isOpen ? () => _resolve(context, ref, r) : null,
+          children: [
+            Row(
+              children: [
+                Text(r.plateNumber, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                const SizedBox(width: 8),
+                StatusBadge(
+                  label: r.isOpen ? l10n.adminIssueOpen : l10n.adminIssueResolved,
+                  tone: r.isOpen ? BadgeTone.warning : BadgeTone.neutral,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              delay == null ? category : '$category・${driverReportDelayLabel(delay, l10n)}',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+            if (detail != null)
+              Text(
+                detail,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, color: eco.textSecondary),
+              ),
+            const SizedBox(height: 2),
+            Text(
+              l10n.adminDriverReportMeta(time, r.driverName ?? '—', r.nextStopName ?? l10n.adminDriverReportNoStop),
               style: TextStyle(fontSize: 11, color: eco.textSecondary),
             ),
           ],

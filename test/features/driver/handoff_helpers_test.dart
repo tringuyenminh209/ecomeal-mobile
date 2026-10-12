@@ -23,10 +23,10 @@ void main() {
   });
 
   test('handoffErrorMessage() / validateDonationQty()', () {
-    expect(handoffErrorMessage(Exception('E-ORDER-007: sold out at this pickup stop'), l10nJa), 'この停車地点のWalk-up在庫は売り切れです');
+    expect(handoffErrorMessage(Exception('E-ORDER-007: sold out at this pickup stop'), l10nJa), 'この停車地点で予約なしで販売できる分は売り切れです');
     expect(handoffErrorMessage(Exception('E-INV-001: quantity exceeds remaining stock'), l10nJa), '寄付数量が残り在庫を超えています');
     expect(handoffErrorMessage(Exception('E-INV-004: stops selling this batch are still open'), l10nJa), '未出発の販売地点があるため、まだ寄付を記録できません');
-    expect(handoffErrorMessage(Exception('E-ROUTE-409: stop already closed'), l10nJa), 'この停車地点は既にクローズされています');
+    expect(handoffErrorMessage(Exception('E-ROUTE-409: stop already closed'), l10nJa), 'この停車地点はすでに出発済みです');
     expect(handoffErrorMessage(Exception('E-ORDER-007: sold out at this pickup stop'), l10nEn), 'Walk-up stock at this stop is sold out');
     expect(validateDonationQty('0', l10nJa), '1以上の整数で入力してください');
     expect(validateDonationQty('6', l10nJa), isNull);

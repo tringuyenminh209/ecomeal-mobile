@@ -597,7 +597,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get addCreditCard => '＋ クレジットカードを追加';
 
   @override
-  String get paymentProviderNote => '支払い情報は認定決済プロバイダーによって安全に処理されます。';
+  String get paymentProviderNote => '支払い情報は、決済代行会社が安全に処理します。';
 
   @override
   String get registeredCards => '登録済みカード';
@@ -618,7 +618,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get paymentSafetyBody =>
-      'カード情報は暗号化され、決済プロバイダーによって安全に管理されます。\nデフォルトカードを設定すると、ワンタップで支払えます。';
+      'カード情報は暗号化され、決済代行会社が安全に管理します。\nデフォルトカードを設定すると、ワンタップで支払えます。';
 
   @override
   String get setDefaultCard => 'デフォルトのカードに設定';
@@ -677,7 +677,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cardCvcHint => 'CVC';
 
   @override
-  String get cardTokenNote => 'カード情報は安全にトークン化されます。CVCは他人に知らせないでください。';
+  String get cardTokenNote =>
+      'カード番号はEcoMealのサーバーに保存されず、決済代行会社が安全に管理します。セキュリティコードは他人に知らせないでください。';
 
   @override
   String get cardTermsNote => 'カードを追加すると、支払い条件に同意したものとみなされます。';
@@ -779,11 +780,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get pendingExplanation =>
-      '注文内容の数量を配送員が確認中です。数量不足の場合は、各受け取りポイントの順番（FIFO）に従って分配します。分配されなかった数量については、自動で返金処理を行います。';
+      'ドライバーが数量を確認しています。数量が足りない場合は、受取地点ごとに予約の早い順で確保します。確保できなかった分は自動で返金します。';
 
   @override
   String allocatedExplanation(String stopName) {
-    return '$stopNameで1袋を確保しました。受け取り時はQRコードを提示し、読み取れない場合は下記コードを伝えてください。';
+    return '$stopNameで1袋を確保しました。QRコードと受け取りの時間・場所は「受け取りの案内」で確認できます。';
   }
 
   @override
@@ -921,19 +922,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get languageLabel => '言語 / Language';
 
   @override
-  String get errorBatchAlreadyConfirmed => 'このロットは既に確定済みです';
+  String get errorBatchAlreadyConfirmed => 'この料理の数量はすでに確定しています';
 
   @override
-  String get errorStopNotOnRoute => '指定された停車地点はこのロットの巡回ルート上に存在しません';
+  String get errorStopNotOnRoute => '選んだ停車地点は、この料理を運ぶルートにありません';
 
   @override
-  String get errorStopClosed => 'この停車地点は既にクローズされています';
+  String get errorStopClosed => 'この停車地点はすでに出発済みです';
 
   @override
   String get errorTemperatureRange => '温度は-30〜99.9℃の範囲で入力してください';
 
   @override
-  String get errorConfirmFailed => '確定登録に失敗しました。もう一度お試しください';
+  String get errorConfirmFailed => '数量を確定できませんでした。もう一度お試しください';
 
   @override
   String get errorTemperatureRequired => '温度を入力してください';
@@ -967,10 +968,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get coreTemperatureLabel => '受取時の中心温度';
 
   @override
-  String get coldChainNotice => '冷蔵品は10°C以下を確認してください。基準外の場合は運営へ連絡します。';
+  String get coldChainNotice => '冷蔵品は10℃以下を確認してください。基準外の場合は運営へ連絡します。';
 
   @override
-  String get coldChainOverLimit => '基準（10℃以下）を超えています。このロットは回収・販売できません。';
+  String get coldChainOverLimit => '基準（10℃以下）を超えています。この料理は回収・販売できません。';
 
   @override
   String get distributionStopsLabel => '配分先の停車地';
@@ -1013,11 +1014,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get rejectPickupButton => '回収しない（温度基準外）';
 
   @override
-  String get rejectPickupDialogTitle => 'このロットを回収しませんか？';
+  String get rejectPickupDialogTitle => 'この料理を回収しませんか？';
 
   @override
   String rejectPickupDialogBody(String celsius) {
-    return '芯温が$celsius℃で、基準（10℃以下）を超えています。このロットは販売せず、予約はすべて返金されてお客様に通知されます。温度の記録は残ります。';
+    return '中心温度が$celsius℃で、基準（10℃以下）を超えています。この料理は販売せず、予約はすべて返金されてお客様に通知されます。温度の記録は残ります。';
   }
 
   @override
@@ -1041,7 +1042,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noPendingPickup => 'この店舗の未確定の集荷はありません';
 
   @override
-  String get selectBatchToPickUp => '集荷するロットを選択';
+  String get selectBatchToPickUp => '集荷する料理を選択';
 
   @override
   String get tonightRouteTitle => '今夜のルート';
@@ -1129,7 +1130,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noPickupsTonight => '今夜の集荷予定はありません';
 
   @override
-  String get gpsSending => 'GPS送信中';
+  String get gpsSending => '位置情報を送信中';
 
   @override
   String get driverAccountSubtitle => 'ドライバーアカウント';
@@ -1138,19 +1139,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorNotHandoverable => 'この予約は受け渡し確認できる状態ではありません';
 
   @override
-  String get errorWalkupSoldOut => 'この停車地点のWalk-up在庫は売り切れです';
+  String get errorWalkupSoldOut => 'この停車地点で予約なしで販売できる分は売り切れです';
 
   @override
-  String get errorWalkupNotConfirmed => '確定登録前のロットではWalk-up販売できません';
+  String get errorWalkupNotConfirmed => '数量を確定する前は、予約なしの販売はできません';
 
   @override
-  String get errorBatchExpired => 'このロットは販売終了時刻を過ぎています';
+  String get errorBatchExpired => 'この料理は販売期限を過ぎています';
 
   @override
   String get errorDonationExceedsStock => '寄付数量が残り在庫を超えています';
 
   @override
-  String get errorDonationNotConfirmed => '確定登録前のロットは寄付記録できません';
+  String get errorDonationNotConfirmed => '数量を確定する前は、寄付を記録できません';
 
   @override
   String get errorDonationStopsOpen => '未出発の販売地点があるため、まだ寄付を記録できません';
@@ -1191,7 +1192,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String walkupSoldToast(int price) {
-    return 'Walk-up販売を登録しました（¥$price）';
+    return '予約なしの販売を記録しました（¥$price）';
   }
 
   @override
@@ -1204,7 +1205,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String departWarning(int count) {
-    return '$count件の予約が引き渡し待ちです。出発すると、これらの予約は「no-show / 失効」として扱われ、返金対象外になります。';
+    return '$count件の予約が引き渡し待ちです。出発すると、これらの予約は「受け取りなし（失効）」として扱われ、返金されません。';
   }
 
   @override
@@ -1241,6 +1242,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get reservationHandoffTab => '予約引き渡し';
 
   @override
+  String get walkupTab => '予約なし販売';
+
+  @override
   String get handedOverLabel => '引き渡し済み';
 
   @override
@@ -1259,10 +1263,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get manualCodeFallback => 'QRが読み取れない場合：手動入力';
 
   @override
-  String get batchLabel => 'ロット';
+  String get batchLabel => '料理';
 
   @override
-  String get noWalkupBatches => 'この停車地点で販売できるロットはありません';
+  String get noWalkupBatches => 'この停車地点で販売できる料理はありません';
 
   @override
   String mealsRemaining(int qty) {
@@ -1291,7 +1295,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get routeEndTitle => '運行を終了';
 
   @override
-  String get routeSummaryTitle => '運行サマリー';
+  String get routeSummaryTitle => '運行のまとめ';
 
   @override
   String get routeEndThanks => '今夜の運行、おつかれさまでした';
@@ -1316,7 +1320,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String donationRecorded(int remaining) {
-    return '寄付を記録しました（このロットの残り $remaining食）';
+    return '寄付を記録しました（この料理の残り $remaining食）';
   }
 
   @override
@@ -1327,7 +1331,7 @@ class AppLocalizationsJa extends AppLocalizations {
       '全ての販売地点を出発した後に寄付を記録できます（出発後は販売できなくなるため、在庫が確定します）。';
 
   @override
-  String get noConfirmedBatches => '確定済みのロットがありません';
+  String get noConfirmedBatches => '数量を確定した料理がありません';
 
   @override
   String get donationQtyLabel => '寄付数量';
@@ -1428,7 +1432,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get legalPrivacyTitle => 'プライバシーポリシー';
 
   @override
-  String get legalEnactedOn => '制定日: 2026年10月9日';
+  String get legalEnactedOn => '改定日: 2026年10月11日（制定日: 2026年10月9日）';
 
   @override
   String get legalDemoNotice => '卒業制作のデモ用の文面です。実運用の前に専門家の確認を受けます。';
@@ -1448,7 +1452,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get termsArticle2Body =>
-      '会員登録はメールアドレスとパスワードで行います。登録情報は正確に保ち、パスワードを第三者に知らせないでください。不正な利用が判明した場合、運営はアカウントの利用を停止することがあります。';
+      '会員登録は、メールアドレスとパスワード、LINE、Apple のいずれかで行います。登録情報は正確に保ち、パスワードを第三者に知らせないでください。LINE・Apple で登録した場合も、同じ EcoMeal のアカウントとして本規約が適用されます。不正な利用が判明した場合、運営はアカウントの利用を停止することがあります。';
 
   @override
   String get termsArticle3Title => '第3条（商品）';
@@ -1483,7 +1487,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get termsArticle7Body =>
-      '位置情報は、近くの受取地点を表示するために端末内で使用し、サーバーには保存しません。LINEと連携すると、トラックの接近や返金のお知らせがEcoMeal公式アカウントから届きます。';
+      '位置情報は、近くの受取地点を表示するために端末内で使用し、サーバーには保存しません。お知らせ（トラックの接近、返金、問題の報告への回答、お気に入りの受取地点の新着）は、アプリの通知をオンにしていればアプリに届きます。オンにしていない場合は、LINE と連携していれば EcoMeal 公式アカウントから届きます。トラックの接近は、LINE と連携している場合は LINE に届きます。';
 
   @override
   String get termsArticle8Title => '第8条（プロフィール写真）';
@@ -1511,7 +1515,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get privacySection1Body =>
-      '会員登録の情報（メールアドレス、表示名、フリガナ、プロフィール写真）、予約・購入の履歴、支払い方法（カードのブランド・下4桁・有効期限のみ）、LINE連携時のLINEユーザーID、お問い合わせの内容、アプリの利用状況（フードバッグや予約画面を開いた記録）、不具合の情報（エラーの内容・端末の種類・アプリのバージョン）、通知を受け取るための端末の識別子を取得します。カード番号・セキュリティコードは当サービスでは取得・保存しません（決済代行会社が直接受け取ります）。';
+      '会員登録の情報（メールアドレス、表示名、フリガナ、プロフィール写真）、予約・購入の履歴、支払い方法（カードのブランド・下4桁・有効期限のみ）、LINE でログイン・連携したときの LINE ユーザーID、Apple でサインインしたときに Apple から受け取る ID とメールアドレス（Apple の非公開メールアドレスの場合を含む）、お問い合わせの内容、アプリの利用状況（フードバッグや予約画面を開いた記録）、不具合の情報（エラーの内容・端末の種類・アプリのバージョン）、通知を受け取るための端末の識別子を取得します。カード番号・セキュリティコードは当サービスでは取得・保存しません（決済代行会社が直接受け取ります）。';
 
   @override
   String get privacySection2Title => '2. 位置情報';
@@ -2171,7 +2175,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storePhotoRemovedAck => '確認しました';
 
   @override
-  String get storeTodayBatches => '今日のロット';
+  String get storeTodayBatches => '今日の出品';
 
   @override
   String get storeBatchStatusEstimated => '概算';
@@ -2213,7 +2217,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeNoBatchesTitle => '今日のロットはまだありません';
+  String get storeNoBatchesTitle => '今日の出品はまだありません';
 
   @override
   String get storeNoBatchesBody =>
@@ -2258,7 +2262,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeRatingsNone => 'まだ評価がありません';
 
   @override
-  String get storeBatchDetailTitle => 'ロット詳細';
+  String get storeBatchDetailTitle => '出品の詳細';
 
   @override
   String storeBatchPriceLine(String price, String time) {
@@ -2349,7 +2353,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeEstimatedNote => '回収時に数が予約より少ない場合は、予約の早い順に確保し、残りは自動で返金されます。';
 
   @override
-  String get storeBatchNotFound => 'このロットは見つかりませんでした';
+  String get storeBatchNotFound => 'この出品は見つかりませんでした';
 
   @override
   String storeTemperature(String celsius) {
@@ -2538,7 +2542,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get storeDoneViewBatch => 'ロットを見る';
+  String get storeDoneViewBatch => '出品を見る';
 
   @override
   String get storeDoneHome => 'ホームへ';
@@ -2557,7 +2561,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeErrPhotoUpload =>
-      '写真をアップロードできませんでした。通信状態を確認して再度お試しいただくか、写真を外して登録してください。（ロットはまだ登録されていません）';
+      '写真をアップロードできませんでした。通信状態を確認して再度お試しいただくか、写真を外して登録してください。（まだ登録されていません）';
 
   @override
   String get storeErrNotApproved => '店舗の承認が完了していないため、登録できません。';
@@ -2567,14 +2571,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeErrNoTruck =>
-      '本日の巡回トラックが割り当てられていないため、登録できません。EcoMeal運営にお問い合わせください。';
+      '本日の担当トラックが割り当てられていないため、登録できません。EcoMeal運営にお問い合わせください。';
 
   @override
   String get storeErrNoStops => '受取地点が登録されていないため、登録できません。EcoMeal運営にお問い合わせください。';
 
   @override
   String get storeErrNoStopsLeft =>
-      '本日の巡回ルートでは、店舗の集荷後に販売できる受取地点が残っていないため、登録できません。';
+      '本日の運行ルートでは、店舗の集荷後に販売できる受取地点が残っていないため、登録できません。';
 
   @override
   String get storeErrTruckDeparted => '本日はトラックが既に店舗を出発したため、これ以上登録できません。';
@@ -2809,7 +2813,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get noticeBatchCollectedBody =>
-      'ドライバーがロットを回収しました。確定した数量はロット詳細でご確認ください。';
+      'ドライバーが料理を回収しました。確定した数量は出品の詳細でご確認ください。';
 
   @override
   String get noticeBatchPhotoRemovedTitle => '料理の写真が外されました';
@@ -3410,14 +3414,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adminOpsNoDriver => 'ドライバー未定';
 
   @override
-  String get adminOpsMapUnavailable => '地図を表示できません（Maps APIキー未設定）';
+  String get adminOpsMapUnavailable => '地図を表示できません（地図の設定が完了していません）';
 
   @override
   String get noticeReservationReceivedTitle => '新しい予約が入りました';
 
   @override
   String noticeReservationReceivedBody(String time, int count, int total) {
-    return '販売期限 $time のロットに予約が$count件入りました。合計$total件です。';
+    return '販売期限 $time の出品に予約が$count件入りました。合計$total件です。';
   }
 
   @override
@@ -3432,4 +3436,196 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeContractInquiry => 'お問い合わせ';
+
+  @override
+  String adminRestApproveConfirmTitle(String name) {
+    return '$nameを承認しますか？';
+  }
+
+  @override
+  String get adminRestApproveConfirmBody =>
+      '承認すると、店舗アプリで余剰の登録ができるようになり、店舗担当者に通知メールが届きます。';
+
+  @override
+  String adminLicVerifyConfirmTitle(String name) {
+    return '$nameさんの免許を確認済みにしますか？';
+  }
+
+  @override
+  String adminLicVerifyConfirmBody(String date) {
+    return '有効期限 $date で登録し、このドライバーをシフトに入れられるようになります。';
+  }
+
+  @override
+  String adminIssueConfirmRefundTitle(String amount) {
+    return '$amountを返金しますか？';
+  }
+
+  @override
+  String adminIssueConfirmRefundBody(
+    String order,
+    String restaurant,
+    String amount,
+  ) {
+    return '$order（$restaurant）のお客様の支払い方法に$amountを返金し、回答を送ります。返金は取り消せません。';
+  }
+
+  @override
+  String get adminIssueConfirmNoRefundTitle => '返金なしで対応済みにしますか？';
+
+  @override
+  String adminIssueConfirmNoRefundBody(String order, String restaurant) {
+    return '$order（$restaurant）のお客様に回答だけを送ります。あとから返金はできません。';
+  }
+
+  @override
+  String get adminMfaLostDevice =>
+      'スマートフォンを紛失した・認証アプリを削除した場合は、ログインできません。EcoMeal の別の管理者に2段階認証の解除を依頼してください。';
+
+  @override
+  String get adminIssueConfirmRefundAction => '返金する';
+
+  @override
+  String get activeOrderOpen => '受け取りの案内を開く';
+
+  @override
+  String get activeOrderTitle => '受け取りの案内';
+
+  @override
+  String get activeOrderPlace => '受取場所';
+
+  @override
+  String get activeOrderTime => '受取時間';
+
+  @override
+  String activeOrderBefore(String time, int minutes) {
+    return '到着予定 $time・あと$minutes分';
+  }
+
+  @override
+  String activeOrderWindow(String end) {
+    return '受取地点に停車している時間です（$endまで）';
+  }
+
+  @override
+  String get activeOrderOver =>
+      'この受取地点の停車は終わりました。受け取れなかった場合は、予約履歴の「問題を報告」かお問い合わせからご連絡ください。';
+
+  @override
+  String get activeOrderFindTitle => 'トラックの見つけ方';
+
+  @override
+  String get activeOrderFindBody =>
+      '受取地点に停車している Eco-Truck（車体に EcoMeal のロゴ）で、この QR を見せてください。読み取れないときは上のコードを伝えてください。トラックの位置と到着予定は、ホームの地図でも確認できます。';
+
+  @override
+  String get leftoverAutoRecordNote =>
+      '寄付しなかった分は、最後の販売地点を出発してから1時間後に「売れ残り（廃棄）」として自動で記録されます。寄付する場合は、それまでに記録してください。';
+
+  @override
+  String get driverReportButton => '運営に連絡（遅れ・トラブル）';
+
+  @override
+  String get driverReportTitle => '運営に連絡';
+
+  @override
+  String get driverReportLead =>
+      '送ると運営に通知が届き、影響する予約のお客様には運営から連絡します。急ぎの安全上の問題は、まず安全な場所に停車してください。';
+
+  @override
+  String get driverReportDelay => '到着が遅れそう（次の停車地）';
+
+  @override
+  String get driverReportVehicle => '車両のトラブル（故障・事故）';
+
+  @override
+  String get driverReportFood => '料理・温度の問題（受け取りを断った など）';
+
+  @override
+  String get driverReportOther => 'その他';
+
+  @override
+  String driverReportMinutes(int minutes) {
+    return '$minutes分';
+  }
+
+  @override
+  String get driverReportMinutesMax => '30分以上';
+
+  @override
+  String get driverReportMessageHint => '状況をひとこと（任意。「その他」は必須）';
+
+  @override
+  String get driverReportSend => '運営に送信する';
+
+  @override
+  String get driverReportSent => '運営に送信しました。運営からの連絡を待つあいだも、安全に運行してください。';
+
+  @override
+  String get driverReportSelect => '連絡の種類を選んでください';
+
+  @override
+  String get driverReportNeedMessage => '「その他」は、状況をひとこと入力してください';
+
+  @override
+  String get driverReportNoRoute => '今夜の運行がないため、送れません';
+
+  @override
+  String get driverReportDuplicate => '同じ種類の連絡を送ったばかりです。1分ほど待ってから送ってください';
+
+  @override
+  String get driverReportError => '送れませんでした。電波の良い場所でもう一度お試しください';
+
+  @override
+  String get adminTaskDriverReports => '未対応の運行の連絡';
+
+  @override
+  String adminTaskDriverReportLatest(
+    String plate,
+    String category,
+    String time,
+  ) {
+    return '$plate「$category」・$time';
+  }
+
+  @override
+  String adminSegDriverReports(int count) {
+    return '運行の連絡 $count';
+  }
+
+  @override
+  String get adminDriverReportsEmpty => 'ドライバーからの連絡はありません';
+
+  @override
+  String adminDriverReportMeta(String time, String driver, String stop) {
+    return '$time・$driver・次の停車 $stop';
+  }
+
+  @override
+  String get adminDriverReportNoStop => 'なし（運行終了）';
+
+  @override
+  String get adminDriverReportResolveTitle => '対応済みにする';
+
+  @override
+  String get adminDriverReportResolveNote =>
+      '行ったこと（お客様への連絡など）を残します。お客様への連絡は自動では送られません。';
+
+  @override
+  String get adminDriverReportResolveSend => '対応済みにする';
+
+  @override
+  String get adminDriverReportDone => '対応済みにしました';
+
+  @override
+  String get adminDriverReportAlready => 'ほかの運営がすでに対応済みにしました';
+
+  @override
+  String get adminDriverReportError => '対応済みにできませんでした。もう一度お試しください';
+
+  @override
+  String get noticeDriverReportedTitle => 'ドライバーから連絡';
+
+  @override
+  String get noticeDriverReportedBody => '運行中のドライバーから遅れ・トラブルの連絡が届きました。';
 }

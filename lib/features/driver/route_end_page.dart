@@ -184,6 +184,9 @@ class _RouteEndBodyState extends ConsumerState<_RouteEndBody> {
                 StatusBadge(label: l10n.optionalBadge, tone: BadgeTone.neutral),
               ],
             ),
+            const SizedBox(height: 6),
+            // 0021 expire_stale_orders: 寄付しなかった分は最後の出発の1時間後に「expired」（売れ残り・廃棄）として自動記録 — 寄付の記録はそれまでに
+            Text(l10n.leftoverAutoRecordNote, key: const Key('leftoverAutoRecordNote'), style: TextStyle(fontSize: 12, height: 1.5, color: context.eco.textSecondary)),
             const SizedBox(height: 12),
             if (widget.locked) ...[
               ErrorBanner(key: const Key('donationLockedNotice'), message: l10n.donationLockedNotice),

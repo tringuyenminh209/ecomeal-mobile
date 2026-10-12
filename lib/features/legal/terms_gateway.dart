@@ -4,7 +4,7 @@ import '../../core/supabase_client.dart';
 
 // UC-36: bản điều khoản hiện hành của app. Sửa nội dung SCR-M10/M11 (ARB termsArticle*/privacySection*) theo hướng
 // quan trọng thì đổi hằng này (cùng ngày với legalEnactedOn) → mọi khách hàng đã đăng nhập phải đồng ý lại.
-const currentTermsVersion = '2026-10-09';
+const currentTermsVersion = '2026-10-11';
 
 // Trang của site công khai mở bằng trình duyệt ngoài: liên hệ (SCR-P04, khung 「お問い合わせ」 cuối SCR-M10/M11) và
 // 特定商取引法に基づく表記 (SCR-P06, dòng trong 「アプリについて」 của SCR-M07). Bản tiếng Anh nằm dưới /en/.

@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentProviderNote.
   ///
   /// In ja, this message translates to:
-  /// **'支払い情報は認定決済プロバイダーによって安全に処理されます。'**
+  /// **'支払い情報は、決済代行会社が安全に処理します。'**
   String get paymentProviderNote;
 
   /// No description provided for @registeredCards.
@@ -1229,7 +1229,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentSafetyBody.
   ///
   /// In ja, this message translates to:
-  /// **'カード情報は暗号化され、決済プロバイダーによって安全に管理されます。\nデフォルトカードを設定すると、ワンタップで支払えます。'**
+  /// **'カード情報は暗号化され、決済代行会社が安全に管理します。\nデフォルトカードを設定すると、ワンタップで支払えます。'**
   String get paymentSafetyBody;
 
   /// No description provided for @setDefaultCard.
@@ -1343,7 +1343,7 @@ abstract class AppLocalizations {
   /// No description provided for @cardTokenNote.
   ///
   /// In ja, this message translates to:
-  /// **'カード情報は安全にトークン化されます。CVCは他人に知らせないでください。'**
+  /// **'カード番号はEcoMealのサーバーに保存されず、決済代行会社が安全に管理します。セキュリティコードは他人に知らせないでください。'**
   String get cardTokenNote;
 
   /// No description provided for @cardTermsNote.
@@ -1529,13 +1529,13 @@ abstract class AppLocalizations {
   /// No description provided for @pendingExplanation.
   ///
   /// In ja, this message translates to:
-  /// **'注文内容の数量を配送員が確認中です。数量不足の場合は、各受け取りポイントの順番（FIFO）に従って分配します。分配されなかった数量については、自動で返金処理を行います。'**
+  /// **'ドライバーが数量を確認しています。数量が足りない場合は、受取地点ごとに予約の早い順で確保します。確保できなかった分は自動で返金します。'**
   String get pendingExplanation;
 
   /// No description provided for @allocatedExplanation.
   ///
   /// In ja, this message translates to:
-  /// **'{stopName}で1袋を確保しました。受け取り時はQRコードを提示し、読み取れない場合は下記コードを伝えてください。'**
+  /// **'{stopName}で1袋を確保しました。QRコードと受け取りの時間・場所は「受け取りの案内」で確認できます。'**
   String allocatedExplanation(String stopName);
 
   /// No description provided for @freeCancelExpired.
@@ -1787,19 +1787,19 @@ abstract class AppLocalizations {
   /// No description provided for @errorBatchAlreadyConfirmed.
   ///
   /// In ja, this message translates to:
-  /// **'このロットは既に確定済みです'**
+  /// **'この料理の数量はすでに確定しています'**
   String get errorBatchAlreadyConfirmed;
 
   /// No description provided for @errorStopNotOnRoute.
   ///
   /// In ja, this message translates to:
-  /// **'指定された停車地点はこのロットの巡回ルート上に存在しません'**
+  /// **'選んだ停車地点は、この料理を運ぶルートにありません'**
   String get errorStopNotOnRoute;
 
   /// No description provided for @errorStopClosed.
   ///
   /// In ja, this message translates to:
-  /// **'この停車地点は既にクローズされています'**
+  /// **'この停車地点はすでに出発済みです'**
   String get errorStopClosed;
 
   /// No description provided for @errorTemperatureRange.
@@ -1811,7 +1811,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorConfirmFailed.
   ///
   /// In ja, this message translates to:
-  /// **'確定登録に失敗しました。もう一度お試しください'**
+  /// **'数量を確定できませんでした。もう一度お試しください'**
   String get errorConfirmFailed;
 
   /// No description provided for @errorTemperatureRequired.
@@ -1871,13 +1871,13 @@ abstract class AppLocalizations {
   /// No description provided for @coldChainNotice.
   ///
   /// In ja, this message translates to:
-  /// **'冷蔵品は10°C以下を確認してください。基準外の場合は運営へ連絡します。'**
+  /// **'冷蔵品は10℃以下を確認してください。基準外の場合は運営へ連絡します。'**
   String get coldChainNotice;
 
   /// No description provided for @coldChainOverLimit.
   ///
   /// In ja, this message translates to:
-  /// **'基準（10℃以下）を超えています。このロットは回収・販売できません。'**
+  /// **'基準（10℃以下）を超えています。この料理は回収・販売できません。'**
   String get coldChainOverLimit;
 
   /// No description provided for @distributionStopsLabel.
@@ -1943,13 +1943,13 @@ abstract class AppLocalizations {
   /// No description provided for @rejectPickupDialogTitle.
   ///
   /// In ja, this message translates to:
-  /// **'このロットを回収しませんか？'**
+  /// **'この料理を回収しませんか？'**
   String get rejectPickupDialogTitle;
 
   /// No description provided for @rejectPickupDialogBody.
   ///
   /// In ja, this message translates to:
-  /// **'芯温が{celsius}℃で、基準（10℃以下）を超えています。このロットは販売せず、予約はすべて返金されてお客様に通知されます。温度の記録は残ります。'**
+  /// **'中心温度が{celsius}℃で、基準（10℃以下）を超えています。この料理は販売せず、予約はすべて返金されてお客様に通知されます。温度の記録は残ります。'**
   String rejectPickupDialogBody(String celsius);
 
   /// No description provided for @rejectPickupConfirm.
@@ -1991,7 +1991,7 @@ abstract class AppLocalizations {
   /// No description provided for @selectBatchToPickUp.
   ///
   /// In ja, this message translates to:
-  /// **'集荷するロットを選択'**
+  /// **'集荷する料理を選択'**
   String get selectBatchToPickUp;
 
   /// No description provided for @tonightRouteTitle.
@@ -2147,7 +2147,7 @@ abstract class AppLocalizations {
   /// No description provided for @gpsSending.
   ///
   /// In ja, this message translates to:
-  /// **'GPS送信中'**
+  /// **'位置情報を送信中'**
   String get gpsSending;
 
   /// No description provided for @driverAccountSubtitle.
@@ -2165,19 +2165,19 @@ abstract class AppLocalizations {
   /// No description provided for @errorWalkupSoldOut.
   ///
   /// In ja, this message translates to:
-  /// **'この停車地点のWalk-up在庫は売り切れです'**
+  /// **'この停車地点で予約なしで販売できる分は売り切れです'**
   String get errorWalkupSoldOut;
 
   /// No description provided for @errorWalkupNotConfirmed.
   ///
   /// In ja, this message translates to:
-  /// **'確定登録前のロットではWalk-up販売できません'**
+  /// **'数量を確定する前は、予約なしの販売はできません'**
   String get errorWalkupNotConfirmed;
 
   /// No description provided for @errorBatchExpired.
   ///
   /// In ja, this message translates to:
-  /// **'このロットは販売終了時刻を過ぎています'**
+  /// **'この料理は販売期限を過ぎています'**
   String get errorBatchExpired;
 
   /// No description provided for @errorDonationExceedsStock.
@@ -2189,7 +2189,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorDonationNotConfirmed.
   ///
   /// In ja, this message translates to:
-  /// **'確定登録前のロットは寄付記録できません'**
+  /// **'数量を確定する前は、寄付を記録できません'**
   String get errorDonationNotConfirmed;
 
   /// No description provided for @errorDonationStopsOpen.
@@ -2261,7 +2261,7 @@ abstract class AppLocalizations {
   /// No description provided for @walkupSoldToast.
   ///
   /// In ja, this message translates to:
-  /// **'Walk-up販売を登録しました（¥{price}）'**
+  /// **'予約なしの販売を記録しました（¥{price}）'**
   String walkupSoldToast(int price);
 
   /// No description provided for @departDialogTitle.
@@ -2279,7 +2279,7 @@ abstract class AppLocalizations {
   /// No description provided for @departWarning.
   ///
   /// In ja, this message translates to:
-  /// **'{count}件の予約が引き渡し待ちです。出発すると、これらの予約は「no-show / 失効」として扱われ、返金対象外になります。'**
+  /// **'{count}件の予約が引き渡し待ちです。出発すると、これらの予約は「受け取りなし（失効）」として扱われ、返金されません。'**
   String departWarning(int count);
 
   /// No description provided for @departWarningTitle.
@@ -2336,6 +2336,12 @@ abstract class AppLocalizations {
   /// **'予約引き渡し'**
   String get reservationHandoffTab;
 
+  /// No description provided for @walkupTab.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約なし販売'**
+  String get walkupTab;
+
   /// No description provided for @handedOverLabel.
   ///
   /// In ja, this message translates to:
@@ -2375,13 +2381,13 @@ abstract class AppLocalizations {
   /// No description provided for @batchLabel.
   ///
   /// In ja, this message translates to:
-  /// **'ロット'**
+  /// **'料理'**
   String get batchLabel;
 
   /// No description provided for @noWalkupBatches.
   ///
   /// In ja, this message translates to:
-  /// **'この停車地点で販売できるロットはありません'**
+  /// **'この停車地点で販売できる料理はありません'**
   String get noWalkupBatches;
 
   /// No description provided for @mealsRemaining.
@@ -2435,7 +2441,7 @@ abstract class AppLocalizations {
   /// No description provided for @routeSummaryTitle.
   ///
   /// In ja, this message translates to:
-  /// **'運行サマリー'**
+  /// **'運行のまとめ'**
   String get routeSummaryTitle;
 
   /// No description provided for @routeEndThanks.
@@ -2471,7 +2477,7 @@ abstract class AppLocalizations {
   /// No description provided for @donationRecorded.
   ///
   /// In ja, this message translates to:
-  /// **'寄付を記録しました（このロットの残り {remaining}食）'**
+  /// **'寄付を記録しました（この料理の残り {remaining}食）'**
   String donationRecorded(int remaining);
 
   /// No description provided for @donationTitle.
@@ -2489,7 +2495,7 @@ abstract class AppLocalizations {
   /// No description provided for @noConfirmedBatches.
   ///
   /// In ja, this message translates to:
-  /// **'確定済みのロットがありません'**
+  /// **'数量を確定した料理がありません'**
   String get noConfirmedBatches;
 
   /// No description provided for @donationQtyLabel.
@@ -2681,7 +2687,7 @@ abstract class AppLocalizations {
   /// 規約の版 currentTermsVersion と同じ日付
   ///
   /// In ja, this message translates to:
-  /// **'制定日: 2026年10月9日'**
+  /// **'改定日: 2026年10月11日（制定日: 2026年10月9日）'**
   String get legalEnactedOn;
 
   /// No description provided for @legalDemoNotice.
@@ -2717,7 +2723,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsArticle2Body.
   ///
   /// In ja, this message translates to:
-  /// **'会員登録はメールアドレスとパスワードで行います。登録情報は正確に保ち、パスワードを第三者に知らせないでください。不正な利用が判明した場合、運営はアカウントの利用を停止することがあります。'**
+  /// **'会員登録は、メールアドレスとパスワード、LINE、Apple のいずれかで行います。登録情報は正確に保ち、パスワードを第三者に知らせないでください。LINE・Apple で登録した場合も、同じ EcoMeal のアカウントとして本規約が適用されます。不正な利用が判明した場合、運営はアカウントの利用を停止することがあります。'**
   String get termsArticle2Body;
 
   /// No description provided for @termsArticle3Title.
@@ -2777,7 +2783,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsArticle7Body.
   ///
   /// In ja, this message translates to:
-  /// **'位置情報は、近くの受取地点を表示するために端末内で使用し、サーバーには保存しません。LINEと連携すると、トラックの接近や返金のお知らせがEcoMeal公式アカウントから届きます。'**
+  /// **'位置情報は、近くの受取地点を表示するために端末内で使用し、サーバーには保存しません。お知らせ（トラックの接近、返金、問題の報告への回答、お気に入りの受取地点の新着）は、アプリの通知をオンにしていればアプリに届きます。オンにしていない場合は、LINE と連携していれば EcoMeal 公式アカウントから届きます。トラックの接近は、LINE と連携している場合は LINE に届きます。'**
   String get termsArticle7Body;
 
   /// No description provided for @termsArticle8Title.
@@ -2825,7 +2831,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacySection1Body.
   ///
   /// In ja, this message translates to:
-  /// **'会員登録の情報（メールアドレス、表示名、フリガナ、プロフィール写真）、予約・購入の履歴、支払い方法（カードのブランド・下4桁・有効期限のみ）、LINE連携時のLINEユーザーID、お問い合わせの内容、アプリの利用状況（フードバッグや予約画面を開いた記録）、不具合の情報（エラーの内容・端末の種類・アプリのバージョン）、通知を受け取るための端末の識別子を取得します。カード番号・セキュリティコードは当サービスでは取得・保存しません（決済代行会社が直接受け取ります）。'**
+  /// **'会員登録の情報（メールアドレス、表示名、フリガナ、プロフィール写真）、予約・購入の履歴、支払い方法（カードのブランド・下4桁・有効期限のみ）、LINE でログイン・連携したときの LINE ユーザーID、Apple でサインインしたときに Apple から受け取る ID とメールアドレス（Apple の非公開メールアドレスの場合を含む）、お問い合わせの内容、アプリの利用状況（フードバッグや予約画面を開いた記録）、不具合の情報（エラーの内容・端末の種類・アプリのバージョン）、通知を受け取るための端末の識別子を取得します。カード番号・セキュリティコードは当サービスでは取得・保存しません（決済代行会社が直接受け取ります）。'**
   String get privacySection1Body;
 
   /// No description provided for @privacySection2Title.
@@ -4019,7 +4025,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeTodayBatches.
   ///
   /// In ja, this message translates to:
-  /// **'今日のロット'**
+  /// **'今日の出品'**
   String get storeTodayBatches;
 
   /// No description provided for @storeBatchStatusEstimated.
@@ -4079,7 +4085,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeNoBatchesTitle.
   ///
   /// In ja, this message translates to:
-  /// **'今日のロットはまだありません'**
+  /// **'今日の出品はまだありません'**
   String get storeNoBatchesTitle;
 
   /// No description provided for @storeNoBatchesBody.
@@ -4151,7 +4157,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeBatchDetailTitle.
   ///
   /// In ja, this message translates to:
-  /// **'ロット詳細'**
+  /// **'出品の詳細'**
   String get storeBatchDetailTitle;
 
   /// No description provided for @storeBatchPriceLine.
@@ -4301,7 +4307,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeBatchNotFound.
   ///
   /// In ja, this message translates to:
-  /// **'このロットは見つかりませんでした'**
+  /// **'この出品は見つかりませんでした'**
   String get storeBatchNotFound;
 
   /// No description provided for @storeTemperature.
@@ -4643,7 +4649,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeDoneViewBatch.
   ///
   /// In ja, this message translates to:
-  /// **'ロットを見る'**
+  /// **'出品を見る'**
   String get storeDoneViewBatch;
 
   /// No description provided for @storeDoneHome.
@@ -4679,7 +4685,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeErrPhotoUpload.
   ///
   /// In ja, this message translates to:
-  /// **'写真をアップロードできませんでした。通信状態を確認して再度お試しいただくか、写真を外して登録してください。（ロットはまだ登録されていません）'**
+  /// **'写真をアップロードできませんでした。通信状態を確認して再度お試しいただくか、写真を外して登録してください。（まだ登録されていません）'**
   String get storeErrPhotoUpload;
 
   /// No description provided for @storeErrNotApproved.
@@ -4697,7 +4703,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeErrNoTruck.
   ///
   /// In ja, this message translates to:
-  /// **'本日の巡回トラックが割り当てられていないため、登録できません。EcoMeal運営にお問い合わせください。'**
+  /// **'本日の担当トラックが割り当てられていないため、登録できません。EcoMeal運営にお問い合わせください。'**
   String get storeErrNoTruck;
 
   /// No description provided for @storeErrNoStops.
@@ -4709,7 +4715,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeErrNoStopsLeft.
   ///
   /// In ja, this message translates to:
-  /// **'本日の巡回ルートでは、店舗の集荷後に販売できる受取地点が残っていないため、登録できません。'**
+  /// **'本日の運行ルートでは、店舗の集荷後に販売できる受取地点が残っていないため、登録できません。'**
   String get storeErrNoStopsLeft;
 
   /// No description provided for @storeErrTruckDeparted.
@@ -5117,7 +5123,7 @@ abstract class AppLocalizations {
   /// No description provided for @noticeBatchCollectedBody.
   ///
   /// In ja, this message translates to:
-  /// **'ドライバーがロットを回収しました。確定した数量はロット詳細でご確認ください。'**
+  /// **'ドライバーが料理を回収しました。確定した数量は出品の詳細でご確認ください。'**
   String get noticeBatchCollectedBody;
 
   /// No description provided for @noticeBatchPhotoRemovedTitle.
@@ -6209,7 +6215,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminOpsMapUnavailable.
   ///
   /// In ja, this message translates to:
-  /// **'地図を表示できません（Maps APIキー未設定）'**
+  /// **'地図を表示できません（地図の設定が完了していません）'**
   String get adminOpsMapUnavailable;
 
   /// No description provided for @noticeReservationReceivedTitle.
@@ -6221,7 +6227,7 @@ abstract class AppLocalizations {
   /// No description provided for @noticeReservationReceivedBody.
   ///
   /// In ja, this message translates to:
-  /// **'販売期限 {time} のロットに予約が{count}件入りました。合計{total}件です。'**
+  /// **'販売期限 {time} の出品に予約が{count}件入りました。合計{total}件です。'**
   String noticeReservationReceivedBody(String time, int count, int total);
 
   /// No description provided for @noticeReservationReceivedFallback.
@@ -6247,6 +6253,320 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'お問い合わせ'**
   String get storeContractInquiry;
+
+  /// No description provided for @adminRestApproveConfirmTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name}を承認しますか？'**
+  String adminRestApproveConfirmTitle(String name);
+
+  /// No description provided for @adminRestApproveConfirmBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'承認すると、店舗アプリで余剰の登録ができるようになり、店舗担当者に通知メールが届きます。'**
+  String get adminRestApproveConfirmBody;
+
+  /// No description provided for @adminLicVerifyConfirmTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name}さんの免許を確認済みにしますか？'**
+  String adminLicVerifyConfirmTitle(String name);
+
+  /// No description provided for @adminLicVerifyConfirmBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'有効期限 {date} で登録し、このドライバーをシフトに入れられるようになります。'**
+  String adminLicVerifyConfirmBody(String date);
+
+  /// No description provided for @adminIssueConfirmRefundTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{amount}を返金しますか？'**
+  String adminIssueConfirmRefundTitle(String amount);
+
+  /// No description provided for @adminIssueConfirmRefundBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'{order}（{restaurant}）のお客様の支払い方法に{amount}を返金し、回答を送ります。返金は取り消せません。'**
+  String adminIssueConfirmRefundBody(
+    String order,
+    String restaurant,
+    String amount,
+  );
+
+  /// No description provided for @adminIssueConfirmNoRefundTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'返金なしで対応済みにしますか？'**
+  String get adminIssueConfirmNoRefundTitle;
+
+  /// No description provided for @adminIssueConfirmNoRefundBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'{order}（{restaurant}）のお客様に回答だけを送ります。あとから返金はできません。'**
+  String adminIssueConfirmNoRefundBody(String order, String restaurant);
+
+  /// No description provided for @adminMfaLostDevice.
+  ///
+  /// In ja, this message translates to:
+  /// **'スマートフォンを紛失した・認証アプリを削除した場合は、ログインできません。EcoMeal の別の管理者に2段階認証の解除を依頼してください。'**
+  String get adminMfaLostDevice;
+
+  /// No description provided for @adminIssueConfirmRefundAction.
+  ///
+  /// In ja, this message translates to:
+  /// **'返金する'**
+  String get adminIssueConfirmRefundAction;
+
+  /// No description provided for @activeOrderOpen.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取りの案内を開く'**
+  String get activeOrderOpen;
+
+  /// No description provided for @activeOrderTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取りの案内'**
+  String get activeOrderTitle;
+
+  /// No description provided for @activeOrderPlace.
+  ///
+  /// In ja, this message translates to:
+  /// **'受取場所'**
+  String get activeOrderPlace;
+
+  /// No description provided for @activeOrderTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'受取時間'**
+  String get activeOrderTime;
+
+  /// No description provided for @activeOrderBefore.
+  ///
+  /// In ja, this message translates to:
+  /// **'到着予定 {time}・あと{minutes}分'**
+  String activeOrderBefore(String time, int minutes);
+
+  /// No description provided for @activeOrderWindow.
+  ///
+  /// In ja, this message translates to:
+  /// **'受取地点に停車している時間です（{end}まで）'**
+  String activeOrderWindow(String end);
+
+  /// No description provided for @activeOrderOver.
+  ///
+  /// In ja, this message translates to:
+  /// **'この受取地点の停車は終わりました。受け取れなかった場合は、予約履歴の「問題を報告」かお問い合わせからご連絡ください。'**
+  String get activeOrderOver;
+
+  /// No description provided for @activeOrderFindTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'トラックの見つけ方'**
+  String get activeOrderFindTitle;
+
+  /// No description provided for @activeOrderFindBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'受取地点に停車している Eco-Truck（車体に EcoMeal のロゴ）で、この QR を見せてください。読み取れないときは上のコードを伝えてください。トラックの位置と到着予定は、ホームの地図でも確認できます。'**
+  String get activeOrderFindBody;
+
+  /// No description provided for @leftoverAutoRecordNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'寄付しなかった分は、最後の販売地点を出発してから1時間後に「売れ残り（廃棄）」として自動で記録されます。寄付する場合は、それまでに記録してください。'**
+  String get leftoverAutoRecordNote;
+
+  /// No description provided for @driverReportButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'運営に連絡（遅れ・トラブル）'**
+  String get driverReportButton;
+
+  /// No description provided for @driverReportTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'運営に連絡'**
+  String get driverReportTitle;
+
+  /// No description provided for @driverReportLead.
+  ///
+  /// In ja, this message translates to:
+  /// **'送ると運営に通知が届き、影響する予約のお客様には運営から連絡します。急ぎの安全上の問題は、まず安全な場所に停車してください。'**
+  String get driverReportLead;
+
+  /// No description provided for @driverReportDelay.
+  ///
+  /// In ja, this message translates to:
+  /// **'到着が遅れそう（次の停車地）'**
+  String get driverReportDelay;
+
+  /// No description provided for @driverReportVehicle.
+  ///
+  /// In ja, this message translates to:
+  /// **'車両のトラブル（故障・事故）'**
+  String get driverReportVehicle;
+
+  /// No description provided for @driverReportFood.
+  ///
+  /// In ja, this message translates to:
+  /// **'料理・温度の問題（受け取りを断った など）'**
+  String get driverReportFood;
+
+  /// No description provided for @driverReportOther.
+  ///
+  /// In ja, this message translates to:
+  /// **'その他'**
+  String get driverReportOther;
+
+  /// No description provided for @driverReportMinutes.
+  ///
+  /// In ja, this message translates to:
+  /// **'{minutes}分'**
+  String driverReportMinutes(int minutes);
+
+  /// No description provided for @driverReportMinutesMax.
+  ///
+  /// In ja, this message translates to:
+  /// **'30分以上'**
+  String get driverReportMinutesMax;
+
+  /// No description provided for @driverReportMessageHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'状況をひとこと（任意。「その他」は必須）'**
+  String get driverReportMessageHint;
+
+  /// No description provided for @driverReportSend.
+  ///
+  /// In ja, this message translates to:
+  /// **'運営に送信する'**
+  String get driverReportSend;
+
+  /// No description provided for @driverReportSent.
+  ///
+  /// In ja, this message translates to:
+  /// **'運営に送信しました。運営からの連絡を待つあいだも、安全に運行してください。'**
+  String get driverReportSent;
+
+  /// No description provided for @driverReportSelect.
+  ///
+  /// In ja, this message translates to:
+  /// **'連絡の種類を選んでください'**
+  String get driverReportSelect;
+
+  /// No description provided for @driverReportNeedMessage.
+  ///
+  /// In ja, this message translates to:
+  /// **'「その他」は、状況をひとこと入力してください'**
+  String get driverReportNeedMessage;
+
+  /// No description provided for @driverReportNoRoute.
+  ///
+  /// In ja, this message translates to:
+  /// **'今夜の運行がないため、送れません'**
+  String get driverReportNoRoute;
+
+  /// No description provided for @driverReportDuplicate.
+  ///
+  /// In ja, this message translates to:
+  /// **'同じ種類の連絡を送ったばかりです。1分ほど待ってから送ってください'**
+  String get driverReportDuplicate;
+
+  /// No description provided for @driverReportError.
+  ///
+  /// In ja, this message translates to:
+  /// **'送れませんでした。電波の良い場所でもう一度お試しください'**
+  String get driverReportError;
+
+  /// No description provided for @adminTaskDriverReports.
+  ///
+  /// In ja, this message translates to:
+  /// **'未対応の運行の連絡'**
+  String get adminTaskDriverReports;
+
+  /// No description provided for @adminTaskDriverReportLatest.
+  ///
+  /// In ja, this message translates to:
+  /// **'{plate}「{category}」・{time}'**
+  String adminTaskDriverReportLatest(
+    String plate,
+    String category,
+    String time,
+  );
+
+  /// No description provided for @adminSegDriverReports.
+  ///
+  /// In ja, this message translates to:
+  /// **'運行の連絡 {count}'**
+  String adminSegDriverReports(int count);
+
+  /// No description provided for @adminDriverReportsEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'ドライバーからの連絡はありません'**
+  String get adminDriverReportsEmpty;
+
+  /// No description provided for @adminDriverReportMeta.
+  ///
+  /// In ja, this message translates to:
+  /// **'{time}・{driver}・次の停車 {stop}'**
+  String adminDriverReportMeta(String time, String driver, String stop);
+
+  /// No description provided for @adminDriverReportNoStop.
+  ///
+  /// In ja, this message translates to:
+  /// **'なし（運行終了）'**
+  String get adminDriverReportNoStop;
+
+  /// No description provided for @adminDriverReportResolveTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'対応済みにする'**
+  String get adminDriverReportResolveTitle;
+
+  /// No description provided for @adminDriverReportResolveNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'行ったこと（お客様への連絡など）を残します。お客様への連絡は自動では送られません。'**
+  String get adminDriverReportResolveNote;
+
+  /// No description provided for @adminDriverReportResolveSend.
+  ///
+  /// In ja, this message translates to:
+  /// **'対応済みにする'**
+  String get adminDriverReportResolveSend;
+
+  /// No description provided for @adminDriverReportDone.
+  ///
+  /// In ja, this message translates to:
+  /// **'対応済みにしました'**
+  String get adminDriverReportDone;
+
+  /// No description provided for @adminDriverReportAlready.
+  ///
+  /// In ja, this message translates to:
+  /// **'ほかの運営がすでに対応済みにしました'**
+  String get adminDriverReportAlready;
+
+  /// No description provided for @adminDriverReportError.
+  ///
+  /// In ja, this message translates to:
+  /// **'対応済みにできませんでした。もう一度お試しください'**
+  String get adminDriverReportError;
+
+  /// No description provided for @noticeDriverReportedTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'ドライバーから連絡'**
+  String get noticeDriverReportedTitle;
+
+  /// No description provided for @noticeDriverReportedBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'運行中のドライバーから遅れ・トラブルの連絡が届きました。'**
+  String get noticeDriverReportedBody;
 }
 
 class _AppLocalizationsDelegate

@@ -182,6 +182,14 @@ class _AdminMfaCodePageState extends ConsumerState<AdminMfaCodePage> {
                   onPressed: _busy ? null : () => _signOut(ref),
                   child: Text(l10n.adminMfaOtherAccount),
                 ),
+                const SizedBox(height: 8),
+                // 認証アプリを失ったときの戻り方（Web管理画面 AdminMfaGate と同じ案内）
+                Text(
+                  l10n.adminMfaLostDevice,
+                  key: const Key('adminMfaLostDevice'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, height: 1.6, color: eco.textSecondary),
+                ),
               ],
             ),
           ),

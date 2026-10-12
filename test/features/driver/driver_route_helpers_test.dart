@@ -29,11 +29,11 @@ void main() {
   });
 
   test('confirmErrorMessage(): mã lỗi RPC → câu của API-006/026 (ja + en)', () {
-    expect(confirmErrorMessage(Exception('E-ORDER-009: batch is already confirmed'), l10nJa), 'このロットは既に確定済みです');
-    expect(confirmErrorMessage(Exception('E-ROUTE-409: stop already closed'), l10nJa), 'この停車地点は既にクローズされています');
+    expect(confirmErrorMessage(Exception('E-ORDER-009: batch is already confirmed'), l10nJa), 'この料理の数量はすでに確定しています');
+    expect(confirmErrorMessage(Exception('E-ROUTE-409: stop already closed'), l10nJa), 'この停車地点はすでに出発済みです');
     expect(confirmErrorMessage(Exception('E-TEMP-001: temperature must be between -30 and 99.9'), l10nJa), '温度は-30〜99.9℃の範囲で入力してください');
-    expect(confirmErrorMessage(Exception('timeout'), l10nJa), '確定登録に失敗しました。もう一度お試しください');
-    expect(confirmErrorMessage(Exception('E-ORDER-009: batch is already confirmed'), l10nEn), 'This batch has already been confirmed');
+    expect(confirmErrorMessage(Exception('timeout'), l10nJa), '数量を確定できませんでした。もう一度お試しください');
+    expect(confirmErrorMessage(Exception('E-ORDER-009: batch is already confirmed'), l10nEn), 'The quantity for this food has already been confirmed');
   });
 
   test('validateTemperature()/validateConfirmedQty(): rỗng, ngoài khoảng, số âm', () {

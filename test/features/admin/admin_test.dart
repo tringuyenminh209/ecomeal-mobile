@@ -91,6 +91,7 @@ void main() {
       await tester.tap(find.byKey(const Key('adminMfaVerify')));
       await tester.pumpAndSettle();
       expect(find.text(l10nJa.adminMfaWrongCode), findsOneWidget);
+      expect(find.text(l10nJa.adminMfaLostDevice), findsOneWidget); // 認証アプリを失ったときの戻り方も同じ画面に
       expect(find.text('ADMIN HOME'), findsNothing);
     });
 
@@ -147,6 +148,9 @@ void main() {
 
     testWidgets('カードをタップ → 対応タブのその項目', (tester) async {
       await tester.pumpWidget(_app(const AdminShell(userId: 'u-1', email: 'admin@ecomeal.jp'), admin: admin));
+      await tester.pumpAndSettle();
+      // 0067 で「運行の連絡」のカードが増え、免許のカードは画面の下へ
+      await tester.ensureVisible(find.byKey(const Key('adminTask-licenses')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('adminTask-licenses')));
       await tester.pumpAndSettle();
