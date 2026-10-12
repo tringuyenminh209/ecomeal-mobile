@@ -4463,8 +4463,20 @@ abstract class AppLocalizations {
   /// No description provided for @storeAllergenHint.
   ///
   /// In ja, this message translates to:
-  /// **'該当するものをすべて選んでください。よく使う12品目を表示しています。'**
+  /// **'該当するものをすべて選んでください。よく使う12品目を表示しています。どれも含まれない場合は「アレルゲンは含まれていません」にチェックを入れてください。'**
   String get storeAllergenHint;
+
+  /// No description provided for @storeNoAllergens.
+  ///
+  /// In ja, this message translates to:
+  /// **'アレルゲンは含まれていません'**
+  String get storeNoAllergens;
+
+  /// No description provided for @storeErrAllergenRequired.
+  ///
+  /// In ja, this message translates to:
+  /// **'アレルゲンを選ぶか、「アレルゲンは含まれていません」にチェックを入れてください'**
+  String get storeErrAllergenRequired;
 
   /// No description provided for @storeAllergenSelected.
   ///

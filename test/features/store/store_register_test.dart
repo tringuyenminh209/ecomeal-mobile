@@ -103,6 +103,39 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    Future<void> tapNoAllergens(WidgetTester tester) async {
+      await tester.ensureVisible(find.byKey(const Key('storeNoAllergens')));
+      await tester.tap(find.byKey(const Key('storeNoAllergens')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('アレルゲンを選ばず「含まれていません」も無い → エラー、確認シートを開かない（0068）', (tester) async {
+      await pump(tester);
+      await tester.enterText(find.byKey(const Key('storePriceField')), '500');
+      await tester.tap(find.byKey(const Key('storeReviewButton')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('storeAllergenError')), findsOneWidget);
+      expect(find.text(l10nJa.storeConfirmTitle), findsNothing);
+    });
+
+    testWidgets('「含まれていません」→ アレルゲンなしで送る。アレルゲンを選ぶと確認は外れる（どちらか一方）', (tester) async {
+      await pump(tester);
+      await tester.tap(find.widgetWithText(FilterChip, '卵'));
+      await tapNoAllergens(tester);
+      expect(tester.widget<FilterChip>(find.widgetWithText(FilterChip, '卵')).selected, isFalse);
+      await tester.tap(find.widgetWithText(FilterChip, '乳'));
+      await tester.pump();
+      expect(tester.widget<CheckboxListTile>(find.byKey(const Key('storeNoAllergens'))).value, isFalse);
+      await tester.tap(find.widgetWithText(FilterChip, '乳'));
+      await tapNoAllergens(tester);
+
+      await tester.enterText(find.byKey(const Key('storePriceField')), '500');
+      await openSheetAndConfirm(tester);
+      final d = gateway.drafts.single;
+      expect(d.allergenTypeIds, isEmpty);
+      expect(d.noAllergens, isTrue);
+    });
+
     testWidgets('よく使う12品目を Figma の順で表示、閉店時刻が販売期限の初期値', (tester) async {
       await pump(tester);
       final labels = tester.widgetList<FilterChip>(find.byType(FilterChip)).map((c) => (c.label as Text).data).toList();
@@ -170,6 +203,7 @@ void main() {
       expect(d.estimatedQty, 3);
       expect(d.unitPrice, 780);
       expect(d.allergenTypeIds, ['id-egg']);
+      expect(d.noAllergens, isFalse);
       expect(d.ingredients.single.name, '鶏肉');
       expect(d.photo?.extension, 'png');
       expect(d.sellByAt.isAfter(DateTime.now()), isTrue);
@@ -181,6 +215,7 @@ void main() {
       gateway.registerError = const PostgrestException(message: 'E-ROUTE-004: departed');
       await pump(tester);
       await tester.enterText(find.byKey(const Key('storePriceField')), '500');
+      await tapNoAllergens(tester);
       await openSheetAndConfirm(tester);
       expect(find.text(l10nJa.storeErrTruckDeparted), findsOneWidget);
       expect(tester.widget<TextField>(find.byKey(const Key('storePriceField'))).controller!.text, '500');

@@ -2549,7 +2549,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeAllergenHint =>
-      'Select all that apply. The 12 most common are shown.';
+      'Select all that apply. The 12 most common are shown. If none apply, check “Contains no allergens”.';
+
+  @override
+  String get storeNoAllergens => 'Contains no allergens';
+
+  @override
+  String get storeErrAllergenRequired =>
+      'Choose the allergens, or check “Contains no allergens”.';
 
   @override
   String storeAllergenSelected(int count) {

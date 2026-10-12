@@ -93,6 +93,7 @@ String registerBatchErrorMessage(Object error, AppLocalizations l10n) {
     'E-REST-008' => l10n.storeErrSellByPast,
     'E-REST-011' => l10n.storeErrNotApproved,
     'E-REST-015' => l10n.storeErrPhotoInvalid,
+    'E-REST-018' => l10n.storeErrAllergenRequired,
     'E-ROUTE-001' => l10n.storeErrNoTruck,
     'E-ROUTE-002' => l10n.storeErrNoStops,
     'E-ROUTE-003' => l10n.storeErrNoStopsLeft,

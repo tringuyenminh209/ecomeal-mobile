@@ -30,6 +30,9 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
   bool _tomorrow = false;
   late ({int hour, int minute}) _time = defaultSellByTime(widget.restaurant.closingTime);
   final Set<String> _allergenIds = {};
+  // 「アレルゲンは含まれていません」— không chọn món nào thì phải xác nhận rõ (phân biệt "quên chọn" với "không có", 0068)
+  bool _noAllergens = false;
+  String? _allergenError;
   final List<BatchIngredient> _ingredients = [];
   bool _submitting = false;
   String? _error;
@@ -50,8 +53,9 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
       _tomorrow = false;
       _time = defaultSellByTime(widget.restaurant.closingTime);
       _allergenIds.clear();
+      _noAllergens = false;
       _ingredients.clear();
-      _error = _priceError = _sellByError = null;
+      _error = _priceError = _sellByError = _allergenError = null;
     });
   }
 
@@ -119,8 +123,9 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
     setState(() {
       _priceError = price == null || price <= 0 ? l10n.storeErrPrice : null;
       _sellByError = _sellByAt.isAfter(DateTime.now()) ? null : l10n.storeErrSellByPast;
+      _allergenError = _allergenIds.isEmpty && !_noAllergens ? l10n.storeErrAllergenRequired : null;
     });
-    return _priceError == null && _sellByError == null;
+    return _priceError == null && _sellByError == null && _allergenError == null;
   }
 
   Future<void> _review(List<AllergenType> catalog) async {
@@ -162,6 +167,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
               sellByAt: _sellByAt,
               allergenTypeIds: _allergenIds.toList(),
               ingredients: List.of(_ingredients),
+              noAllergens: _noAllergens,
               photo: _photo,
             ),
           );
@@ -175,6 +181,12 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
       if (mounted) setState(() => _submitting = false);
     }
   }
+
+  void _toggleAllergen(String id) => setState(() {
+    _allergenIds.contains(id) ? _allergenIds.remove(id) : _allergenIds.add(id);
+    if (_allergenIds.isNotEmpty) _noAllergens = false;
+    _allergenError = null;
+  });
 
   String _allergenName(AllergenType t) => Localizations.localeOf(context).languageCode == 'ja' ? t.nameJa : t.nameEn;
 
@@ -296,8 +308,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
               _AllergenChip(
                 label: allergenChipLabel(_allergenName(t)),
                 selected: _allergenIds.contains(t.id),
-                onTap: () =>
-                    setState(() => _allergenIds.contains(t.id) ? _allergenIds.remove(t.id) : _allergenIds.add(t.id)),
+                onTap: () => _toggleAllergen(t.id),
               ),
           ],
         ),
@@ -316,7 +327,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
                   selected: _allergenIds,
                   // Sửa thẳng lựa chọn của form: đóng sheet bằng bất kỳ cách nào cũng giữ (Figma: 閉じても残ります)
                   onToggle: (id) {
-                    setState(() => _allergenIds.contains(id) ? _allergenIds.remove(id) : _allergenIds.add(id));
+                    _toggleAllergen(id);
                     setSheetState(() {});
                   },
                   onClear: () {
@@ -329,6 +340,24 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
             child: Text(l10n.storeAllergenShowAll),
           ),
         ),
+        const SizedBox(height: 10),
+        _NoAllergensBox(
+          checked: _noAllergens,
+          hasError: _allergenError != null,
+          onChanged: (v) => setState(() {
+            _noAllergens = v;
+            if (v) _allergenIds.clear(); // 2 lựa chọn loại trừ nhau
+            _allergenError = null;
+          }),
+        ),
+        if (_allergenError != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            _allergenError!,
+            key: const Key('storeAllergenError'),
+            style: TextStyle(fontSize: 12, color: eco.error),
+          ),
+        ],
       ],
       const SizedBox(height: 6),
       Text(
@@ -808,6 +837,34 @@ class _ConfirmSheet extends StatelessWidget {
             OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.storeConfirmBack)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Ô xác nhận 「アレルゲンは含まれていません」 (Figma SCR-S02 Checkbox/アレルゲンなし; viền đỏ khi thiếu lựa chọn)
+class _NoAllergensBox extends StatelessWidget {
+  const _NoAllergensBox({required this.checked, required this.hasError, required this.onChanged});
+  final bool checked;
+  final bool hasError;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.eco;
+    return Material(
+      color: eco.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: hasError ? eco.error : eco.border, width: hasError ? 1.5 : 1),
+      ),
+      child: CheckboxListTile(
+        key: const Key('storeNoAllergens'),
+        value: checked,
+        onChanged: (v) => onChanged(v ?? false),
+        controlAffinity: ListTileControlAffinity.leading,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+        title: Text(context.l10n.storeNoAllergens, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
       ),
     );
   }

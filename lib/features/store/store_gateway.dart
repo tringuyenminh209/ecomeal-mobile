@@ -194,6 +194,7 @@ class StoreBatchDraft {
     required this.sellByAt,
     required this.allergenTypeIds,
     required this.ingredients,
+    this.noAllergens = false,
     this.photo,
   });
   final String restaurantId;
@@ -202,6 +203,8 @@ class StoreBatchDraft {
   final DateTime sellByAt;
   final List<String> allergenTypeIds;
   final List<BatchIngredient> ingredients;
+  // 0068: dị ứng rỗng thì phải xác nhận 「アレルゲンは含まれていません」 (RPC từ chối bằng E-REST-018)
+  final bool noAllergens;
   final PickedPhoto? photo;
 }
 
@@ -287,6 +290,7 @@ class SupabaseStoreGateway implements StoreGateway {
                       {'ingredient_name': i.name, 'origin': i.origin.isEmpty ? null : i.origin},
                   ],
                   'p_photo_path': path,
+                  'p_no_allergens': draft.noAllergens,
                 },
               )
               as Map<String, dynamic>;

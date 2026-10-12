@@ -2434,7 +2434,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeAllergenShowAll => 'すべて表示（28品目）';
 
   @override
-  String get storeAllergenHint => '該当するものをすべて選んでください。よく使う12品目を表示しています。';
+  String get storeAllergenHint =>
+      '該当するものをすべて選んでください。よく使う12品目を表示しています。どれも含まれない場合は「アレルゲンは含まれていません」にチェックを入れてください。';
+
+  @override
+  String get storeNoAllergens => 'アレルゲンは含まれていません';
+
+  @override
+  String get storeErrAllergenRequired =>
+      'アレルゲンを選ぶか、「アレルゲンは含まれていません」にチェックを入れてください';
 
   @override
   String storeAllergenSelected(int count) {
