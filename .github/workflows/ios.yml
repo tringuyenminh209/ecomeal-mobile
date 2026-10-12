@@ -72,12 +72,18 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           GOOGLE_MAPS_IOS_API_KEY: ${{ secrets.GOOGLE_MAPS_IOS_API_KEY }}
+          # 0047: khoá CÔNG KHAI của Stripe (pk_test_… / pk_live_…). Không có → app dùng thanh toán giả (0043).
+          # Khoá bí mật sk_… chỉ nằm ở Supabase secrets (STRIPE_SECRET_KEY), không bao giờ vào app
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
         run: |
+          case "${STRIPE_PUBLISHABLE_KEY:-}" in ""|pk_*) ;; *) echo "STRIPE_PUBLISHABLE_KEY phải là khoá pk_…" >&2; exit 1 ;; esac
           jq -n --arg url "${SUPABASE_URL:-https://example.supabase.co}" \
                 --arg anon "${SUPABASE_ANON_KEY:-}" \
                 --arg maps "${GOOGLE_MAPS_IOS_API_KEY:-}" \
-            '{SUPABASE_URL:$url, SUPABASE_ANON_KEY:$anon, GOOGLE_MAPS_ANDROID_API_KEY:"", GOOGLE_MAPS_IOS_API_KEY:$maps, LINE_CHANNEL_ID:"2011847544", LINE_OFFICIAL_ACCOUNT_ID:"@939hqcxi"}' > env.json
+                --arg stripe "${STRIPE_PUBLISHABLE_KEY:-}" \
+            '{SUPABASE_URL:$url, SUPABASE_ANON_KEY:$anon, GOOGLE_MAPS_ANDROID_API_KEY:"", GOOGLE_MAPS_IOS_API_KEY:$maps, LINE_CHANNEL_ID:"2011847544", LINE_OFFICIAL_ACCOUNT_ID:"@939hqcxi", STRIPE_PUBLISHABLE_KEY:$stripe}' > env.json
           [ -n "${SUPABASE_ANON_KEY:-}" ] && echo "Supabase secrets: có" || echo "Supabase secrets: KHÔNG (chỉ kiểm build)"
+          [ -n "${STRIPE_PUBLISHABLE_KEY:-}" ] && echo "Stripe: có (thanh toán thật bằng thẻ thử)" || echo "Stripe: KHÔNG (thanh toán giả)"
 
       - name: Dependencies
         run: flutter pub get
