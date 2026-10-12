@@ -2831,6 +2831,44 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noticeGenericTitle => 'お知らせ';
 
   @override
+  String get inboxEmptyBodyCustomer =>
+      '予約したフードバッグのトラックが近づいたときや、お気に入りの受取地点に新しいフードバッグが出たときにお知らせします。';
+
+  @override
+  String get noticeTruckApproachingTitle => 'Eco-Truckがまもなく到着します';
+
+  @override
+  String noticeTruckApproachingBody(String place) {
+    return '$placeにまもなく到着します。予約画面のQRコードをご用意ください。';
+  }
+
+  @override
+  String get noticeTruckApproachingPlace => '受取地点';
+
+  @override
+  String get noticeNewBatchTitle => 'お気に入りの受取地点に新着';
+
+  @override
+  String noticeNewBatchBody(String place) {
+    return '$placeで受け取れるフードバッグが出ました。売り切れる前にご予約ください。';
+  }
+
+  @override
+  String get noticeNewBatchPlace => 'お気に入りの受取地点';
+
+  @override
+  String get noticeIssueResolvedTitle => 'ご報告に対応しました';
+
+  @override
+  String get noticeIssueResolvedBody => '対応内容は予約履歴でご確認ください。';
+
+  @override
+  String get noticeRefundedTitle => '返金しました';
+
+  @override
+  String get noticeRefundedBody => 'ご予約のフードバッグをご用意できなかったため、全額を返金しました。';
+
+  @override
   String get storeSettingsTitle => '設定';
 
   @override

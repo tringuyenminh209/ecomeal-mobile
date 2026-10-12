@@ -116,7 +116,7 @@ class _TermsGate extends ConsumerWidget {
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (_, _) => PlaceholderScreen(label: context.l10n.errorProfileLoadFailed),
       data: (version) => version == currentTermsVersion
-          ? const PushRegistrar(onMessage: refreshOrdersAfterPush, onOpened: openOrdersFromPush, child: CustomerShell())
+          ? PushRegistrar(onMessage: refreshOrdersAfterPush, onOpened: openOrdersFromPush, child: CustomerShell(userId: userId))
           : TermsConsentPage(userId: userId),
     );
   }

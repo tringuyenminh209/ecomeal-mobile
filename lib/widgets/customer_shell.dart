@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../features/home/customer_home_page.dart';
+import '../features/notifications/notification_inbox.dart';
 import '../features/orders/order_history_page.dart';
 import '../l10n/l10n.dart';
 import '../features/profile/my_page.dart';
@@ -20,7 +21,10 @@ final customerTabProvider = StateProvider.autoDispose<int>((ref) => CustomerTab.
 
 // Thông báo của app khách đều về đơn đã đặt (hoàn tiền, xe tới, trả lời báo cáo, lô mới): đang mở app → tải lại đơn;
 // chạm thông báo → mở tab 予約 (PushRegistrar).
-void refreshOrdersAfterPush(BuildContext context, WidgetRef ref) => ref.invalidate(myOrdersProvider);
+void refreshOrdersAfterPush(BuildContext context, WidgetRef ref) {
+  ref.invalidate(myOrdersProvider);
+  ref.invalidate(inboxUnreadProvider); // thông báo mới cũng vào お知らせ (SCR-M20) → chấm ở chuông
+}
 
 void openOrdersFromPush(BuildContext context, WidgetRef ref) {
   ref.invalidate(myOrdersProvider);
@@ -30,7 +34,8 @@ void openOrdersFromPush(BuildContext context, WidgetRef ref) {
 // Mobile/Bottom Navigation của Figma (88:246…): nền trắng, viền trên, không viên chỉ báo — màu/chữ lấy từ
 // navigationBarTheme (Chương 15 bước 5b).
 class CustomerShell extends ConsumerWidget {
-  const CustomerShell({super.key});
+  const CustomerShell({super.key, this.userId});
+  final String? userId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +49,14 @@ class CustomerShell extends ConsumerWidget {
       body: IndexedStack(
         index: index,
         children: [
-          CustomerHomePage(onOpenMyPage: () => goTo(CustomerTab.myPage)),
+          CustomerHomePage(
+            userId: userId,
+            onOpenMyPage: () => goTo(CustomerTab.myPage),
+            onOpenOrders: () {
+              ref.invalidate(myOrdersProvider);
+              goTo(CustomerTab.orders);
+            },
+          ),
           OrderHistoryPage(onBrowse: () => goTo(CustomerTab.home)),
           // SCR-M07 (Chương 18) — có cả nút ログアウト.
           const MyPage(),

@@ -2964,6 +2964,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noticeGenericTitle => 'Notification';
 
   @override
+  String get inboxEmptyBodyCustomer =>
+      'We’ll let you know when the truck for your reservation is close, or when new food bags appear at your favorite pickup points.';
+
+  @override
+  String get noticeTruckApproachingTitle => 'Eco-Truck is arriving soon';
+
+  @override
+  String noticeTruckApproachingBody(String place) {
+    return 'The truck is almost at $place. Have your reservation QR code ready.';
+  }
+
+  @override
+  String get noticeTruckApproachingPlace => 'your pickup point';
+
+  @override
+  String get noticeNewBatchTitle => 'New food bags near you';
+
+  @override
+  String noticeNewBatchBody(String place) {
+    return 'New food bags are available at $place. Reserve before they sell out.';
+  }
+
+  @override
+  String get noticeNewBatchPlace => 'your favorite pickup point';
+
+  @override
+  String get noticeIssueResolvedTitle => 'We responded to your report';
+
+  @override
+  String get noticeIssueResolvedBody =>
+      'Check your reservation history for details.';
+
+  @override
+  String get noticeRefundedTitle => 'Your reservation was refunded';
+
+  @override
+  String get noticeRefundedBody =>
+      'We couldn’t prepare your food bag, so we refunded the full amount.';
+
+  @override
   String get storeSettingsTitle => 'Settings';
 
   @override

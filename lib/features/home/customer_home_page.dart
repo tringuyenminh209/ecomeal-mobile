@@ -19,6 +19,7 @@ import '../profile/profile_gateway.dart';
 import 'batch_card.dart';
 import 'home_gateway.dart';
 import 'sort_by_proximity.dart';
+import '../notifications/notification_inbox.dart';
 import 'truck_glide.dart';
 import 'truck_route_section.dart';
 import '../../widgets/skeleton.dart';
@@ -47,8 +48,12 @@ final currentPositionProvider = FutureProvider.autoDispose<Position>((ref) {
 class CustomerHomePage extends ConsumerStatefulWidget {
   // onOpenMyPage: nút "LINE通知を設定する" ở trạng thái Empty mở tab マイページ (SCR-M07). Trang này
   // không tự biết tab — CustomerShell (Chương 17, giữ cả Bottom Navigation) truyền vào; null thì không vẽ nút.
-  const CustomerHomePage({super.key, this.onOpenMyPage});
+  const CustomerHomePage({super.key, this.onOpenMyPage, this.onOpenOrders, this.userId});
   final VoidCallback? onOpenMyPage;
+  // Người đang đăng nhập — có thì hiện chuông お知らせ (SCR-M20)
+  final String? userId;
+  // Chạm 1 thông báo ở SCR-M20 (hoàn tiền, xe sắp tới, trả lời báo cáo) → tab 予約
+  final VoidCallback? onOpenOrders;
 
   @override
   ConsumerState<CustomerHomePage> createState() => _CustomerHomePageState();
@@ -64,6 +69,7 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
     _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       ref.invalidate(activeListingsProvider);
       ref.invalidate(todayTrucksProvider);
+      ref.invalidate(inboxUnreadProvider); // chấm đỏ ở chuông (SCR-M20)
     });
     _unsubscribe = ref
         .read(homeGatewayProvider)
@@ -88,6 +94,7 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
     final trucksAsync = ref.watch(todayTrucksProvider);
     final positionAsync = ref.watch(currentPositionProvider);
     final topInset = MediaQuery.paddingOf(context).top;
+    final userId = widget.userId;
 
     return Scaffold(
       body: Stack(
@@ -111,7 +118,24 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _FloatingLogo(),
+                // Logo bên trái, chuông お知らせ bên phải (Figma SCR-M03 "Notification bell" → SCR-M20)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _FloatingLogo(),
+                    const Spacer(),
+                    if (userId != null)
+                      InboxBellButton(
+                        userId: userId,
+                        floating: true,
+                        emptyBody: context.l10n.inboxEmptyBodyCustomer,
+                        // Lô mới ở điểm yêu thích → ở lại ホーム (đã đang ở đây); các loại khác là về đơn đã đặt
+                        onOpen: (n) {
+                          if (n.type != 'new_batch') widget.onOpenOrders?.call();
+                        },
+                      ),
+                  ],
+                ),
                 // Mất GPS chỉ làm danh sách mất thứ tự theo khoảng cách (vẫn sắp theo giờ hết hạn) —
                 // không chặn cả sheet; báo ở banner nổi để người dùng thử lại (xem box-why bước 5).
                 if (positionAsync.hasError) ...[

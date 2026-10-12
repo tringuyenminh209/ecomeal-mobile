@@ -9,7 +9,7 @@ import '../../l10n/l10n.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/state_panel.dart';
 
-// Hộp「お知らせ」(0060, API-078〜079): dùng chung cho app nhà hàng (SCR-S07) và app vận hành. Chỉ đọc qua RPC — server chỉ
+// Hộp「お知らせ」(0060, API-078〜079): dùng chung cho app khách (SCR-M20), app nhà hàng (SCR-S07) và app vận hành. Chỉ đọc qua RPC — server chỉ
 // trả thông báo của chính người đăng nhập. Nội dung hiển thị dựng từ `type` bằng ARB (thông báo không chứa số tiền / tên khách);
 // riêng 'reservation_received' (0066) lấy số đơn + hạn bán từ `payload`.
 
@@ -95,7 +95,29 @@ String _reservationBody(Map<String, dynamic>? p, AppLocalizations l10n) {
   String type,
   AppLocalizations l10n, {
   Map<String, dynamic>? payload,
+  String? stopName,
 }) => switch (type) {
+  // App khách (SCR-M20): cùng câu với thông báo đẩy (send-push/handler.ts). Không có tên điểm → câu chung
+  'truck_approaching' => (
+    title: l10n.noticeTruckApproachingTitle,
+    body: l10n.noticeTruckApproachingBody(stopName ?? l10n.noticeTruckApproachingPlace),
+    icon: Icons.local_shipping_outlined,
+  ),
+  'new_batch' => (
+    title: l10n.noticeNewBatchTitle,
+    body: l10n.noticeNewBatchBody(stopName ?? l10n.noticeNewBatchPlace),
+    icon: Icons.shopping_bag_outlined,
+  ),
+  'issue_resolved' => (
+    title: l10n.noticeIssueResolvedTitle,
+    body: l10n.noticeIssueResolvedBody,
+    icon: Icons.mark_chat_read_outlined,
+  ),
+  'refunded' => (
+    title: l10n.noticeRefundedTitle,
+    body: l10n.noticeRefundedBody,
+    icon: Icons.currency_yen_rounded,
+  ),
   'reservation_received' => (
     title: l10n.noticeReservationReceivedTitle,
     body: _reservationBody(payload, l10n),
@@ -173,9 +195,12 @@ String inboxTimeLabel(DateTime at, DateTime now, AppLocalizations l10n, String l
 }
 
 // SCR-S07 お知らせ（558:501 / Empty 558:581）. Mở trang = đã xem: đánh dấu đã đọc sau khi hiện (lần này vẫn tô nền mục chưa đọc).
+// [onOpen] (app khách SCR-M20): chạm 1 thông báo → đóng trang rồi mở màn liên quan. Không có → mục chỉ để đọc (S07).
 class NotificationInboxPage extends ConsumerStatefulWidget {
-  const NotificationInboxPage({super.key, required this.userId});
+  const NotificationInboxPage({super.key, required this.userId, this.onOpen, this.emptyBody});
   final String userId;
+  final void Function(InboxNotification notification)? onOpen;
+  final String? emptyBody;
 
   @override
   ConsumerState<NotificationInboxPage> createState() => _NotificationInboxPageState();
@@ -222,7 +247,7 @@ class _NotificationInboxPageState extends ConsumerState<NotificationInboxPage> {
               child: StatePanel(
                 icon: Icons.notifications_none_rounded,
                 title: l10n.inboxEmptyTitle,
-                message: l10n.inboxEmptyBody,
+                message: widget.emptyBody ?? l10n.inboxEmptyBody,
               ),
             );
           }
@@ -235,8 +260,9 @@ class _NotificationInboxPageState extends ConsumerState<NotificationInboxPage> {
               separatorBuilder: (_, _) => Divider(height: 1, color: eco.border),
               itemBuilder: (context, i) {
                 final n = page.items[i];
-                final c = inboxContent(n.type, l10n, payload: n.payload);
-                return Container(
+                final c = inboxContent(n.type, l10n, payload: n.payload, stopName: n.stopName);
+                final onOpen = widget.onOpen;
+                final item = Container(
                   key: Key('inbox-${n.id}'),
                   color: n.isRead ? null : eco.primarySoft,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -270,6 +296,14 @@ class _NotificationInboxPageState extends ConsumerState<NotificationInboxPage> {
                     ],
                   ),
                 );
+                if (onOpen == null) return item;
+                return InkWell(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    onOpen(n);
+                  },
+                  child: item,
+                );
               },
             ),
           );
@@ -280,20 +314,39 @@ class _NotificationInboxPageState extends ConsumerState<NotificationInboxPage> {
 }
 
 // Nút chuông có chấm khi còn thông báo chưa đọc (đầu SCR-S01)
+// [floating]: nổi trên bản đồ SCR-M03 — nền trắng tròn có bóng (Figma "Notification bell" 40×40).
 class InboxBellButton extends ConsumerWidget {
-  const InboxBellButton({super.key, required this.userId});
+  const InboxBellButton({super.key, required this.userId, this.floating = false, this.onOpen, this.emptyBody});
   final String userId;
+  final bool floating;
+  final void Function(InboxNotification notification)? onOpen;
+  final String? emptyBody;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unread = ref.watch(inboxUnreadProvider(userId)).valueOrNull ?? 0;
     final l10n = context.l10n;
-    return IconButton.outlined(
-      key: const Key('inboxBell'),
-      tooltip: unread > 0 ? '${l10n.inboxOpen}（${l10n.inboxUnread(unread)}）' : l10n.inboxOpen,
-      onPressed: () =>
-          Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => NotificationInboxPage(userId: userId))),
-      icon: Badge(isLabelVisible: unread > 0, smallSize: 9, child: const Icon(Icons.notifications_none_rounded)),
+    final tooltip = unread > 0 ? '${l10n.inboxOpen}（${l10n.inboxUnread(unread)}）' : l10n.inboxOpen;
+    void open() => Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => NotificationInboxPage(userId: userId, onOpen: onOpen, emptyBody: emptyBody),
+      ),
+    );
+    final icon = Badge(isLabelVisible: unread > 0, smallSize: 9, child: const Icon(Icons.notifications_none_rounded));
+    if (!floating) return IconButton.outlined(key: const Key('inboxBell'), tooltip: tooltip, onPressed: open, icon: icon);
+    final eco = context.eco;
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [BoxShadow(color: Color(0x1F1B1B1B), blurRadius: 8, offset: Offset(0, 2))],
+      ),
+      child: IconButton.filled(
+        key: const Key('inboxBell'),
+        tooltip: tooltip,
+        onPressed: open,
+        style: IconButton.styleFrom(backgroundColor: eco.surface, foregroundColor: eco.textPrimary, fixedSize: const Size(40, 40)),
+        icon: icon,
+      ),
     );
   }
 }

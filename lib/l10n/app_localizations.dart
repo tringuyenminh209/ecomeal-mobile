@@ -5156,6 +5156,72 @@ abstract class AppLocalizations {
   /// **'お知らせ'**
   String get noticeGenericTitle;
 
+  /// No description provided for @inboxEmptyBodyCustomer.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約したフードバッグのトラックが近づいたときや、お気に入りの受取地点に新しいフードバッグが出たときにお知らせします。'**
+  String get inboxEmptyBodyCustomer;
+
+  /// No description provided for @noticeTruckApproachingTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'Eco-Truckがまもなく到着します'**
+  String get noticeTruckApproachingTitle;
+
+  /// No description provided for @noticeTruckApproachingBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'{place}にまもなく到着します。予約画面のQRコードをご用意ください。'**
+  String noticeTruckApproachingBody(String place);
+
+  /// No description provided for @noticeTruckApproachingPlace.
+  ///
+  /// In ja, this message translates to:
+  /// **'受取地点'**
+  String get noticeTruckApproachingPlace;
+
+  /// No description provided for @noticeNewBatchTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'お気に入りの受取地点に新着'**
+  String get noticeNewBatchTitle;
+
+  /// No description provided for @noticeNewBatchBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'{place}で受け取れるフードバッグが出ました。売り切れる前にご予約ください。'**
+  String noticeNewBatchBody(String place);
+
+  /// No description provided for @noticeNewBatchPlace.
+  ///
+  /// In ja, this message translates to:
+  /// **'お気に入りの受取地点'**
+  String get noticeNewBatchPlace;
+
+  /// No description provided for @noticeIssueResolvedTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'ご報告に対応しました'**
+  String get noticeIssueResolvedTitle;
+
+  /// No description provided for @noticeIssueResolvedBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'対応内容は予約履歴でご確認ください。'**
+  String get noticeIssueResolvedBody;
+
+  /// No description provided for @noticeRefundedTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'返金しました'**
+  String get noticeRefundedTitle;
+
+  /// No description provided for @noticeRefundedBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'ご予約のフードバッグをご用意できなかったため、全額を返金しました。'**
+  String get noticeRefundedBody;
+
   /// No description provided for @storeSettingsTitle.
   ///
   /// In ja, this message translates to:
