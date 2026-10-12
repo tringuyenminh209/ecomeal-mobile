@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/state_panel.dart';
+import 'favorite_stop_bags_page.dart';
 import 'favorite_stops.dart';
 
 // SCR-M16 お気に入りの受取地点 (0053, Figma 460:1352 / Empty 460:1461). Mở từ SCR-M07. Bỏ ★ ở đây là huỷ đăng ký.
@@ -59,13 +60,20 @@ class _FavoriteStopCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final address = stop.address;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-      decoration: BoxDecoration(
-        color: context.eco.surface,
-        border: Border.all(color: context.eco.border),
+    // Chạm thẻ → フードバッグ của điểm này tối nay (Figma 714:1601). ★ vẫn là nút riêng (bỏ thích)
+    return Material(
+      color: context.eco.surface,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: context.eco.border),
         borderRadius: BorderRadius.circular(12),
       ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => FavoriteStopBagsPage(stop: stop)),
+        ),
+        child: Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
       child: Row(
         children: [
           Icon(Icons.place_outlined, size: 22, color: context.eco.primary),
@@ -85,6 +93,8 @@ class _FavoriteStopCard extends StatelessWidget {
           const SizedBox(width: 12),
           FavoriteStarButton(stopLocationId: stop.stopLocationId),
         ],
+      ),
+        ),
       ),
     );
   }

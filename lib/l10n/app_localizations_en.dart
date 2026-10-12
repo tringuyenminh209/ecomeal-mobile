@@ -1934,7 +1934,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favoriteStopsHint =>
-      'Tap ★ to remove. Not getting notifications? Turn on \"App notifications\" in My Page.';
+      'Tap a pickup point to see tonight’s food bags there. Tap ★ to remove. Not getting notifications? Turn on \"App notifications\" in My Page.';
+
+  @override
+  String get stopBagsHeading => 'Food bags you can pick up here tonight';
+
+  @override
+  String get stopBagsEmptyTitle => 'No food bags here yet tonight';
+
+  @override
+  String get stopBagsEmptyBody =>
+      'We’ll notify you in the app (or on LINE) when new food bags appear at this pickup point.';
 
   @override
   String get favoriteStopsEmptyTitle => 'No favorite pickup points yet';

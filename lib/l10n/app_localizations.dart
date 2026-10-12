@@ -3431,8 +3431,26 @@ abstract class AppLocalizations {
   /// No description provided for @favoriteStopsHint.
   ///
   /// In ja, this message translates to:
-  /// **'★をタップすると解除できます。通知が届かない場合は、マイページの「アプリの通知」をオンにしてください。'**
+  /// **'地点をタップすると、今夜受け取れるフードバッグを見られます。★をタップすると解除できます。通知が届かない場合は、マイページの「アプリの通知」をオンにしてください。'**
   String get favoriteStopsHint;
+
+  /// No description provided for @stopBagsHeading.
+  ///
+  /// In ja, this message translates to:
+  /// **'今夜この受取地点で受け取れるフードバッグ'**
+  String get stopBagsHeading;
+
+  /// No description provided for @stopBagsEmptyTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'今夜はまだフードバッグがありません'**
+  String get stopBagsEmptyTitle;
+
+  /// No description provided for @stopBagsEmptyBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'この受取地点に新しいフードバッグが出たら、アプリの通知（またはLINE）でお知らせします。'**
+  String get stopBagsEmptyBody;
 
   /// No description provided for @favoriteStopsEmptyTitle.
   ///

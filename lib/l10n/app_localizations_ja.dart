@@ -1841,7 +1841,17 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get favoriteStopsHint =>
-      '★をタップすると解除できます。通知が届かない場合は、マイページの「アプリの通知」をオンにしてください。';
+      '地点をタップすると、今夜受け取れるフードバッグを見られます。★をタップすると解除できます。通知が届かない場合は、マイページの「アプリの通知」をオンにしてください。';
+
+  @override
+  String get stopBagsHeading => '今夜この受取地点で受け取れるフードバッグ';
+
+  @override
+  String get stopBagsEmptyTitle => '今夜はまだフードバッグがありません';
+
+  @override
+  String get stopBagsEmptyBody =>
+      'この受取地点に新しいフードバッグが出たら、アプリの通知（またはLINE）でお知らせします。';
 
   @override
   String get favoriteStopsEmptyTitle => 'お気に入りの受取地点はまだありません';
