@@ -26,7 +26,8 @@ class AuthHeading extends StatelessWidget {
         const SizedBox(height: 7),
         Text(
           lead,
-          style: const TextStyle(fontSize: 13, height: 1.45, color: AppColors.textSecondary),
+          // Màu theo bảng màu đang dùng (app nghiệp vụ dùng nền tối — Night), không phải hằng màu của nền sáng
+          style: TextStyle(fontSize: 13, height: 1.45, color: context.eco.textSecondary),
         ),
       ],
     );
@@ -36,10 +37,18 @@ class AuthHeading extends StatelessWidget {
 // Dòng chuyển tab ở đáy màn ("まだアカウントをお持ちでない方は 新規登録"). Dùng Text.rich thay vì Text + nút
 // riêng để chữ "新規登録"/"ログイン" không trùng với nhãn tab khi tìm bằng find.text trong test.
 class AuthSwitchPrompt extends StatelessWidget {
-  const AuthSwitchPrompt({super.key, required this.prompt, required this.action, required this.onTap});
+  const AuthSwitchPrompt({
+    super.key,
+    required this.prompt,
+    required this.action,
+    required this.onTap,
+    this.allAccent = false,
+  });
   final String prompt;
   final String action;
   final VoidCallback onTap;
+  // true: cả dòng màu nhấn, đậm (Figma SCR-S00 / SCR-A00: link ngay dưới nút ログインする)
+  final bool allAccent;
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +64,16 @@ class AuthSwitchPrompt extends StatelessWidget {
             children: [
               TextSpan(
                 text: action,
-                style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary),
+                style: TextStyle(fontWeight: FontWeight.w700, color: context.eco.primary),
               ),
             ],
           ),
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: allAccent ? FontWeight.w700 : null,
+            color: allAccent ? context.eco.primary : context.eco.textPrimary,
+          ),
         ),
       ),
     );
@@ -87,7 +100,7 @@ class PasswordVisibilityToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onToggle,
-      style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+      style: TextButton.styleFrom(foregroundColor: context.eco.textSecondary),
       child: Text(
         visible ? context.l10n.hidePassword : context.l10n.showPassword,
         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),

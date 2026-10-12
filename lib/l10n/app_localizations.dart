@@ -254,11 +254,11 @@ abstract class AppLocalizations {
   /// **'ドライバー'**
   String get driverBadge;
 
-  /// No description provided for @switchLanguageLabel.
+  /// No description provided for @languageToggleBoth.
   ///
   /// In ja, this message translates to:
-  /// **'English'**
-  String get switchLanguageLabel;
+  /// **'日本語 / English'**
+  String get languageToggleBoth;
 
   /// No description provided for @driverLoginLead.
   ///

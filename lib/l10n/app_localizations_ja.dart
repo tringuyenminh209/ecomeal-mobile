@@ -90,7 +90,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get driverBadge => 'ドライバー';
 
   @override
-  String get switchLanguageLabel => 'English';
+  String get languageToggleBoth => '日本語 / English';
 
   @override
   String get driverLoginLead => 'EcoMeal から発行されたドライバー用アカウントでログインしてください。';

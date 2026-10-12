@@ -26,7 +26,7 @@
   "appTitle": "EcoMeal",
   "driverAppTitle": "EcoMeal Driver",
   "driverBadge": "Driver",
-  "switchLanguageLabel": "日本語",
+  "languageToggleBoth": "日本語 / English",
   "driverLoginLead": "Sign in with the driver account issued by EcoMeal.",
   "driverAccountIssuedNote": "Accounts are issued by EcoMeal. Set your password from the link in the invitation email, then sign in.",
   "driverOnlyAppTitle": "This app is for drivers only",

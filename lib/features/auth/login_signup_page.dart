@@ -143,12 +143,16 @@ class LoginForm extends ConsumerStatefulWidget {
     this.lead,
     this.footerNote,
     this.belowSubmit,
+    this.forgotBelowSubmit = false,
   });
   final VoidCallback onForgotPassword;
   final VoidCallback? onGoToSignup;
   final String? lead; // null = câu dẫn của SCR-M02
   final String? footerNote;
   final Widget? belowSubmit; // 0057: nút LINE・Apple (SCR-M02). App tài xế (SCR-D00) không có
+  // true: 「パスワードを忘れた方は こちら」 ngay dưới nút, cả dòng màu nhấn (Figma SCR-S00 552:2 / SCR-A00 562:861).
+  // false: ở đáy màn như SCR-M02 / SCR-D00
+  final bool forgotBelowSubmit;
 
   @override
   ConsumerState<LoginForm> createState() => _LoginFormState();
@@ -212,6 +216,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+    // UC-28 (レビュー第64回): trước đây dòng này bị bỏ vì chưa có UC/API đặt lại mật khẩu.
+    final forgot = AuthSwitchPrompt(
+      key: const Key('forgotPasswordLink'),
+      prompt: context.l10n.forgotPasswordPrompt,
+      action: context.l10n.forgotPasswordAction,
+      onTap: widget.onForgotPassword,
+      allAccent: widget.forgotBelowSubmit,
+    );
     return Form(
       key: _formKey,
       child: Column(
@@ -262,15 +274,10 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             child: authSubmitChild(_isSubmitting, context.l10n.loginButton),
           ),
           if (widget.belowSubmit != null) widget.belowSubmit!,
+          if (widget.forgotBelowSubmit) ...[const SizedBox(height: 4), forgot],
           const Spacer(),
           const SizedBox(height: 24),
-          // UC-28 (レビュー第64回): trước đây dòng này bị bỏ vì chưa có UC/API đặt lại mật khẩu.
-          AuthSwitchPrompt(
-            key: const Key('forgotPasswordLink'),
-            prompt: context.l10n.forgotPasswordPrompt,
-            action: context.l10n.forgotPasswordAction,
-            onTap: widget.onForgotPassword,
-          ),
+          if (!widget.forgotBelowSubmit) forgot,
           if (widget.onGoToSignup != null)
             AuthSwitchPrompt(
               prompt: context.l10n.noAccountPrompt,

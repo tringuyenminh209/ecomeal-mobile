@@ -232,7 +232,33 @@ void main() {
     await tester.tap(find.byKey(const Key('switchLanguageButton')));
     await tester.pumpAndSettle();
     expect(find.text(l10nEn.driverLoginLead), findsOneWidget);
-    expect(find.text(l10nEn.switchLanguageLabel), findsOneWidget); // giờ nút hiện 「日本語」
+    expect(find.text(l10nEn.languageToggleBoth), findsOneWidget); // Figma: 「日本語 / English」 ở cả 2 ngôn ngữ
+  });
+
+  // Màn đăng nhập của app nghiệp vụ theo Figma ở cỡ iPhone 390×844
+  void useIphoneSize(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+  }
+
+  double gapBelowSubmit(WidgetTester tester) =>
+      tester.getTopLeft(find.byKey(const Key('forgotPasswordLink'))).dy -
+      tester.getBottomLeft(find.byKey(const Key('loginSubmitButton'))).dy;
+
+  for (final flavor in [AppFlavor.store, AppFlavor.admin]) {
+    testWidgets('${flavor.name}: không có nút đổi ngôn ngữ; 「パスワードを忘れた方は」 ngay dưới nút ログインする (Figma S00 / A00)', (tester) async {
+      useIphoneSize(tester);
+      await pumpApp(tester, flavor);
+      expect(find.byKey(const Key('switchLanguageButton')), findsNothing);
+      expect(gapBelowSubmit(tester), lessThan(16));
+    });
+  }
+
+  testWidgets('SCR-D00: 「パスワードを忘れた方は」 ở đáy màn (Figma 351:735)', (tester) async {
+    useIphoneSize(tester);
+    await pumpApp(tester, AppFlavor.driver);
+    expect(gapBelowSubmit(tester), greaterThan(200));
   });
 
   for (final role in ['customer', 'restaurant_owner', 'admin']) {

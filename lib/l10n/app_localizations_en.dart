@@ -95,7 +95,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get driverBadge => 'Driver';
 
   @override
-  String get switchLanguageLabel => '日本語';
+  String get languageToggleBoth => '日本語 / English';
 
   @override
   String get driverLoginLead =>
