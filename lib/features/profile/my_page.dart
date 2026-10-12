@@ -50,6 +50,10 @@ class MyPage extends ConsumerWidget {
             ),
           ),
           data: (profile) => ListView(
+            key: const Key('myPageList'),
+            // Kéo mạnh xuống ở đầu trang: iOS mặc định cho trang trượt quá mép rồi bật lại (BouncingScrollPhysics) — trang này
+            // không có kéo để tải lại nên chỉ thấy "giật nảy" (chủ dự án báo 2026-10-12). Dừng ở mép như Android.
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             children: [
               Text(l10n.myPageTab, style: Theme.of(context).textTheme.titleLarge),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,6 +74,21 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('kéo mạnh xuống ở đầu trang → trang không trượt quá mép rồi bật lại (ClampingScrollPhysics)', (tester) async {
+    when(() => profileGateway.isLineLinked()).thenAnswer((_) async => false);
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    await pumpPage(tester);
+    final list = find.byKey(const Key('myPageList'));
+    final before = tester.getTopLeft(find.text('春香 美香'));
+    final gesture = await tester.startGesture(tester.getCenter(list));
+    await gesture.moveBy(const Offset(0, 300));
+    await tester.pump();
+    expect(tester.getTopLeft(find.text('春香 美香')), before); // không bị kéo xuống theo ngón tay
+    await gesture.up();
+    await tester.pumpAndSettle();
+    debugDefaultTargetPlatformOverride = null;
+  });
 
   testWidgets('chưa liên kết LINE → bấm "LINEと連携する" → gửi ID token lên server → hiện "LINE連携済み"', (tester) async {
     var linked = false;

@@ -102,6 +102,7 @@ flutter:
     - assets/images/line-icon.png # nút LINEでログイン (Figma 483:1437, 66×66 = 22pt @3x)
     - assets/brand/ecomeal-horizontal.png
     - assets/brand/ecomeal-horizontal-on-dark.png
+    - assets/brand/ecomeal-symbol.png # chỉ cái bát (Figma 179:85) — side rail iPad của app cửa hàng
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

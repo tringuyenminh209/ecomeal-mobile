@@ -128,7 +128,7 @@ class StoreShell extends ConsumerWidget {
                 selectedIndex: index,
                 onDestinationSelected: select,
                 labelType: NavigationRailLabelType.all,
-                leading: const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: EcoMealLogo(height: 26)),
+                leading: const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: EcoMealLogo.symbol()),
                 destinations: [
                   for (final (key, icon, selectedIcon, label) in tabs)
                     NavigationRailDestination(

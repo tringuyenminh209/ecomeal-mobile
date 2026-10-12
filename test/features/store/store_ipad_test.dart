@@ -7,6 +7,7 @@ import 'package:ecomeal_mobile/features/store/store_batch_detail_page.dart';
 import 'package:ecomeal_mobile/features/store/store_gateway.dart';
 import 'package:ecomeal_mobile/features/store/store_register_page.dart';
 import 'package:ecomeal_mobile/features/store/store_settlement_page.dart';
+import 'package:ecomeal_mobile/widgets/ecomeal_logo.dart';
 import 'package:ecomeal_mobile/widgets/store_shell.dart';
 import '../../helpers/fake_inbox_gateway.dart';
 import '../../helpers/fake_store_gateway.dart';
@@ -77,6 +78,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
+    // rail chỉ có cái bát 40×40 (Figma 179:85), không phải logo ngang có chữ
+    final logo = tester.widget<EcoMealLogo>(find.descendant(of: find.byType(NavigationRail), matching: find.byType(EcoMealLogo)));
+    expect(logo.symbolOnly, isTrue);
+    expect(tester.getSize(find.descendant(of: find.byType(NavigationRail), matching: find.byType(Image))).width, 40);
     expect(find.text(l10nJa.storeBatchQtyConfirmed(12, 10)), findsOneWidget);
     expect(find.byKey(const Key('storeMonthSales')), findsOneWidget);
     final cta = tester.getRect(find.byKey(const Key('storeRegisterCta')));

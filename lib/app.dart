@@ -12,6 +12,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/locale_controller.dart';
 import 'features/auth/role_gate.dart';
 import 'l10n/l10n.dart';
+import 'widgets/tap_outside_to_unfocus.dart';
 
 // Khởi động chung cho cả 2 app (ADR-007). Khác nhau chỉ ở [flavor].
 Future<void> runEcoMealApp(AppFlavor flavor) async {
@@ -65,6 +66,8 @@ class EcoMealApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       // Toàn bộ màu/chữ/nút/ô nhập theo Figma "00 Foundations" + "01 Components" — xem core/theme/app_theme.dart.
       theme: buildAppTheme(dark: flavor.usesNightTheme),
+      // Chạm ra ngoài ô nhập → hạ bàn phím (mọi màn hình, cả dialog/sheet)
+      builder: (context, child) => TapOutsideToUnfocus(child: child ?? const SizedBox.shrink()),
       home: const RoleGate(),
     );
   }
