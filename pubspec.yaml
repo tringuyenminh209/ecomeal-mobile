@@ -99,6 +99,7 @@ flutter:
     - assets/images/onboarding-meal.png
     - assets/images/mystery-bag-preview.png
     - assets/images/truck-marker.png
+    - assets/images/line-icon.png # nút LINEでログイン (Figma 483:1437, 66×66 = 22pt @3x)
     - assets/brand/ecomeal-horizontal.png
     - assets/brand/ecomeal-horizontal-on-dark.png
 

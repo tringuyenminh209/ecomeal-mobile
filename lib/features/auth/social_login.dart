@@ -148,7 +148,10 @@ class _SocialLoginButtonsState extends ConsumerState<SocialLoginButtons> {
             // Màu thương hiệu LINE (#06C755, LINE Login button guidelines)
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF06C755), foregroundColor: Colors.white),
             onPressed: busy ? null : _line,
-            icon: _busy == _Busy.line ? spinner() : const Icon(Icons.chat_bubble, size: 20),
+            // Logo LINE (bong bóng trắng chữ LINE xanh) xuất từ Figma 483:1437 — không dùng icon chat chung của Material
+            icon: _busy == _Busy.line
+                ? spinner()
+                : Image.asset('assets/images/line-icon.png', width: 22, height: 22, excludeFromSemantics: true),
             label: Text(l10n.lineLoginButton),
           ),
         if (line && apple) const SizedBox(height: 12),

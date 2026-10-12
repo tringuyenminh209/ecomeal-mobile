@@ -16,6 +16,9 @@ import 'l10n/l10n.dart';
 // Khởi động chung cho cả 2 app (ADR-007). Khác nhau chỉ ở [flavor].
 Future<void> runEcoMealApp(AppFlavor flavor) async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  // Phải trước initSupabase (Supabase đọc phiên từ Keychain lúc khởi động)
+  await clearSessionFromPreviousInstall(prefs);
   await initSupabase();
   // LINE Login chỉ dùng ở app khách (SCR-M07). Chưa có channel ID thì app vẫn chạy — chỉ nút 「LINEと連携する」 báo lỗi.
   const lineChannelId = String.fromEnvironment('LINE_CHANNEL_ID');
@@ -27,7 +30,6 @@ Future<void> runEcoMealApp(AppFlavor flavor) async {
   if (flavor == AppFlavor.customer) await initStripe();
   // Thông báo app (0048, 0059): app khách, nhà hàng, vận hành. Mỗi app 1 Firebase app ID; thiếu cấu hình thì bỏ qua
   if (flavor != AppFlavor.driver) await initPush(flavor);
-  final prefs = await SharedPreferences.getInstance();
   await runWithErrorReporting(
     ProviderScope(
       overrides: [

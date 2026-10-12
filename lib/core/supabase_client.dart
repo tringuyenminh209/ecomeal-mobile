@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // 16_セキュリティ設計 §1/§3: session nằm trong Keychain/Keystore, không trong preferences.
 class SecureSessionStorage extends LocalStorage {
@@ -18,6 +19,19 @@ class SecureSessionStorage extends LocalStorage {
       storage.write(key: _key, value: persistSessionString);
   @override
   Future<void> removePersistedSession() => storage.delete(key: _key);
+}
+
+// iOS: Keychain KHÔNG bị xoá khi gỡ app, còn SharedPreferences thì có. Cài lại → app tự đăng nhập bằng phiên của lần cài
+// trước (người dùng không hề đăng nhập), bỏ qua SCR-M01, và nếu refresh token cũ đã hết hạn thì lần mở sau lại bị đăng
+// xuất — đã gặp trên iPhone 2026-10-12: màn đồng ý điều khoản hiện ra rồi mở lại thì vào thẳng SCR-M02.
+// Lần chạy đầu của 1 lần cài (chưa có dấu trong preferences) → xoá phiên cũ trong Keychain trước khi Supabase đọc nó.
+const installMarkerKey = 'ecomeal.install.marker';
+
+Future<void> clearSessionFromPreviousInstall(SharedPreferences prefs, {SecureSessionStorage storage = const SecureSessionStorage()}) async {
+  if (prefs.getBool(installMarkerKey) == true) return;
+  // Cập nhật từ bản cũ (chưa có dấu nhưng preferences đã có dữ liệu, vd ngôn ngữ đã chọn) → cùng lần cài, giữ phiên
+  if (prefs.getKeys().isEmpty) await storage.removePersistedSession();
+  await prefs.setBool(installMarkerKey, true);
 }
 
 class SupabaseClientHolder {
