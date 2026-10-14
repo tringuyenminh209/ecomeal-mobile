@@ -67,4 +67,14 @@ void main() {
     sortListingsByProximity(original, myLat: myLat, myLng: myLng);
     expect(original.map((l) => l.batchId).toList(), originalOrder);
   });
+
+  test('walkMinutes: 80 m = 1 phút (làm tròn lên, ít nhất 1); không có GPS → null', () {
+    expect(walkMinutes(near, myLat: null, myLng: myLng), isNull);
+    expect(walkMinutes(near, myLat: myLat, myLng: null), isNull);
+    // near ≈ 38 m → 1 phút (không phải 0)
+    expect(walkMinutes(near, myLat: myLat, myLng: myLng), 1);
+    // 0.0071° vĩ độ ≈ 789 m về phía bắc → 10 phút (789 / 80 = 9.9, làm tròn lên)
+    final north = _listing('north', lat: myLat + 0.0071, lng: myLng);
+    expect(walkMinutes(north, myLat: myLat, myLng: myLng), 10);
+  });
 }

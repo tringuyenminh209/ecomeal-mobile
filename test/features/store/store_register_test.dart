@@ -263,6 +263,34 @@ void main() {
       expect(registered, isEmpty);
     });
 
+    testWidgets('販売の終わり: 翌日 + 時刻の入力（Figma 871:4434）→ その時刻で登録。キャンセルは元のまま', (tester) async {
+      await pump(tester);
+      await tester.tap(find.text(l10nJa.storeSellByTomorrow));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('storeSellByTime')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('sellByPreset_21:30')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('sellByConfirm')));
+      await tester.pumpAndSettle();
+      expect(find.descendant(of: find.byKey(const Key('storeSellByTime')), matching: find.text('21:30')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('storeSellByTime')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('sellByPreset_20:00')));
+      await tester.tap(find.byKey(const Key('sellByCancel')));
+      await tester.pumpAndSettle();
+      expect(find.descendant(of: find.byKey(const Key('storeSellByTime')), matching: find.text('21:30')), findsOneWidget);
+
+      await tester.enterText(find.byKey(const Key('storePriceField')), '500');
+      await tapNoAllergens(tester);
+      await openSheetAndConfirm(tester);
+      expect(
+        gateway.drafts.single.sellByAt,
+        sellByAtJst(now: DateTime.now(), tomorrow: true, hour: 21, minute: 30),
+      );
+    });
+
     testWidgets('アレルゲンの一覧を読めない → 登録できない（「なし」として送らない）', (tester) async {
       gateway = _FailingCatalogGateway();
       await pump(tester);

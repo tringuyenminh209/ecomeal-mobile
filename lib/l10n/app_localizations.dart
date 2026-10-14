@@ -800,6 +800,18 @@ abstract class AppLocalizations {
   /// **'価格の取得に失敗しました'**
   String get errorPriceLoad;
 
+  /// No description provided for @truckPeek.
+  ///
+  /// In ja, this message translates to:
+  /// **'Eco-Truck 運行中 · 次は{stop} {time}（あと{minutes}分）'**
+  String truckPeek(String stop, String time, int minutes);
+
+  /// No description provided for @stopWalk.
+  ///
+  /// In ja, this message translates to:
+  /// **'{stop} · 徒歩{minutes}分'**
+  String stopWalk(String stop, int minutes);
+
   /// No description provided for @errorSessionExpired.
   ///
   /// In ja, this message translates to:
@@ -4465,6 +4477,60 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'変更'**
   String get storeSellByChange;
+
+  /// No description provided for @storeTimeTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'販売の終了時刻'**
+  String get storeTimeTitle;
+
+  /// No description provided for @storeTimeHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'数字で入力、または下の時刻から選べます'**
+  String get storeTimeHint;
+
+  /// No description provided for @storeTimeDayNote.
+  ///
+  /// In ja, this message translates to:
+  /// **'本日 / 翌日 は登録画面の選択を使います'**
+  String get storeTimeDayNote;
+
+  /// No description provided for @storeTimeHour.
+  ///
+  /// In ja, this message translates to:
+  /// **'時'**
+  String get storeTimeHour;
+
+  /// No description provided for @storeTimeMinute.
+  ///
+  /// In ja, this message translates to:
+  /// **'分'**
+  String get storeTimeMinute;
+
+  /// No description provided for @storeTime24h.
+  ///
+  /// In ja, this message translates to:
+  /// **'24時間表記（00–23時 / 00–59分）'**
+  String get storeTime24h;
+
+  /// No description provided for @storeTimePresets.
+  ///
+  /// In ja, this message translates to:
+  /// **'よく使う時刻'**
+  String get storeTimePresets;
+
+  /// No description provided for @storeTimeConfirm.
+  ///
+  /// In ja, this message translates to:
+  /// **'この時刻にする'**
+  String get storeTimeConfirm;
+
+  /// No description provided for @storeTimeInvalid.
+  ///
+  /// In ja, this message translates to:
+  /// **'時は00〜23、分は00〜59で入力してください'**
+  String get storeTimeInvalid;
 
   /// No description provided for @storeAllergenLabel.
   ///

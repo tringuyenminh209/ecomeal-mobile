@@ -384,6 +384,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorPriceLoad => '価格の取得に失敗しました';
 
   @override
+  String truckPeek(String stop, String time, int minutes) {
+    return 'Eco-Truck 運行中 · 次は$stop $time（あと$minutes分）';
+  }
+
+  @override
+  String stopWalk(String stop, int minutes) {
+    return '$stop · 徒歩$minutes分';
+  }
+
+  @override
   String get errorSessionExpired => 'ログインの有効期限が切れました。もう一度ログインしてください';
 
   @override
@@ -2435,6 +2445,33 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeSellByChange => '変更';
+
+  @override
+  String get storeTimeTitle => '販売の終了時刻';
+
+  @override
+  String get storeTimeHint => '数字で入力、または下の時刻から選べます';
+
+  @override
+  String get storeTimeDayNote => '本日 / 翌日 は登録画面の選択を使います';
+
+  @override
+  String get storeTimeHour => '時';
+
+  @override
+  String get storeTimeMinute => '分';
+
+  @override
+  String get storeTime24h => '24時間表記（00–23時 / 00–59分）';
+
+  @override
+  String get storeTimePresets => 'よく使う時刻';
+
+  @override
+  String get storeTimeConfirm => 'この時刻にする';
+
+  @override
+  String get storeTimeInvalid => '時は00〜23、分は00〜59で入力してください';
 
   @override
   String get storeAllergenLabel => 'アレルゲン（28品目）';

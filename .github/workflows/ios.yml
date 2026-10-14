@@ -50,7 +50,9 @@ jobs:
   ios:
     needs: check
     runs-on: macos-15
-    timeout-minutes: 40
+    # Bình thường ~22 phút; runner macOS miễn phí có lúc chậm gấp đôi (run 38639694363: 40 phút mới tới IPA thứ 3
+    # → bị huỷ "The operation was canceled"). 60 phút để lần chậm vẫn xong.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 

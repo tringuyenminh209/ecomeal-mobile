@@ -407,6 +407,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorPriceLoad => 'Couldn’t load the price';
 
   @override
+  String truckPeek(String stop, String time, int minutes) {
+    return 'Eco-Truck running · next: $stop $time ($minutes min)';
+  }
+
+  @override
+  String stopWalk(String stop, int minutes) {
+    return '$stop · $minutes min walk';
+  }
+
+  @override
   String get errorSessionExpired =>
       'Your login has expired. Please log in again';
 
@@ -2551,6 +2561,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storeSellByChange => 'Change';
+
+  @override
+  String get storeTimeTitle => 'Sales end time';
+
+  @override
+  String get storeTimeHint => 'Type the time, or pick one below';
+
+  @override
+  String get storeTimeDayNote =>
+      'Today / Tomorrow follows your choice on the form';
+
+  @override
+  String get storeTimeHour => 'Hour';
+
+  @override
+  String get storeTimeMinute => 'Min';
+
+  @override
+  String get storeTime24h => '24-hour clock (00–23 h / 00–59 min)';
+
+  @override
+  String get storeTimePresets => 'Common times';
+
+  @override
+  String get storeTimeConfirm => 'Use this time';
+
+  @override
+  String get storeTimeInvalid =>
+      'Enter 00–23 for the hour and 00–59 for minutes';
 
   @override
   String get storeAllergenLabel => 'Allergens (28 items)';

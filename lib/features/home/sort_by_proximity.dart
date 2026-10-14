@@ -30,3 +30,13 @@ List<BatchListing> sortListingsByProximity(
   });
   return sorted;
 }
+
+// Phút đi bộ tới điểm nhận (danh sách dọc của SCR-M03, 2026-10-15). Quy ước hiển thị bất động sản Nhật: 80m = 1 phút,
+// làm tròn lên. Chưa có GPS → null (chỉ hiện tên điểm, không đoán số phút).
+const metersPerWalkMinute = 80;
+
+int? walkMinutes(BatchListing listing, {double? myLat, double? myLng}) {
+  if (myLat == null || myLng == null) return null;
+  final meters = Geolocator.distanceBetween(myLat, myLng, listing.stopLat, listing.stopLng);
+  return (meters / metersPerWalkMinute).ceil().clamp(1, 999);
+}

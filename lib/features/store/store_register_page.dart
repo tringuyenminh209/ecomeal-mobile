@@ -10,6 +10,7 @@ import '../../l10n/l10n.dart';
 import '../../widgets/error_banner.dart';
 import 'store_gateway.dart';
 import '../../core/wide_layout.dart';
+import 'sell_by_time_picker.dart';
 import 'store_register_logic.dart';
 
 const _maxQty = 99;
@@ -104,13 +105,13 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
   }
 
   Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: _time.hour, minute: _time.minute),
-      builder: (context, child) =>
-          MediaQuery(data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true), child: child!),
-    );
-    if (picked != null) setState(() => _time = (hour: picked.hour, minute: picked.minute));
+    final picked = await showSellByTimePicker(context, initial: _time, tomorrow: _tomorrow);
+    if (picked != null) {
+      setState(() {
+        _time = picked;
+        _sellByError = null;
+      });
+    }
   }
 
   Future<void> _addIngredient() async {

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import '../../core/haptics.dart';
 import '../../core/motion.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/jst_date.dart';
@@ -59,9 +60,23 @@ class CustomerHomePage extends ConsumerStatefulWidget {
   ConsumerState<CustomerHomePage> createState() => _CustomerHomePageState();
 }
 
+// 3 mức dừng của sheet SCR-M03 (Figma 881:1929 低 / 881:2041 中 / 881:2137 高)
+enum _SheetLevel { peek, mid, full }
+
+// Mức 中 = bố cục cũ (thẻ xe + thẻ ngang). 低 và 高 tính theo chiều cao màn hình (xem build).
+const _midSize = 0.46;
+// 低: tay cầm + tiêu đề + 1 dòng tóm tắt xe (nhân theo cỡ chữ hệ thống)
+const _peekHeight = 120.0;
+// 高: đáy sheet dừng dưới thẻ logo (12 lề + 46 thẻ + 12 khoảng trống), vẫn thấy một dải bản đồ
+const _topBarHeight = 70.0;
+
 class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
   VoidCallback? _unsubscribe;
   Timer? _refreshTimer;
+  final _sheet = DraggableScrollableController();
+  _SheetLevel _level = _SheetLevel.mid;
+  // Sheet đang nằm đúng 1 mức dừng — rung nhẹ 1 lần khi vừa tới mức (không rung liên tục lúc kéo)
+  bool _atStop = true;
 
   @override
   void initState() {
@@ -86,7 +101,32 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
   void dispose() {
     _refreshTimer?.cancel();
     _unsubscribe?.call();
+    _sheet.dispose();
     super.dispose();
+  }
+
+  // Chỉ setState khi đổi mức (không phải mỗi khung hình lúc kéo)
+  void _onSheetMoved(double extent, List<double> stops) {
+    final (low, mid, high) = (stops[0], stops[1], stops[2]);
+    final level = extent < (low + mid) / 2
+        ? _SheetLevel.peek
+        : extent > (mid + high) / 2
+        ? _SheetLevel.full
+        : _SheetLevel.mid;
+    if (level != _level) setState(() => _level = level);
+    final atStop = stops.any((s) => (extent - s).abs() < 0.002);
+    if (atStop && !_atStop) Haptics.selection();
+    _atStop = atStop;
+  }
+
+  // Chọn xe (marker / dòng tóm tắt) → về 中 để thấy lộ trình xe đó
+  void _showMid() {
+    if (!_sheet.isAttached || _level == _SheetLevel.mid) return;
+    if (Motion.reduced(context)) {
+      _sheet.jumpTo(_midSize);
+    } else {
+      _sheet.animateTo(_midSize, duration: Motion.small, curve: Motion.move);
+    }
   }
 
   @override
@@ -95,9 +135,18 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
     final positionAsync = ref.watch(currentPositionProvider);
     final topInset = MediaQuery.paddingOf(context).top;
     final userId = widget.userId;
+    ref.listen<String?>(selectedTruckIdProvider, (_, id) {
+      if (id != null) _showMid();
+    });
 
     return Scaffold(
-      body: Stack(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final h = constraints.maxHeight;
+          final low = (MediaQuery.textScalerOf(context).scale(_peekHeight) / h).clamp(0.12, 0.3);
+          final high = (1 - (topInset + _topBarHeight) / h).clamp(_midSize + 0.1, 0.9);
+          final stops = [low, _midSize, high];
+          return Stack(
         children: [
           Positioned.fill(
             child: trucksAsync.when(
@@ -108,6 +157,9 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
                 selectedTruckId: ref.watch(selectedTruckIdProvider),
                 onSelectTruck: (id) => ref.read(selectedTruckIdProvider.notifier).state = id,
                 myPosition: positionAsync.valueOrNull,
+                // Nút vị trí đứng ngay trên mép sheet; ở 高 sheet che gần hết bản đồ nên ẩn (Figma 881:2137)
+                locateBottom: (_level == _SheetLevel.peek ? low : _midSize) * h + 12,
+                showLocate: _level != _SheetLevel.full,
               ),
             ),
           ),
@@ -159,17 +211,32 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
               ],
             ),
           ),
-          DraggableScrollableSheet(
-            initialChildSize: 0.46,
-            minChildSize: 0.16,
-            maxChildSize: 0.8,
-            builder: (context, scrollController) => _HomeSheet(
-              scrollController: scrollController,
-              myPosition: positionAsync.valueOrNull,
-              onOpenMyPage: widget.onOpenMyPage,
+          // Thả tay → trượt tới mức gần nhất; vuốt nhanh → mức kế tiếp theo hướng vuốt (snap của Flutter)
+          NotificationListener<DraggableScrollableNotification>(
+            onNotification: (n) {
+              _onSheetMoved(n.extent, stops);
+              return false;
+            },
+            child: DraggableScrollableSheet(
+              controller: _sheet,
+              initialChildSize: _midSize,
+              minChildSize: low,
+              maxChildSize: high,
+              snap: true,
+              snapSizes: const [_midSize],
+              // Flutter không nhận 0 → 1ms khi người dùng tắt chuyển động
+              snapAnimationDuration: Motion.reduced(context) ? const Duration(milliseconds: 1) : Motion.small,
+              builder: (context, scrollController) => _HomeSheet(
+                scrollController: scrollController,
+                level: _level,
+                myPosition: positionAsync.valueOrNull,
+                onOpenMyPage: widget.onOpenMyPage,
+              ),
             ),
           ),
         ],
+      );
+        },
       ),
     );
   }
@@ -201,10 +268,13 @@ class _FloatingLogo extends StatelessWidget {
 class _HomeSheet extends ConsumerWidget {
   const _HomeSheet({
     required this.scrollController,
+    required this.level,
     required this.myPosition,
     required this.onOpenMyPage,
   });
   final ScrollController scrollController;
+  // 低: chỉ tiêu đề + dòng tóm tắt xe · 中: thẻ xe + thẻ ngang · 高: danh sách dọc gần nhất trước
+  final _SheetLevel level;
   final Position? myPosition;
   final VoidCallback? onOpenMyPage;
 
@@ -218,6 +288,7 @@ class _HomeSheet extends ConsumerWidget {
     final selectedIndex = trucks.indexWhere((t) => t.truckId == selectedId);
 
     return Container(
+      key: const Key('homeSheet'),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -281,6 +352,10 @@ class _HomeSheet extends ConsumerWidget {
               ],
             ),
           ),
+          if (level == _SheetLevel.peek) ...[
+            const SizedBox(height: 8),
+            const _TruckPeekLine(),
+          ] else ...[
           const SizedBox(height: 16),
           ...listingsAsync.when(
             loading: () => const [_SheetSkeleton()],
@@ -314,6 +389,20 @@ class _HomeSheet extends ConsumerWidget {
                 myLat: myPosition?.latitude,
                 myLng: myPosition?.longitude,
               );
+              if (level == _SheetLevel.full) {
+                return [
+                  for (final l in sorted)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                      child: BatchCard(
+                        listing: l,
+                        compact: true,
+                        width: double.infinity,
+                        walkMinutes: walkMinutes(l, myLat: myPosition?.latitude, myLng: myPosition?.longitude),
+                      ),
+                    ),
+                ];
+              }
               return [
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
@@ -334,7 +423,56 @@ class _HomeSheet extends ConsumerWidget {
             },
           ),
           ],
+          ],
         ],
+      ),
+    );
+  }
+}
+
+// Xe đầu tiên còn điểm dừng phía trước — thẻ xe (中) và dòng tóm tắt (低) cùng dùng
+({String truckId, String stopName, String time, int minutes})? _nextTruckStop(List<TruckRoute> trucks) {
+  for (final t in trucks) {
+    final next = t.nextStop;
+    if (next == null) continue;
+    final minutes = next.plannedTime.difference(DateTime.now()).inMinutes;
+    return (
+      truckId: t.truckId,
+      stopName: next.stopName,
+      time: DateFormat('HH:mm').format(toTokyo(next.plannedTime)),
+      minutes: minutes < 0 ? 0 : minutes,
+    );
+  }
+  return null;
+}
+
+// Mức 低 (Figma 881:1929): 1 dòng "Eco-Truck 運行中 · 次は… HH:mm（あと n 分）"; chạm = mở lộ trình xe (→ 中)
+class _TruckPeekLine extends ConsumerWidget {
+  const _TruckPeekLine();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final next = _nextTruckStop(ref.watch(todayTrucksProvider).valueOrNull ?? const []);
+    if (next == null) return const SizedBox.shrink();
+    return InkWell(
+      key: const Key('truckPeekLine'),
+      onTap: () => ref.read(selectedTruckIdProvider.notifier).state = next.truckId,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        child: Row(
+          children: [
+            const Icon(Icons.local_shipping, size: 18, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                context.l10n.truckPeek(next.stopName, next.time, next.minutes),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -348,19 +486,9 @@ class _TruckStatusCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trucks = ref.watch(todayTrucksProvider).valueOrNull ?? const <TruckRoute>[];
-    TruckRoute? truck;
-    for (final t in trucks) {
-      if (t.nextStop != null) {
-        truck = t;
-        break;
-      }
-    }
-    final next = truck?.nextStop;
-    if (truck == null || next == null) return const SizedBox.shrink();
+    final next = _nextTruckStop(ref.watch(todayTrucksProvider).valueOrNull ?? const []);
+    if (next == null) return const SizedBox.shrink();
     final l10n = context.l10n;
-    final minutes = next.plannedTime.difference(DateTime.now()).inMinutes;
-    final truckId = truck.truckId;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -371,7 +499,7 @@ class _TruckStatusCard extends ConsumerWidget {
             key: const Key('truckStatusCard'),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () => ref.read(selectedTruckIdProvider.notifier).state = truckId,
+              onTap: () => ref.read(selectedTruckIdProvider.notifier).state = next.truckId,
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Row(
@@ -393,10 +521,7 @@ class _TruckStatusCard extends ConsumerWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            l10n.truckEta(
-                              DateFormat('HH:mm').format(toTokyo(next.plannedTime)),
-                              minutes < 0 ? 0 : minutes,
-                            ),
+                            l10n.truckEta(next.time, next.minutes),
                             style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                           ),
                         ],
@@ -445,11 +570,15 @@ class _Map extends StatefulWidget {
     required this.selectedTruckId,
     required this.onSelectTruck,
     required this.myPosition,
+    required this.locateBottom,
+    required this.showLocate,
   });
   final List<TruckRoute> trucks;
   final String? selectedTruckId;
   final ValueChanged<String> onSelectTruck;
   final Position? myPosition;
+  final double locateBottom;
+  final bool showLocate;
   @override
   State<_Map> createState() => _MapState();
 }
@@ -598,14 +727,23 @@ class _MapState extends State<_Map> with SingleTickerProviderStateMixin {
                 ),
           },
         ),
-        Positioned(
+        AnimatedPositioned(
+          duration: Motion.of(context, Motion.small),
+          curve: Motion.move,
           right: 16,
-          bottom: MediaQuery.sizeOf(context).height * 0.48,
-          child: FloatingActionButton.small(
-            heroTag: 'locateMe',
-            tooltip: context.l10n.locateMe,
-            onPressed: position == null ? null : _locate,
-            child: const Icon(Icons.my_location),
+          bottom: widget.locateBottom,
+          child: IgnorePointer(
+            ignoring: !widget.showLocate,
+            child: AnimatedOpacity(
+              duration: Motion.of(context, Motion.small),
+              opacity: widget.showLocate ? 1 : 0,
+              child: FloatingActionButton.small(
+                heroTag: 'locateMe',
+                tooltip: context.l10n.locateMe,
+                onPressed: position == null ? null : _locate,
+                child: const Icon(Icons.my_location),
+              ),
+            ),
           ),
         ),
       ],

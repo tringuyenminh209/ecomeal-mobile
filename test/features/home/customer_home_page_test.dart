@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -264,5 +265,54 @@ void main() {
     );
     await pump(tester);
     expect(find.byKey(const Key('truckStatusCard')), findsNothing);
+  });
+
+  // Sheet 3 mức (Figma 881:1929 / 2041 / 2137): màn thử cao 844 → 中 = 0.46, 低 = 120/844, 高 = 0.9
+  double sheetTop(WidgetTester tester) => tester.getTopLeft(find.byKey(const Key('homeSheet'))).dy;
+
+  testWidgets('kéo lên → 高: danh sách dọc, không còn thẻ xe; kéo xuống → về 中', (tester) async {
+    when(() => gateway.fetchTodayTrucks()).thenAnswer((_) async => [truckRoute]);
+    await pump(tester);
+    expect(sheetTop(tester), closeTo(844 * (1 - 0.46), 1));
+    expect(find.byKey(const Key('truckStatusCard')), findsOneWidget);
+
+    await tester.drag(find.text(l10nJa.nearbyBatches), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(sheetTop(tester), closeTo(844 * (1 - 0.9), 1));
+    expect(find.byKey(const Key('truckStatusCard')), findsNothing);
+    // Hàng gọn: chưa có GPS → chỉ tên điểm nhận (không có phút đi bộ)
+    expect(
+      find.descendant(of: find.byKey(const Key('listingCard_b1_rs1')), matching: find.text('大阪駅前')),
+      findsOneWidget,
+    );
+
+    await tester.drag(find.text(l10nJa.nearbyBatches), const Offset(0, 300));
+    await tester.pumpAndSettle();
+    expect(sheetTop(tester), closeTo(844 * (1 - 0.46), 1));
+    expect(find.byKey(const Key('truckStatusCard')), findsOneWidget);
+  });
+
+  testWidgets('kéo xuống → 低: 1 dòng tóm tắt xe, rung nhẹ khi dừng; chạm dòng → lộ trình xe ở 中', (tester) async {
+    final haptics = <Object?>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'HapticFeedback.vibrate') haptics.add(call.arguments);
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+    when(() => gateway.fetchTodayTrucks()).thenAnswer((_) async => [truckRoute]);
+    await pump(tester);
+
+    await tester.drag(find.text(l10nJa.nearbyBatches), const Offset(0, 300));
+    await tester.pumpAndSettle();
+    expect(sheetTop(tester), closeTo(844 - 120, 1));
+    expect(haptics, ['HapticFeedbackType.selectionClick']);
+    expect(find.byKey(const Key('listingCard_b1_rs1')), findsNothing);
+    final peek = find.byKey(const Key('truckPeekLine'));
+    expect(find.descendant(of: peek, matching: find.textContaining('次は大阪駅前')), findsOneWidget);
+
+    await tester.tap(peek);
+    await tester.pumpAndSettle();
+    expect(sheetTop(tester), closeTo(844 * (1 - 0.46), 1));
+    expect(find.byKey(const Key('truckRoute_t1')), findsOneWidget);
   });
 }
