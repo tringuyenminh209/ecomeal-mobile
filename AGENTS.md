@@ -17,6 +17,7 @@ Bổ sung cho `ecomeal/AGENTS.md` (mục Flutter/Android/CameraX/Sideloadly ở 
 - Khoá/API key chỉ nằm trong `env.json` (gitignore), truyền bằng `--dart-define-from-file=env.json`. Không commit `env.json`, `.idea/`.
 - Token phiên lưu bằng `flutter_secure_storage`, không `shared_preferences`.
 - **Build IPA**: repo `pj` hết quota GitHub Actions → đồng bộ sang repo công khai `ecomeal-mobile` bằng `bash tools/publish-mobile.sh` (từ `ecomeal/`), CI ở đó build IPA.
+- Bố cục đổi theo kích thước (`isWideLayout`, xoay iPad): phần có dữ liệu người dùng (trang, form) phải **giữ cùng vị trí trong cây widget** — chỉ thêm/bớt thanh, cột phụ quanh nó (dùng `Key` nếu vị trí trong Row/Column dịch đi). Đổi cha của nó (vd Row ↔ thẳng vào Scaffold) làm Flutter dựng lại trang và mất dữ liệu đang nhập (lỗi 2026-10-14: xoay iPad ở 余剰を登録 mất cả ảnh vừa chụp; test `store_ipad_test.dart` "xoay ngang ↔ dọc").
 - Không đụng các file đang sửa dở của chủ dự án (`env.example.json`, `test/features/driver/*` khi chưa được giao).
 
 ## Kiểm tra trước khi commit

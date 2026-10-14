@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -22,6 +23,7 @@ import '../../core/haptics.dart';
 import '../../widgets/batch_photo.dart';
 import '../coupons/coupons.dart';
 import '../coupons/coupons_page.dart' show CouponTile;
+import '../auth/auth_controller.dart';
 
 // SCR-M05 — 06_画面設計 §SCR-M05. Figma「M05 予約確認・決済」211:608: 16:16527 (支払い方法なし) / 378:82
 // (選択済み) / 389:913 (処理中) / 389:935 (完了) / 389:959 (カード拒否) / 389:985 (結果確認待ち).
@@ -75,6 +77,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
   bool _cardMissing = false;
   bool _rateLimited = false; // E-RATE-429: cùng khung lỗi với _orderError, khác câu
   bool _couponError = false; // E-COUPON-*: coupon vừa được dùng ở máy khác / hết hạn
+  bool _priceUnavailable = false; // E-ORDER-011 (0071): giá hiện tại dưới mức Stripe nhận
   bool _useCoupon = true; // 0056 (Figma 470:1318): coupon có lợi nhất được bật sẵn, khách có thể tắt
 
   PaymentMethod? _selectedCard(List<PaymentMethod> methods) {
@@ -95,6 +98,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
       _cardMissing = false;
       _rateLimited = false;
       _couponError = false;
+      _priceUnavailable = false;
     });
     try {
       final result = await ref.read(orderGatewayProvider).createOrder(
@@ -129,11 +133,19 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
             _phase = PaymentPhase.review;
             _orderError = true;
             _couponError = true;
+          case PaymentFailure.priceUnavailable:
+            _phase = PaymentPhase.review;
+            _orderError = true;
+            _priceUnavailable = true;
+          case PaymentFailure.sessionExpired:
+            // không phải lỗi đặt hàng: đăng xuất trên máy → SessionGuard đóng màn này và báo 「ログインし直してください」
+            _phase = PaymentPhase.review;
           case PaymentFailure.other:
             _phase = PaymentPhase.review;
             _orderError = true;
         }
       });
+      if (failure == PaymentFailure.sessionExpired) unawaited(ref.read(authControllerProvider.notifier).expireSession());
       if (failure == PaymentFailure.couponUnavailable) ref.invalidate(usableCouponsProvider);
       if (failure == PaymentFailure.methodMissing) ref.invalidate(myPaymentMethodsProvider);
     }
@@ -427,7 +439,9 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                               ? l10n.errorRateLimited
                               : _couponError
                                   ? l10n.errorCouponUnavailable
-                                  : l10n.errorReservationFailed,
+                                  : _priceUnavailable
+                                      ? l10n.errorPriceTooLow
+                                      : l10n.errorReservationFailed,
                     ),
                     const SizedBox(height: 10),
                   ] else if (price != null && methodsAsync.hasValue) ...[

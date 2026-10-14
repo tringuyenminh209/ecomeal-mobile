@@ -407,6 +407,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorPriceLoad => 'Couldn’t load the price';
 
   @override
+  String get errorSessionExpired =>
+      'Your login has expired. Please log in again';
+
+  @override
+  String get errorPriceTooLow =>
+      'This meal can’t be paid by card at its current price. Please choose another meal';
+
+  @override
   String minutesRemaining(int minutes) {
     return '$minutes min left';
   }
@@ -2718,7 +2726,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeErrQty => 'Choose at least 1 meal';
 
   @override
-  String get storeErrPrice => 'Enter a price of at least ¥1';
+  String get storeErrPrice => 'Enter a price of at least ¥200';
 
   @override
   String get storeErrSellByPast => 'The sell-by time must be in the future';

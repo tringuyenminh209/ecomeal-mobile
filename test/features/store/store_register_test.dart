@@ -183,6 +183,15 @@ void main() {
       expect(find.text(l10nJa.storeConfirmTitle), findsNothing);
     });
 
+    testWidgets('0071: 単価 ¥199 → エラー（下限 ¥200）、確認シートを開かない', (tester) async {
+      await pump(tester);
+      await tester.enterText(find.byKey(const Key('storePriceField')), '199');
+      await tester.tap(find.byKey(const Key('storeReviewButton')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.storeErrPrice), findsOneWidget);
+      expect(find.text(l10nJa.storeConfirmTitle), findsNothing);
+    });
+
     testWidgets('すべて表示: 28品目を2つに分けて表示、シートでの選択が登録画面に残る', (tester) async {
       await pump(tester);
       await tester.tap(find.byKey(const Key('storeAllergenShowAll')));

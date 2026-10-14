@@ -122,7 +122,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
     final l10n = context.l10n;
     final price = int.tryParse(_price.text);
     setState(() {
-      _priceError = price == null || price <= 0 ? l10n.storeErrPrice : null;
+      _priceError = price == null || price < minUnitPrice ? l10n.storeErrPrice : null;
       _sellByError = _sellByAt.isAfter(DateTime.now()) ? null : l10n.storeErrSellByPast;
       _allergenError = _allergenIds.isEmpty && !_noAllergens ? l10n.storeErrAllergenRequired : null;
     });

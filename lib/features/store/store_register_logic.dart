@@ -7,6 +7,9 @@ import 'store_gateway.dart';
 String formatSharePct(double v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(1);
 
 // Phần của quán ước tính (tối đa): bán hết với giá hiện tại × tỉ lệ — cùng cách tính với Web W03 (CreateSurplusBatchPage)
+// 0071: định giá tối thiểu khi đăng món (server: E-REST-019). Giảm sâu nhất 30% vẫn ≥ ¥50 — mức Stripe nhận
+const minUnitPrice = 200;
+
 int estimatedStoreShare({required int qty, required int price, required double sharePct}) => (qty * price * sharePct / 100).floor();
 
 // allergen_types không có cột thứ tự (bài học 第49回) → thứ tự cố định theo seed 0002 và Figma SCR-S02.
@@ -96,6 +99,7 @@ DateTime sellByAtJst({required DateTime now, required bool tomorrow, required in
 String registerBatchErrorMessage(Object error, AppLocalizations l10n) {
   if (error is BatchPhotoUploadException) return l10n.storeErrPhotoUpload;
   return switch (rpcErrorCode(error)) {
+    'E-REST-004' || 'E-REST-019' => l10n.storeErrPrice,
     'E-REST-008' => l10n.storeErrSellByPast,
     'E-REST-011' => l10n.storeErrNotApproved,
     'E-REST-015' => l10n.storeErrPhotoInvalid,

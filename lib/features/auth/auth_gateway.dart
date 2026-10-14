@@ -23,6 +23,9 @@ abstract class AuthGateway {
     required Map<String, dynamic> data,
   });
   Future<void> signOut();
+  // Phiên lưu trên máy còn được server nhận không: true / false (server từ chối: 401/403, vd session_not_found) /
+  // null (không biết — mất mạng, hoặc access token vừa hết hạn và SDK đang tự làm mới). Chỉ false mới được đăng xuất.
+  Future<bool?> isSessionAlive();
   Future<AuthProfile> fetchProfile(String userId);
   // UC-28 đặt lại mật khẩu bằng mã trong mail (API-028/029/030).
   Future<void> requestPasswordReset(String email);
@@ -80,6 +83,21 @@ class SupabaseAuthGateway implements AuthGateway {
 
   @override
   Future<void> signOut() => _client.auth.signOut();
+
+  @override
+  Future<bool?> isSessionAlive() async {
+    final session = _client.auth.currentSession;
+    if (session == null) return false;
+    if (session.isExpired) return null; // SDK tự làm mới; làm mới thất bại thì SDK tự phát signedOut
+    try {
+      await _client.auth.getUser();
+      return true;
+    } on AuthException catch (e) {
+      return e.statusCode == '401' || e.statusCode == '403' ? false : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   // Supabase trả thành công kể cả khi email chưa đăng ký — không để lộ email nào có tài khoản.
   @override

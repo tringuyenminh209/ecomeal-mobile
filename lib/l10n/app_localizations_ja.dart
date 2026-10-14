@@ -384,6 +384,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorPriceLoad => '価格の取得に失敗しました';
 
   @override
+  String get errorSessionExpired => 'ログインの有効期限が切れました。もう一度ログインしてください';
+
+  @override
+  String get errorPriceTooLow => 'このフードバッグは、今の値段ではカードで支払えません。別のフードバッグをお選びください';
+
+  @override
   String minutesRemaining(int minutes) {
     return 'あと$minutes分';
   }
@@ -2599,7 +2605,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeErrQty => '1食以上にしてください';
 
   @override
-  String get storeErrPrice => '値段は1円以上にしてください';
+  String get storeErrPrice => '値段は200円以上にしてください';
 
   @override
   String get storeErrSellByPast => '販売の終わりは、今より後の時刻にしてください';

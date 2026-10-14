@@ -176,6 +176,8 @@
   "batchDetailTitle": "フードバッグ詳細",
   "priceCalculating": "価格を計算中...",
   "errorPriceLoad": "価格の取得に失敗しました",
+  "errorSessionExpired": "ログインの有効期限が切れました。もう一度ログインしてください",
+  "errorPriceTooLow": "このフードバッグは、今の値段ではカードで支払えません。別のフードバッグをお選びください",
   "minutesRemaining": "あと{minutes}分",
   "@minutesRemaining": {
     "placeholders": {
@@ -1189,7 +1191,7 @@
   "storeDoneViewBatch": "出品を見る",
   "storeDoneHome": "ホームへ",
   "storeErrQty": "1食以上にしてください",
-  "storeErrPrice": "値段は1円以上にしてください",
+  "storeErrPrice": "値段は200円以上にしてください",
   "storeErrSellByPast": "販売の終わりは、今より後の時刻にしてください",
   "storeErrIngredientName": "原材料名を入力してください",
   "storeErrPhotoUpload": "写真をアップロードできませんでした。通信状態を確認して再度お試しいただくか、写真を外して登録してください。（まだ登録されていません）",

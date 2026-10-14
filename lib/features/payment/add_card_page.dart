@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,7 @@ import 'card_input.dart';
 import 'card_widgets.dart';
 import 'payment_api.dart';
 import 'payment_gateway.dart';
+import '../auth/auth_controller.dart';
 
 // SCR-M09 カードを追加 — 06_画面設計 §SCR-M09, Figma 378:26 (thường) / 389:1011 (入力エラー).
 // Số thẻ / CVC chỉ nằm trong TextEditingController của màn này: kiểm tra xong chỉ gửi hãng + 4 số cuối + hạn
@@ -76,6 +78,11 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
       if (mounted) Navigator.of(context).pop(id);
     } catch (e) {
       if (!mounted) return;
+      if (paymentErrorCode(e) == 'E-AUTH-401') {
+        // hết phiên, không phải lỗi thẻ (2026-10-14): SessionGuard đóng màn này, về đăng nhập và báo 「ログインし直してください」
+        unawaited(ref.read(authControllerProvider.notifier).expireSession());
+        return;
+      }
       final message = switch (paymentErrorCode(e)) {
         'E-PAY-409' => l10n.errorCardLimit,
         'E-PAY-410' => l10n.cardExpiryInvalid,

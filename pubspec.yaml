@@ -59,9 +59,6 @@ dependencies:
   crypto: ^3.0.7
   screen_brightness: ^2.1.11
 
-dependency_overrides:
-  screen_brightness_ios: 2.1.2
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

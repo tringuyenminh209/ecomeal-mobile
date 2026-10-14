@@ -14,12 +14,14 @@ class AppAuthState {
     required this.role,
     required this.isInitializing,
     this.isRecoveringPassword = false,
+    this.sessionExpired = false,
   });
   const AppAuthState.initial()
     : session = null,
       role = null,
       isInitializing = true,
-      isRecoveringPassword = false;
+      isRecoveringPassword = false,
+      sessionExpired = false;
 
   final Session? session;
   final AppRole? role;
@@ -27,12 +29,16 @@ class AppAuthState {
   // UC-28: mã khôi phục đúng thì Supabase tạo session NGAY, trước khi người dùng đặt mật khẩu mới.
   // Cờ này bảo RoleGate giữ SCR-M02 (màn đặt lại) cho tới khi updatePassword xong hoặc huỷ.
   final bool isRecoveringPassword;
+  // Phiên kết thúc vì server từ chối (không phải người dùng bấm đăng xuất) → SessionGuard báo 「ログインし直してください」.
+  // Giữ nguyên khi chuyển sang đăng xuất, về false khi có phiên mới.
+  final bool sessionExpired;
 
-  AppAuthState copyWith({bool? isRecoveringPassword}) => AppAuthState(
+  AppAuthState copyWith({bool? isRecoveringPassword, bool? sessionExpired}) => AppAuthState(
     session: session,
     role: role,
     isInitializing: isInitializing,
     isRecoveringPassword: isRecoveringPassword ?? this.isRecoveringPassword,
+    sessionExpired: sessionExpired ?? this.sessionExpired,
   );
 }
 
@@ -89,6 +95,7 @@ class AuthController extends StateNotifier<AppAuthState> {
         role: null,
         isInitializing: false,
         isRecoveringPassword: state.isRecoveringPassword,
+        sessionExpired: state.sessionExpired,
       );
       return;
     }
@@ -146,6 +153,32 @@ class AuthController extends StateNotifier<AppAuthState> {
   }
 
   Future<void> signOut() => _gateway.signOut();
+
+  // Báo cáo 2026-10-14 (B): app vẫn hiện như đã đăng nhập dù server đã xoá phiên (session_not_found) → mua hàng, thêm thẻ
+  // đều 401 mà người dùng không hiểu vì sao. Gọi khi app mở / quay lại màn hình (SessionGuard). Mất mạng → không làm gì.
+  Future<void> verifySession() async {
+    if (state.session == null) return;
+    bool? alive;
+    try {
+      alive = await _gateway.isSessionAlive();
+    } catch (_) {
+      return;
+    }
+    if (alive == false) await expireSession();
+  }
+
+  // Server đã từ chối phiên (isSessionAlive = false, hoặc API trả E-AUTH-401): đăng xuất trên máy và đánh dấu
+  // sessionExpired để SessionGuard báo 「ログインし直してください」. signOut của SDK xoá phiên trên máy TRƯỚC khi gọi
+  // server (bỏ qua 401/403/404) nên vẫn đăng xuất được dù phiên trên server không còn.
+  Future<void> expireSession() async {
+    if (state.session == null) return;
+    state = state.copyWith(sessionExpired: true);
+    try {
+      await _gateway.signOut();
+    } catch (_) {
+      // lỗi mạng sau khi đã xoá phiên trên máy — state vẫn về đăng xuất qua onAuthStateChange
+    }
+  }
 
   // UC-45 (0057): RoleGate tự chuyển màn khi onAuthStateChange báo có phiên — giống signIn bằng mật khẩu.
   Future<void> signInWithLine({required String idToken, required String languageCode}) =>

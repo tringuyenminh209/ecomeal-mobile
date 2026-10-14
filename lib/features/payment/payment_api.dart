@@ -33,6 +33,8 @@ Future<Map<String, dynamic>> invokePaymentFunction(SupabaseClient client, String
     final details = e.details;
     final code = details is Map && details['error'] is Map ? (details['error'] as Map)['code'] : null;
     if (code is String) throw PaymentApiException(code);
+    // 401 không có envelope (cổng Supabase từ chối JWT trước khi tới function) = cũng là hết phiên
+    if (e.status == 401) throw const PaymentApiException('E-AUTH-401');
     rethrow;
   }
 }

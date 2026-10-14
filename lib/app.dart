@@ -11,6 +11,7 @@ import 'core/supabase_client.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/locale_controller.dart';
 import 'features/auth/role_gate.dart';
+import 'features/auth/session_guard.dart';
 import 'l10n/l10n.dart';
 import 'widgets/tap_outside_to_unfocus.dart';
 
@@ -43,6 +44,10 @@ Future<void> runEcoMealApp(AppFlavor flavor) async {
   );
 }
 
+// SessionGuard (phía trên Navigator) dùng 2 khoá này để đóng mọi trang và báo hết phiên
+final _navigatorKey = GlobalKey<NavigatorState>();
+final _messengerKey = GlobalKey<ScaffoldMessengerState>();
+
 class EcoMealApp extends ConsumerWidget {
   const EcoMealApp({super.key});
 
@@ -53,6 +58,8 @@ class EcoMealApp extends ConsumerWidget {
     // lên) dùng bộ màu tối (EcoPalette.night). App khách và app nhà hàng giữ bộ màu sáng của Figma.
     final flavor = ref.watch(appFlavorProvider);
     return MaterialApp(
+      navigatorKey: _navigatorKey,
+      scaffoldMessengerKey: _messengerKey,
       onGenerateTitle: (context) => switch (flavor) {
         AppFlavor.customer => context.l10n.appTitle,
         AppFlavor.driver => context.l10n.driverAppTitle,
@@ -67,7 +74,11 @@ class EcoMealApp extends ConsumerWidget {
       // Toàn bộ màu/chữ/nút/ô nhập theo Figma "00 Foundations" + "01 Components" — xem core/theme/app_theme.dart.
       theme: buildAppTheme(dark: flavor.usesNightTheme),
       // Chạm ra ngoài ô nhập → hạ bàn phím (mọi màn hình, cả dialog/sheet)
-      builder: (context, child) => TapOutsideToUnfocus(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => SessionGuard(
+        navigatorKey: _navigatorKey,
+        messengerKey: _messengerKey,
+        child: TapOutsideToUnfocus(child: child ?? const SizedBox.shrink()),
+      ),
       home: const RoleGate(),
     );
   }

@@ -309,4 +309,34 @@ void main() {
       await authEvents.close();
     },
   );
+
+  group('verifySession (2026-10-14 B)', () {
+    Future<AuthController> signedIn() async {
+      when(() => gateway.currentSession).thenReturn(session);
+      when(() => gateway.fetchProfile('u-1')).thenAnswer((_) async => (role: 'customer', languageCode: 'ja'));
+      when(() => gateway.signOut()).thenAnswer((_) async {});
+      final controller = AuthController(gateway);
+      addTearDown(controller.dispose);
+      await controller.initialize();
+      return controller;
+    }
+
+    test('server từ chối phiên → đăng xuất trên máy + sessionExpired', () async {
+      final controller = await signedIn();
+      when(() => gateway.isSessionAlive()).thenAnswer((_) async => false);
+      await controller.verifySession();
+      verify(() => gateway.signOut()).called(1);
+      expect(controller.state.sessionExpired, true);
+    });
+
+    test('mất mạng (null) hoặc gọi lỗi → không đăng xuất', () async {
+      final controller = await signedIn();
+      when(() => gateway.isSessionAlive()).thenAnswer((_) async => null);
+      await controller.verifySession();
+      when(() => gateway.isSessionAlive()).thenThrow(Exception('socket'));
+      await controller.verifySession();
+      verifyNever(() => gateway.signOut());
+      expect(controller.state.sessionExpired, false);
+    });
+  });
 }

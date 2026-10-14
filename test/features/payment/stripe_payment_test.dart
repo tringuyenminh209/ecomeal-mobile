@@ -89,6 +89,11 @@ void main() {
     expect(classifyPaymentError(TimeoutException('slow')), PaymentFailure.unknown);
   });
 
+  test('2026-10-14: hết phiên (E-AUTH-401) và giá không trả được bằng thẻ (E-ORDER-011) không bị coi là hết hàng', () {
+    expect(classifyPaymentError(const PaymentApiException('E-AUTH-401')), PaymentFailure.sessionExpired);
+    expect(classifyPaymentError(const PaymentApiException('E-ORDER-011')), PaymentFailure.priceUnavailable);
+  });
+
   group('SCR-M09 カードを追加 (Stripe)', () {
     late FakePaymentGateway gateway;
     late bool tokenized;

@@ -31,21 +31,26 @@ class AdaptiveNavShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = FadeOnChange(value: index, child: body);
-    if (isWideLayout(context)) {
-      return Scaffold(
-        body: Row(
-          children: [
+    final wide = isWideLayout(context);
+    // Nội dung (các trang) LUÔN ở cùng một chỗ trong cây widget — chỉ thêm/bớt thanh dọc và tab dưới quanh nó. Trước đây
+    // iPad ngang đặt nội dung trong Row còn dọc đặt thẳng vào Scaffold: xoay iPad làm Flutter dựng lại mọi trang, mất cả dữ
+    // liệu đang nhập và ảnh vừa chụp ở 余剰を登録 (báo lỗi của chủ dự án, 2026-10-14). Key giữ Expanded khớp khi rail biến mất.
+    return Scaffold(
+      body: Row(
+        children: [
+          if (wide) ...[
             _SideRail(index: index, onSelect: onSelect, tabs: tabs),
             VerticalDivider(width: 1, color: context.eco.border),
-            Expanded(child: content),
           ],
-        ),
-      );
-    }
-    return Scaffold(
-      body: content,
-      bottomNavigationBar: PillTabBar(index: index, onSelect: onSelect, tabs: tabs, topBorder: bottomBarBorder),
+          Expanded(
+            key: const ValueKey('adaptiveNavShellBody'),
+            child: FadeOnChange(value: index, child: body),
+          ),
+        ],
+      ),
+      bottomNavigationBar: wide
+          ? null
+          : PillTabBar(index: index, onSelect: onSelect, tabs: tabs, topBorder: bottomBarBorder),
     );
   }
 }

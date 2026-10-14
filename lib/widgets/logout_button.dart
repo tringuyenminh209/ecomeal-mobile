@@ -7,8 +7,8 @@ import '../l10n/l10n.dart';
 import 'confirm_dialog.dart';
 
 // UC-26: dùng chung cho SCR-M07 (khách, Chương 18) và SCR-D05 (tài xế, Chương 19) — cùng dialog
-// ログアウト確認 của Figma (54:3054), cùng hành vi. Không tự điều hướng: RoleGate thấy session = null
-// và tự hiện SCR-M02.
+// ログアウト確認 của Figma (54:3054), cùng hành vi. Không tự điều hướng: SessionGuard đóng mọi trang đang mở (vd SCR-D05
+// được push lên) và RoleGate ở trang gốc tự hiện màn đăng nhập.
 class LogoutButton extends ConsumerWidget {
   const LogoutButton({super.key, this.filled = false, this.danger = true});
 

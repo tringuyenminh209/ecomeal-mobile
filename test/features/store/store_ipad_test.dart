@@ -134,4 +134,26 @@ void main() {
     expect(price.left, greaterThan(button.right));
     expect(tester.widget<Scaffold>(find.byType(Scaffold).first).bottomNavigationBar, isNull);
   });
+
+  // Báo lỗi của chủ dự án (2026-10-14): nhập ở 余剰を登録 trên iPad ngang (chưa xác nhận), xoay dọc → mất hết dữ liệu và ảnh.
+  // Ảnh nằm trong cùng State của trang với các ô nhập, nên giữ được ô nhập = giữ được ảnh.
+  testWidgets('iPad: xoay ngang ↔ dọc khi đang nhập 余剰を登録 → dữ liệu đã nhập còn nguyên', (tester) async {
+    _ipad(tester);
+    await tester.pumpWidget(_app(StoreShell(restaurant: _restaurant(), userId: 'u-1'), FakeStoreGateway()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('storeNavRegister')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('storePriceField')), '780');
+    await tester.pump();
+
+    tester.view.physicalSize = const Size(834, 1194); // xoay dọc → tab dưới, form 1 cột
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('pillTabBar')), findsOneWidget);
+    expect(tester.widget<EditableText>(find.descendant(of: find.byKey(const Key('storePriceField')), matching: find.byType(EditableText))).controller.text, '780');
+
+    tester.view.physicalSize = const Size(1194, 834); // xoay lại ngang
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('sideRail')), findsOneWidget);
+    expect(tester.widget<EditableText>(find.descendant(of: find.byKey(const Key('storePriceField')), matching: find.byType(EditableText))).controller.text, '780');
+  });
 }

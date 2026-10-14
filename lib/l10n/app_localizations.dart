@@ -800,6 +800,18 @@ abstract class AppLocalizations {
   /// **'価格の取得に失敗しました'**
   String get errorPriceLoad;
 
+  /// No description provided for @errorSessionExpired.
+  ///
+  /// In ja, this message translates to:
+  /// **'ログインの有効期限が切れました。もう一度ログインしてください'**
+  String get errorSessionExpired;
+
+  /// No description provided for @errorPriceTooLow.
+  ///
+  /// In ja, this message translates to:
+  /// **'このフードバッグは、今の値段ではカードで支払えません。別のフードバッグをお選びください'**
+  String get errorPriceTooLow;
+
   /// No description provided for @minutesRemaining.
   ///
   /// In ja, this message translates to:
@@ -4745,7 +4757,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeErrPrice.
   ///
   /// In ja, this message translates to:
-  /// **'値段は1円以上にしてください'**
+  /// **'値段は200円以上にしてください'**
   String get storeErrPrice;
 
   /// No description provided for @storeErrSellByPast.

@@ -4,6 +4,10 @@ import '../core/motion.dart';
 // Vùng chọn hình viên thuốc trượt giữa các mục (Figma 「動きの提案（Liquid 風）」: thanh tab app khách, chip lọc SCR-M06,
 // rail iPad của app 店舗・運営). Đo vị trí từng mục sau khi vẽ, đặt 1 viên thuốc phía sau mục đang chọn; đổi mục → viên
 // thuốc trượt sang (Motion.small, Motion.enter). Bật "giảm chuyển động" → Motion.of trả 0, nhảy ngay.
+// Kéo (PillTabBar, 2026-10-14): followOffset = toạ độ ngón tay theo trục chính → viên thuốc đi theo ngón tay (không hoạt
+// ảnh), lifted = phồng nhẹ khi đang giữ. Thả tay → followOffset = null → trượt mượt về mục được chọn.
+const liftedScale = 1.08;
+
 class SlidingPill extends StatefulWidget {
   const SlidingPill({
     super.key,
@@ -15,6 +19,8 @@ class SlidingPill extends StatefulWidget {
     this.pillSize,
     this.radius,
     this.expand = false,
+    this.followOffset,
+    this.lifted = false,
   });
 
   final int selected;
@@ -28,6 +34,10 @@ class SlidingPill extends StatefulWidget {
   final double? radius;
   // true = các mục chia đều chiều dài (thanh tab)
   final bool expand;
+  // null = đứng ở mục đang chọn; có giá trị = tâm viên thuốc theo ngón tay (toạ độ trong widget này, trục chính)
+  final double? followOffset;
+  // đang giữ → viên thuốc phồng nhẹ (liftedScale); giảm chuyển động → không phồng
+  final bool lifted;
 
   @override
   State<SlidingPill> createState() => _SlidingPillState();
@@ -70,6 +80,19 @@ class _SlidingPillState extends State<SlidingPill> {
     return size == null ? item : Rect.fromCenter(center: item.center, width: size.width, height: size.height);
   }
 
+  // Viên thuốc đặt tâm ở ngón tay, nhưng không ra khỏi mục đầu / mục cuối
+  Rect _followRect(Rect rest, List<Rect> rects, double at) {
+    final horizontal = widget.direction == Axis.horizontal;
+    final half = (horizontal ? rest.width : rest.height) / 2;
+    final first = _pillRect(rects.first), last = _pillRect(rects.last);
+    final lo = (horizontal ? first.left : first.top) + half;
+    final hi = (horizontal ? last.right : last.bottom) - half;
+    final c = at.clamp(lo, hi < lo ? lo : hi);
+    return horizontal
+        ? Rect.fromCenter(center: Offset(c, rest.center.dy), width: rest.width, height: rest.height)
+        : Rect.fromCenter(center: Offset(rest.center.dx, c), width: rest.width, height: rest.height);
+  }
+
   ShapeBorder get _shape => widget.radius == null
       ? const StadiumBorder()
       : RoundedRectangleBorder(borderRadius: BorderRadius.circular(widget.radius!));
@@ -108,15 +131,24 @@ class _SlidingPillState extends State<SlidingPill> {
       final keyed = KeyedSubtree(key: _keys[i], child: item);
       items.add(widget.expand ? Expanded(child: keyed) : keyed);
     }
-    final target = rects == null || widget.selected >= rects.length ? null : _pillRect(rects[widget.selected]);
+    final rest = rects == null || widget.selected >= rects.length ? null : _pillRect(rects[widget.selected]);
+    final follow = widget.followOffset;
+    final target = rest == null || follow == null ? rest : _followRect(rest, rects!, follow);
+    final reduced = Motion.reduced(context);
     return Stack(
       children: [
         if (target != null)
           AnimatedPositioned.fromRect(
             rect: target,
-            duration: Motion.of(context, Motion.small),
+            // đang kéo: bám ngón tay ngay; thả ra: trượt về mục
+            duration: follow != null ? Duration.zero : Motion.of(context, Motion.small),
             curve: Motion.enter,
-            child: pill,
+            child: AnimatedScale(
+              scale: widget.lifted && !reduced ? liftedScale : 1,
+              duration: Motion.of(context, Motion.tap),
+              curve: Motion.enter,
+              child: pill,
+            ),
           ),
         Flex(
           direction: widget.direction,
