@@ -5,6 +5,7 @@ import '../../l10n/l10n.dart';
 import '../../widgets/status_badge.dart';
 import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import 'admin_gateway.dart';
+import '../../widgets/error_banner.dart';
 import 'admin_tasks_gateway.dart';
 
 // Giới hạn ghi chú nội bộ (0035: admin_note ≤ 2000 ký tự; server: E-INQ-002)
@@ -34,8 +35,10 @@ BadgeTone inquiryStatusTone(String status) => switch (status) {
 
 // SCR-A06 問い合わせ: chi tiết + đổi trạng thái / ghi chú (API-033). Mời tạo tài khoản (API-032) giữ trên Web.
 class AdminInquiryPage extends ConsumerStatefulWidget {
-  const AdminInquiryPage({super.key, required this.inquiry});
+  // onClose: trong cột chi tiết của iPad — lưu xong thì bỏ chọn thay vì pop
+  const AdminInquiryPage({super.key, required this.inquiry, this.onClose});
   final AdminInquiry inquiry;
+  final VoidCallback? onClose;
 
   @override
   ConsumerState<AdminInquiryPage> createState() => _AdminInquiryPageState();
@@ -45,6 +48,7 @@ class _AdminInquiryPageState extends ConsumerState<AdminInquiryPage> {
   late String _status = widget.inquiry.status;
   late final _note = TextEditingController(text: widget.inquiry.adminNote);
   bool _busy = false;
+  bool _failed = false;
 
   @override
   void dispose() {
@@ -55,8 +59,11 @@ class _AdminInquiryPageState extends ConsumerState<AdminInquiryPage> {
   Future<void> _save() async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-    setState(() => _busy = true);
+    final close = widget.onClose ?? Navigator.of(context).pop;
+    setState(() {
+      _busy = true;
+      _failed = false;
+    });
     try {
       final note = _note.text.trim();
       await ref
@@ -65,10 +72,10 @@ class _AdminInquiryPageState extends ConsumerState<AdminInquiryPage> {
       ref.invalidate(adminInquiriesProvider);
       ref.invalidate(adminBadgesProvider);
       messenger.showSnackBar(SnackBar(content: Text(l10n.adminInqSaved)));
-      navigator.pop();
+      close();
     } catch (_) {
-      // Giữ trạng thái / ghi chú đã chọn để lưu lại
-      messenger.showSnackBar(SnackBar(content: Text(l10n.adminSaveFailed)));
+      // Giữ trạng thái / ghi chú đã chọn để lưu lại — báo ngay trong trang (Figma 796:3142)
+      if (mounted) setState(() => _failed = true);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -82,7 +89,8 @@ class _AdminInquiryPageState extends ConsumerState<AdminInquiryPage> {
     final q = widget.inquiry;
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
+        automaticallyImplyLeading: widget.onClose == null,
+        titleSpacing: widget.onClose == null ? 0 : null,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -144,6 +152,15 @@ class _AdminInquiryPageState extends ConsumerState<AdminInquiryPage> {
               maxLength: _maxAdminNoteLength,
             ),
             Text(l10n.adminInqInviteOnWeb, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
+            if (_failed)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: ErrorBanner(
+                  key: const Key('adminInqError'),
+                  title: l10n.adminInqErrorTitle,
+                  message: l10n.adminInqErrorBody,
+                ),
+              ),
           ],
         ),
       ),
@@ -155,7 +172,7 @@ class _AdminInquiryPageState extends ConsumerState<AdminInquiryPage> {
             onPressed: _busy ? null : _save,
             child: _busy
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : Text(l10n.adminInqSave),
+                : Text(_failed ? l10n.adminInqRetrySave : l10n.adminInqSave),
           ),
         ),
       ),

@@ -757,11 +757,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get freeCancelTitle =>
-      'Free cancellation up to 30 minutes before pickup';
+      'Free cancellation until 30 minutes before pickup';
 
   @override
   String get freeCancelBody =>
-      'You can cancel for free up to 30 minutes before pickup. Cancel from your reservation history.';
+      'You can cancel for free until 30 minutes before pickup (for a 20:00 pickup, before 19:30). Cancel from your reservation history.';
 
   @override
   String get errorReservationFailed =>
@@ -793,11 +793,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelDialogFree =>
-      'You can cancel for free up to 30 minutes before pickup. You will receive a full refund.';
+      'You can cancel for free until 30 minutes before pickup. If you cancel now, you will receive a full refund.';
 
   @override
   String get cancelDialogNoRefund =>
-      'It’s less than 30 minutes before pickup, so you won’t get a refund if you cancel.';
+      'It’s now 30 minutes or less before pickup, so you won’t get a refund if you cancel.';
 
   @override
   String get back => 'Back';
@@ -861,7 +861,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get refundNoneNote =>
-      'It’s less than 30 minutes before pickup, so you won’t get a refund if you cancel.';
+      'It’s now 30 minutes or less before pickup, so you won’t get a refund if you cancel.';
 
   @override
   String get errorBadge => 'Error';
@@ -1193,6 +1193,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorNotHandoverable =>
       'This reservation cannot be handed over in its current state';
+
+  @override
+  String get errorPaymentNotConfirmed =>
+      'Payment for this reservation is not confirmed yet. Do not hand it over — contact support';
 
   @override
   String get errorWalkupSoldOut => 'Walk-up stock at this stop is sold out';
@@ -1544,7 +1548,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get termsArticle5Body =>
-      'Cancellations up to 30 minutes before the pickup time are fully refunded; later cancellations are not refunded. Reservations that cannot be filled because of a shortage are refunded automatically. Reservations not picked up before the truck leaves the pickup point expire without a refund.';
+      'Cancellations made before the point 30 minutes ahead of pickup are fully refunded; from that point on, cancellations are not refunded (for a 20:00 pickup: before 19:30 is refunded, from 19:30 it is not). Reservations that cannot be filled because of a shortage are refunded automatically. Reservations not picked up before the truck leaves the pickup point expire without a refund.';
 
   @override
   String get termsArticle6Title => 'Article 6 (Pickup)';
@@ -1807,8 +1811,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiptIssuedOn => 'Issued on';
 
   @override
-  String get receiptIssuer =>
-      'EcoMeal operations team (graduation project “Kuri Manju”)';
+  String get receiptIssuer => 'EcoMeal operations team (graduation project)';
 
   @override
   String get receiptNote =>
@@ -3600,6 +3603,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminInqSaved => 'Saved';
 
   @override
+  String get adminInqRetrySave => 'Save again';
+
+  @override
+  String get adminInqErrorTitle => 'Couldn’t save';
+
+  @override
+  String get adminInqErrorBody =>
+      'Check your connection and try again. Your status and notes are kept.';
+
+  @override
+  String get adminLicRetryVerify => 'Mark as verified again';
+
+  @override
+  String get adminLicErrorBody =>
+      'Check your connection and try again. The expiry date you entered is kept.';
+
+  @override
+  String get adminRestRetryApprove => 'Approve again';
+
+  @override
+  String get adminRestRetryReject => 'Send rejection again';
+
+  @override
+  String get adminRestErrorBody =>
+      'Check your connection and try again. The review hasn’t been finalised.';
+
+  @override
+  String get adminRestRejectErrorBody =>
+      'Check your connection and try again. The rejection hasn’t been finalised; it can be resent with the same reason.';
+
+  @override
   String get adminSaveFailed =>
       'Couldn\'t save. Check your connection and try again.';
 
@@ -3613,6 +3647,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminOpsLive => 'Live';
+
+  @override
+  String get adminOpsTrucks => 'Tonight’s trucks';
+
+  @override
+  String get adminPickIssue => 'Select an issue report';
+
+  @override
+  String get adminPickRestaurant => 'Select a restaurant';
+
+  @override
+  String get adminPickLicense => 'Select a driver’s licence';
+
+  @override
+  String get adminPickInquiry => 'Select an inquiry';
+
+  @override
+  String get adminPickDriverReport => 'Select a driver report to respond';
+
+  @override
+  String get adminPickBody =>
+      'Choose an item from the list on the left to see its details here.';
 
   @override
   String adminOpsShowing(int count) {
@@ -3677,6 +3733,75 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get adminRestApproveConfirmBody =>
       'Once approved, the store can register surplus food in the store app, and the store contact receives a notification email.';
+
+  @override
+  String get adminRestMembers => 'Store staff';
+
+  @override
+  String get adminRestOwner => 'Owner';
+
+  @override
+  String get adminRestStaff => 'Staff';
+
+  @override
+  String get adminRestNoMembers => 'No staff registered';
+
+  @override
+  String get adminRestMonth => 'Sales this month';
+
+  @override
+  String get adminRestSales => 'Sales';
+
+  @override
+  String get adminRestPayout => 'Payout';
+
+  @override
+  String get adminRestSold => 'Meals sold';
+
+  @override
+  String get adminRestShare => 'Payout rate';
+
+  @override
+  String adminRestSharePct(String pct) {
+    return '$pct%';
+  }
+
+  @override
+  String get adminRestRatings => 'Customer ratings (last 30 days)';
+
+  @override
+  String adminRestRatingsValue(String average, int count) {
+    return '★$average ($count)';
+  }
+
+  @override
+  String get adminRestNoRatings => 'No ratings yet';
+
+  @override
+  String get adminRestBatches => 'Recent listings';
+
+  @override
+  String get adminRestNoBatches => 'No listings yet';
+
+  @override
+  String adminRestBatchLine(int qty, String price) {
+    return '$qty meals × $price';
+  }
+
+  @override
+  String get adminRestBatchConfirmed => 'Confirmed';
+
+  @override
+  String get adminRestBatchEstimated => 'Estimate';
+
+  @override
+  String get adminRestSettlements => 'Settlements';
+
+  @override
+  String get adminRestNoSettlements => 'No settlements confirmed yet';
+
+  @override
+  String get adminRestSettlementConfirmed => 'Confirmed';
 
   @override
   String adminLicVerifyConfirmTitle(String name) {

@@ -11,7 +11,7 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import 'store_gateway.dart';
-import 'store_layout.dart';
+import '../../core/wide_layout.dart';
 import 'store_home_page.dart' show storeBatchStatusLabel, storeBatchStatusTone;
 
 String _hm(DateTime t) => DateFormat('HH:mm').format(toTokyo(t));
@@ -91,7 +91,7 @@ class _StoreBatchDetailPageState extends ConsumerState<StoreBatchDetailPage> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                   children: [
-                    if (isStoreWide(context))
+                    if (isWideLayout(context))
                       // iPad ngang (Figma 559:1083): lô + tiến trình bên trái, điểm nhận bên phải
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,

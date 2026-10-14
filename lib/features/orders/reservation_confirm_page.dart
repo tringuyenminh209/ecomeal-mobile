@@ -61,6 +61,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
   String? _selectedCardId; // null = dùng thẻ mặc định
   PaymentMethod? _paidCard; // thẻ đã dùng — hiện ở màn kết quả
   int? _paidAmount;
+  String? _paidCouponId; // dùng lại khi 結果確認待ち phải gọi thanh toán lần nữa (cùng khoá)
 
   @override
   void initState() {
@@ -89,6 +90,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
       _phase = PaymentPhase.processing;
       _paidCard = card;
       _paidAmount = amount;
+      _paidCouponId = couponId;
       _orderError = false;
       _cardMissing = false;
       _rateLimited = false;
@@ -148,14 +150,18 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
     ref.invalidate(usableCouponsProvider); // coupon đã dùng không còn hiện ở SCR-M19 / lần đặt sau
   }
 
-  // 結果確認待ち: đọc đơn theo khoá. Có đơn → thanh toán đã thành công. Không có → chưa trừ tiền, quay lại
-  // review (giữ nguyên khoá — trả lại lần nữa vẫn an toàn nếu request cũ tới server muộn).
+  // 結果確認待ち: đọc đơn theo khoá. Có đơn đã chốt tiền → thành công. Có đơn mà chưa chốt (0070: lần trước mất kết
+  // quả lúc chốt) → gọi thanh toán lại với cùng khoá: server đối chiếu với Stripe, chốt nốt hoặc báo bị từ chối, không
+  // trừ tiền 2 lần. Không có đơn → chưa trừ tiền, quay lại review (giữ khoá — request cũ tới muộn vẫn an toàn).
   Future<void> _recheck() async {
     setState(() => _rechecking = true);
     try {
       final order = await ref.read(orderGatewayProvider).findOrderByIdempotencyKey(_idempotencyKey);
       if (!mounted) return;
-      if (order != null) {
+      final card = _paidCard;
+      if (order != null && !order.paymentConfirmed && card != null) {
+        await _pay(card, _paidAmount ?? order.pricePaid, _paidCouponId);
+      } else if (order != null) {
         _onPaid(order);
       } else {
         setState(() => _phase = PaymentPhase.review);

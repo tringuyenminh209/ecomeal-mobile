@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/motion.dart';
 import '../../core/rpc_error.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/wide_layout.dart';
 import '../../core/yen.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/skeleton.dart';
@@ -17,6 +19,14 @@ import 'admin_issue_page.dart';
 import 'admin_license_page.dart';
 import 'admin_restaurant_page.dart';
 import 'admin_tasks_gateway.dart';
+
+// iPad ngang (Figma section 22「対応（一覧と詳細）」): mục đang mở ở cột phải. key = '<task>:<id>' — danh sách tải lại
+// tạo object mới nên so bằng key; đổi mục (問題報告 / 審査 …) thì cột phải trở về「…を選んでください」.
+typedef AdminSelection = ({String key, Object item});
+final adminSelectionProvider = StateProvider.autoDispose<AdminSelection?>((ref) => null);
+
+const _listPaneWidth = 420.0;
+const _riseDistance = 16.0;
 
 // Tab 対応（SCR-A04 一覧 565:1160 — chọn mục 問題報告 / 審査 / 免許 / 問合せ; A03 563:1166; A06 565:1368）
 class AdminTasksPage extends ConsumerWidget {
@@ -36,7 +46,7 @@ class AdminTasksPage extends ConsumerWidget {
       (AdminTask.licenses, l10n.adminSegLicenses(b?.pendingLicenses ?? 0)),
       (AdminTask.inquiries, l10n.adminSegInquiries(b?.newInquiries ?? 0)),
     ];
-    return SafeArea(
+    final list = SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -80,6 +90,86 @@ class AdminTasksPage extends ConsumerWidget {
         ],
       ),
     );
+    if (!isWideLayout(context)) return list;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(width: _listPaneWidth, child: list),
+        VerticalDivider(width: 1, color: eco.border),
+        Expanded(child: _DetailPane(task: task)),
+      ],
+    );
+  }
+}
+
+// Cột phải trên iPad: chi tiết của mục đang chọn (chính các trang chi tiết của iPhone, đóng bằng onClose thay vì pop)
+class _DetailPane extends ConsumerWidget {
+  const _DetailPane({required this.task});
+  final AdminTask task;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final eco = context.eco;
+    final sel = ref.watch(adminSelectionProvider);
+    void close() => ref.read(adminSelectionProvider.notifier).state = null;
+    final current = sel != null && sel.key.startsWith('${task.name}:') ? sel : null;
+    // Chọn mục khác → chi tiết mới hiện dần và nhích lên 16px (Figma 「動きの提案」 25, Motion.page)
+    return AnimatedSwitcher(
+      duration: Motion.of(context, Motion.page),
+      switchInCurve: Motion.enter,
+      switchOutCurve: Motion.exit,
+      transitionBuilder: _riseIn,
+      child: current == null ? _placeholder(l10n, eco) : _page(current, close),
+    );
+  }
+
+  static Widget _riseIn(Widget child, Animation<double> animation) => FadeTransition(
+    opacity: animation,
+    child: AnimatedBuilder(
+      animation: animation,
+      builder: (_, c) => Transform.translate(offset: Offset(0, _riseDistance * (1 - animation.value)), child: c),
+      child: child,
+    ),
+  );
+
+  Widget _placeholder(AppLocalizations l10n, EcoPalette eco) {
+    final title = switch (task) {
+      AdminTask.issues => l10n.adminPickIssue,
+      AdminTask.restaurants => l10n.adminPickRestaurant,
+      AdminTask.licenses => l10n.adminPickLicense,
+      AdminTask.inquiries => l10n.adminPickInquiry,
+      AdminTask.driverReports => l10n.adminPickDriverReport,
+    };
+    return Center(
+      key: ValueKey('pick:${task.name}'),
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Text(
+              l10n.adminPickBody,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: eco.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _page(AdminSelection current, VoidCallback close) {
+    final key = ValueKey(current.key);
+    return switch (current.item) {
+      final AdminIssue i => AdminIssuePage(key: key, issue: i, onClose: close),
+      final AdminRestaurant r => AdminRestaurantPage(key: key, restaurant: r, onClose: close),
+      final AdminLicense lic => AdminLicensePage(key: key, license: lic, onClose: close),
+      final AdminInquiry q => AdminInquiryPage(key: key, inquiry: q, onClose: close),
+      _ => const SizedBox.shrink(),
+    };
   }
 }
 
@@ -149,16 +239,18 @@ class _AsyncList<T> extends ConsumerWidget {
   }
 }
 
-class _Card extends StatelessWidget {
-  const _Card({super.key, required this.onTap, required this.children});
+class _Card extends ConsumerWidget {
+  const _Card({super.key, required this.onTap, required this.children, this.selectKey});
   final VoidCallback? onTap; // null: chỉ xem (không có trang chi tiết)
   final List<Widget> children;
+  final String? selectKey; // iPad: dòng đang mở ở cột phải được tô
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final eco = context.eco;
+    final selected = selectKey != null && ref.watch(adminSelectionProvider)?.key == selectKey && isWideLayout(context);
     return Material(
-      color: eco.surface,
+      color: selected ? eco.primarySoft : eco.surface,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -167,7 +259,7 @@ class _Card extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: eco.border),
+            border: Border.all(color: selected ? eco.primary : eco.border, width: selected ? 1.5 : 1),
           ),
           child: Row(
             children: [
@@ -183,8 +275,14 @@ class _Card extends StatelessWidget {
   }
 }
 
-void _push(BuildContext context, Widget page) =>
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
+// Mở chi tiết: iPad ngang → hiện ở cột phải; điện thoại → push như trước
+void _open(BuildContext context, String key, Object item, Widget Function() page) {
+  if (isWideLayout(context)) {
+    ProviderScope.containerOf(context).read(adminSelectionProvider.notifier).state = (key: key, item: item);
+    return;
+  }
+  Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page()));
+}
 
 class _IssuesList extends StatelessWidget {
   const _IssuesList();
@@ -201,7 +299,10 @@ class _IssuesList extends StatelessWidget {
         final time = inboxTimeLabel(i.createdAt, DateTime.now(), l10n, locale);
         return _Card(
           key: Key('adminIssue-${i.id}'),
-          onTap: i.isOpen ? () => _push(context, AdminIssuePage(issue: i)) : null,
+          selectKey: '${AdminTask.issues.name}:${i.id}',
+          onTap: i.isOpen
+              ? () => _open(context, '${AdminTask.issues.name}:${i.id}', i, () => AdminIssuePage(issue: i))
+              : null,
           children: [
             Row(
               children: [
@@ -247,10 +348,9 @@ class _DriverReportsList extends ConsumerWidget {
   Future<void> _resolve(BuildContext context, WidgetRef ref, AdminDriverReport r) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final resolution = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => AdminReasonSheet(
+    final resolution = await showAdminReasonSheet(
+      context,
+      AdminReasonSheet(
         title: l10n.adminDriverReportResolveTitle,
         note: l10n.adminDriverReportResolveNote,
         sendLabel: l10n.adminDriverReportResolveSend,
@@ -263,7 +363,9 @@ class _DriverReportsList extends ConsumerWidget {
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(rpcErrorCode(e) == 'E-REPORT-409' ? l10n.adminDriverReportAlready : l10n.adminDriverReportError),
+          content: Text(
+            rpcErrorCode(e) == 'E-REPORT-409' ? l10n.adminDriverReportAlready : l10n.adminDriverReportError,
+          ),
         ),
       );
     }
@@ -366,7 +468,9 @@ class _RestaurantsListState extends State<_RestaurantsList> {
             },
             itemBuilder: (context, r) => _Card(
               key: Key('adminRest-${r.id}'),
-              onTap: () => _push(context, AdminRestaurantPage(restaurant: r)),
+              selectKey: '${AdminTask.restaurants.name}:${r.id}',
+              onTap: () =>
+                  _open(context, '${AdminTask.restaurants.name}:${r.id}', r, () => AdminRestaurantPage(restaurant: r)),
               children: [
                 Row(
                   children: [
@@ -407,7 +511,9 @@ class _LicensesList extends StatelessWidget {
       empty: l10n.adminLicEmpty,
       itemBuilder: (context, lic) => _Card(
         key: Key('adminLic-${lic.driverId}'),
-        onTap: () => _push(context, AdminLicensePage(license: lic)),
+        selectKey: '${AdminTask.licenses.name}:${lic.driverId}',
+        onTap: () =>
+            _open(context, '${AdminTask.licenses.name}:${lic.driverId}', lic, () => AdminLicensePage(license: lic)),
         children: [
           Text(lic.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
           if (lic.submittedAt != null)
@@ -465,7 +571,8 @@ class _InquiriesListState extends State<_InquiriesList> {
             },
             itemBuilder: (context, q) => _Card(
               key: Key('adminInq-${q.id}'),
-              onTap: () => _push(context, AdminInquiryPage(inquiry: q)),
+              selectKey: '${AdminTask.inquiries.name}:${q.id}',
+              onTap: () => _open(context, '${AdminTask.inquiries.name}:${q.id}', q, () => AdminInquiryPage(inquiry: q)),
               children: [
                 Row(
                   children: [

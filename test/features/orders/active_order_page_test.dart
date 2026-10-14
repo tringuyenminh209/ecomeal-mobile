@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:ecomeal_mobile/core/screen_brightness.dart';
 import 'package:ecomeal_mobile/features/orders/active_order_page.dart';
 import 'package:ecomeal_mobile/features/orders/order_gateway.dart';
 import 'package:ecomeal_mobile/features/orders/order_helpers.dart';
@@ -37,8 +38,20 @@ OrderSummary _withStatus(OrderSummary o, String status) => OrderSummary(
 );
 
 // Trạng thái đơn "sống" do test điều khiển (thay cho việc hỏi server mỗi 15 giây)
-Widget _page(OrderSummary order, {required DateTime now, Stream<String>? status}) => ProviderScope(
-  overrides: [activeOrderStatusProvider.overrideWith((ref, _) => status ?? Stream.value(order.status))],
+// Độ sáng giả: ghi lại lời gọi (plugin thật cần platform channel)
+class _FakeBrightness implements ScreenBrightnessControl {
+  final calls = <String>[];
+  @override
+  Future<void> raise() async => calls.add('raise');
+  @override
+  Future<void> restore() async => calls.add('restore');
+}
+
+Widget _page(OrderSummary order, {required DateTime now, Stream<String>? status, ScreenBrightnessControl? brightness}) => ProviderScope(
+  overrides: [
+    activeOrderStatusProvider.overrideWith((ref, _) => status ?? Stream.value(order.status)),
+    screenBrightnessProvider.overrideWithValue(brightness ?? _FakeBrightness()),
+  ],
   child: testApp(ActiveOrderPage(order: order, now: now)),
 );
 
@@ -125,6 +138,19 @@ void main() {
     expect(find.byKey(const Key('ratingPrompt')), findsOneWidget);
     expect(find.text(l10nJa.pickupQrTitle), findsNothing, reason: '受け取り後は QR を出さない');
     expect(find.text(l10nJa.activeOrderFindTitle), findsNothing);
+  });
+
+  testWidgets('QR が出ている間は画面を最大の明るさに、受け取りが済んだら元に戻す', (tester) async {
+    final brightness = _FakeBrightness();
+    final status = StreamController<String>();
+    addTearDown(status.close);
+    await tester.pumpWidget(_page(_order(), now: _planned, status: status.stream, brightness: brightness));
+    status.add('allocated');
+    await tester.pumpAndSettle();
+    expect(brightness.calls, ['raise']);
+    status.add('picked_up');
+    await tester.pumpAndSettle();
+    expect(brightness.calls, ['raise', 'restore']);
   });
 
   testWidgets('受け取り済みで評価も済み → 評価のお願いではなく「あなたの評価」', (tester) async {

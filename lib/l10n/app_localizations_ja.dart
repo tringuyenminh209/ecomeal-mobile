@@ -716,10 +716,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentMethodRowNone => '未登録';
 
   @override
-  String get freeCancelTitle => '受取予定の30分前まで無料キャンセル';
+  String get freeCancelTitle => '受取予定の30分前になるまで無料キャンセル';
 
   @override
-  String get freeCancelBody => '受取予定の30分前まで無料キャンセルできます。キャンセルは予約履歴から行えます。';
+  String get freeCancelBody =>
+      '受取予定の30分前になるまでなら無料でキャンセルできます（20:00受取なら19:30より前まで）。キャンセルは予約履歴から行えます。';
 
   @override
   String get errorReservationFailed =>
@@ -750,10 +751,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cancelDialogTitle => '予約をキャンセルしますか？';
 
   @override
-  String get cancelDialogFree => '受取予定の30分前まで無料キャンセルできます。現在の状況では全額返金されます。';
+  String get cancelDialogFree =>
+      '受取予定の30分前になるまでなら無料でキャンセルできます。今キャンセルすると全額返金されます。';
 
   @override
-  String get cancelDialogNoRefund => '受取予定の30分前を過ぎているため、キャンセルしても返金されません。';
+  String get cancelDialogNoRefund => '受取予定の30分前になったため、キャンセルしても返金されません。';
 
   @override
   String get back => '戻る';
@@ -813,7 +815,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get refundNoneBadge => '返金なし';
 
   @override
-  String get refundNoneNote => '受取予定の30分前を過ぎているため、キャンセル後の返金はありません。';
+  String get refundNoneNote => '受取予定の30分前になったため、キャンセル後の返金はありません。';
 
   @override
   String get errorBadge => 'エラー';
@@ -1136,6 +1138,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get errorNotHandoverable => 'この予約は受け渡し確認できる状態ではありません';
+
+  @override
+  String get errorPaymentNotConfirmed => 'この予約は支払いの確認が終わっていません。渡さずに運営に連絡してください';
 
   @override
   String get errorWalkupSoldOut => 'この停車地点で予約なしで販売できる分は売り切れです';
@@ -1472,7 +1477,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get termsArticle5Body =>
-      '受取予定時刻の30分前までのキャンセルは全額返金、それ以降のキャンセルは返金なしとなります。数量不足で確保できなかった予約は自動で返金します。受取地点の出発時刻までに受け取られなかった予約は失効し、返金はありません。';
+      '受取予定時刻の30分前になるまでのキャンセルは全額返金、30分前ちょうど以降のキャンセルは返金なしとなります（例：20:00受取なら19:30より前は全額返金、19:30からは返金なし）。数量不足で確保できなかった予約は自動で返金します。受取地点の出発時刻までに受け取られなかった予約は失効し、返金はありません。';
 
   @override
   String get termsArticle6Title => '第6条（受け取り）';
@@ -1724,7 +1729,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get receiptIssuedOn => '発行日';
 
   @override
-  String get receiptIssuer => 'EcoMeal 運営チーム（卒業制作プロジェクト「栗まんじゅう」）';
+  String get receiptIssuer => 'EcoMeal 運営チーム（卒業制作プロジェクト）';
 
   @override
   String get receiptNote =>
@@ -3452,6 +3457,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adminInqSaved => '保存しました';
 
   @override
+  String get adminInqRetrySave => 'もう一度保存する';
+
+  @override
+  String get adminInqErrorTitle => '保存できませんでした';
+
+  @override
+  String get adminInqErrorBody => '通信状況を確認して、もう一度お試しください。入力した状態とメモは残っています。';
+
+  @override
+  String get adminLicRetryVerify => 'もう一度確認済みにする';
+
+  @override
+  String get adminLicErrorBody => '通信状況を確認して、もう一度お試しください。入力した有効期限は残っています。';
+
+  @override
+  String get adminRestRetryApprove => 'もう一度承認する';
+
+  @override
+  String get adminRestRetryReject => 'もう一度却下を通知する';
+
+  @override
+  String get adminRestErrorBody => '通信状況を確認して、もう一度お試しください。審査はまだ確定していません。';
+
+  @override
+  String get adminRestRejectErrorBody =>
+      '通信状況を確認して、もう一度お試しください。却下はまだ確定していません。選んだ理由はそのまま再送できます。';
+
+  @override
   String get adminSaveFailed => '保存できませんでした。通信状況を確認して、もう一度お試しください。';
 
   @override
@@ -3464,6 +3497,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get adminOpsLive => 'ライブ';
+
+  @override
+  String get adminOpsTrucks => '今夜の車両';
+
+  @override
+  String get adminPickIssue => '問題報告を選んでください';
+
+  @override
+  String get adminPickRestaurant => '飲食店を選んでください';
+
+  @override
+  String get adminPickLicense => '運転免許を選んでください';
+
+  @override
+  String get adminPickInquiry => '問い合わせを選んでください';
+
+  @override
+  String get adminPickDriverReport => '運行の連絡を選んで対応してください';
+
+  @override
+  String get adminPickBody => '左の一覧から選ぶと、ここに詳細が表示されます。';
 
   @override
   String adminOpsShowing(int count) {
@@ -3527,6 +3581,75 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get adminRestApproveConfirmBody =>
       '承認すると、店舗アプリで余剰の登録ができるようになり、店舗担当者に通知メールが届きます。';
+
+  @override
+  String get adminRestMembers => '担当者';
+
+  @override
+  String get adminRestOwner => 'オーナー';
+
+  @override
+  String get adminRestStaff => 'スタッフ';
+
+  @override
+  String get adminRestNoMembers => '担当者が登録されていません';
+
+  @override
+  String get adminRestMonth => '今月の売上';
+
+  @override
+  String get adminRestSales => '売上';
+
+  @override
+  String get adminRestPayout => '還元額';
+
+  @override
+  String get adminRestSold => '販売食数';
+
+  @override
+  String get adminRestShare => '還元率';
+
+  @override
+  String adminRestSharePct(String pct) {
+    return '$pct%';
+  }
+
+  @override
+  String get adminRestRatings => 'お客様の評価（直近30日）';
+
+  @override
+  String adminRestRatingsValue(String average, int count) {
+    return '★$average（$count件）';
+  }
+
+  @override
+  String get adminRestNoRatings => 'まだ評価はありません';
+
+  @override
+  String get adminRestBatches => '最近の出品';
+
+  @override
+  String get adminRestNoBatches => 'まだ出品はありません';
+
+  @override
+  String adminRestBatchLine(int qty, String price) {
+    return '$qty食 × $price';
+  }
+
+  @override
+  String get adminRestBatchConfirmed => '確定';
+
+  @override
+  String get adminRestBatchEstimated => '概算';
+
+  @override
+  String get adminRestSettlements => '精算';
+
+  @override
+  String get adminRestNoSettlements => '確定した精算はまだありません';
+
+  @override
+  String get adminRestSettlementConfirmed => '確定済み';
 
   @override
   String adminLicVerifyConfirmTitle(String name) {

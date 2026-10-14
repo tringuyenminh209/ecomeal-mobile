@@ -16,6 +16,7 @@ List<ReservationAtStop> matchManualCode(List<ReservationAtStop> reservations, St
 String handoffErrorMessage(Object error, AppLocalizations l10n) {
   final text = error.toString();
   if (text.contains('E-ORDER-006')) return l10n.errorNotHandoverable;
+  if (text.contains('E-ORDER-010')) return l10n.errorPaymentNotConfirmed; // 0070: đơn Stripe chưa chốt tiền
   if (text.contains('E-ORDER-007')) return l10n.errorWalkupSoldOut;
   if (text.contains('E-ORDER-008')) return l10n.errorWalkupNotConfirmed;
   if (text.contains('E-ORDER-003')) return l10n.errorBatchExpired;

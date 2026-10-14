@@ -13,6 +13,9 @@ import 'receipt_page.dart';
 import 'report_issue_page.dart';
 import '../../widgets/skeleton.dart';
 import '../../core/haptics.dart';
+import '../../core/motion.dart';
+import '../../widgets/press_scale.dart';
+import '../../widgets/sliding_pill.dart';
 
 final myOrdersProvider = FutureProvider.autoDispose<List<OrderSummary>>((ref) {
   return ref.watch(orderGatewayProvider).fetchMyOrders();
@@ -30,6 +33,7 @@ class OrderHistoryPage extends ConsumerStatefulWidget {
 
 class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
   OrderFilter _filter = OrderFilter.all;
+  static const _filters = [OrderFilter.all, OrderFilter.active, OrderFilter.completed];
 
   @override
   Widget build(BuildContext context) {
@@ -55,14 +59,25 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-              child: Row(
-                children: [
-                  _FilterChip(label: l10n.filterAll, selected: _filter == OrderFilter.all, onTap: () => setState(() => _filter = OrderFilter.all)),
-                  const SizedBox(width: 8),
-                  _FilterChip(label: l10n.filterActive, selected: _filter == OrderFilter.active, onTap: () => setState(() => _filter = OrderFilter.active)),
-                  const SizedBox(width: 8),
-                  _FilterChip(label: l10n.filterCompleted, selected: _filter == OrderFilter.completed, onTap: () => setState(() => _filter = OrderFilter.completed)),
-                ],
+              // Nền Primary của chip đang chọn là 1 viên thuốc trượt giữa các chip (Figma 「動きの提案」 M00 フィルター)
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: SlidingPill(
+                  selected: _filters.indexOf(_filter),
+                  color: AppColors.primary,
+                  spacing: 8,
+                  children: [
+                    for (final (f, label) in [(OrderFilter.all, l10n.filterAll), (OrderFilter.active, l10n.filterActive), (OrderFilter.completed, l10n.filterCompleted)])
+                      _FilterChip(
+                        label: label,
+                        selected: _filter == f,
+                        onTap: () {
+                          if (_filter != f) Haptics.selection();
+                          setState(() => _filter = f);
+                        },
+                      ),
+                  ],
+                ),
               ),
             ),
             Expanded(
@@ -120,7 +135,8 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
   }
 }
 
-// "Filter" của Figma: viên bo 18, đang chọn = nền Primary chữ trắng; còn lại = nền trắng viền Border.
+// "Filter" của Figma: viên bo 18, đang chọn = chữ trắng trên viên thuốc Primary (SlidingPill vẽ nền); còn lại = nền trắng viền
+// Border. Chữ đổi màu cùng lúc với viên thuốc trượt; chip lún nhẹ khi chạm.
 class _FilterChip extends StatelessWidget {
   const _FilterChip({required this.label, required this.selected, required this.onTap});
   final String label;
@@ -129,23 +145,27 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: selected ? AppColors.primary : AppColors.surface,
-      shape: StadiumBorder(side: BorderSide(color: selected ? AppColors.primary : AppColors.border)),
+    return PressScale(
+      child: Material(
+      color: selected ? Colors.transparent : AppColors.surface,
+      shape: StadiumBorder(side: selected ? BorderSide.none : const BorderSide(color: AppColors.border)),
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-          child: Text(
-            label,
+          child: AnimatedDefaultTextStyle(
+            duration: Motion.of(context, Motion.small),
+            curve: Motion.enter,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: selected ? AppColors.surface : AppColors.textSecondary,
             ),
+            child: Text(label),
           ),
         ),
+      ),
       ),
     );
   }

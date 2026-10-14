@@ -10,8 +10,10 @@ import 'package:ecomeal_mobile/features/admin/admin_license_page.dart';
 import 'package:ecomeal_mobile/features/admin/admin_restaurant_page.dart';
 import 'package:ecomeal_mobile/features/admin/admin_tasks_gateway.dart';
 import 'package:ecomeal_mobile/features/admin/admin_tasks_page.dart';
+import 'package:ecomeal_mobile/features/store/store_gateway.dart';
 import '../../helpers/fake_admin_gateway.dart';
 import '../../helpers/fake_admin_tasks_gateway.dart';
+import '../../helpers/fake_store_gateway.dart';
 import '../../helpers/test_app.dart';
 
 AdminIssue _issue({bool open = true}) => AdminIssue(
@@ -74,8 +76,9 @@ void _tall(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
-Widget _app(Widget home, FakeAdminTasksGateway tasks) => ProviderScope(
+Widget _app(Widget home, FakeAdminTasksGateway tasks, {FakeStoreGateway? store}) => ProviderScope(
       overrides: [
+        storeGatewayProvider.overrideWithValue(store ?? FakeStoreGateway()),
         adminTasksGatewayProvider.overrideWithValue(tasks),
         adminGatewayProvider.overrideWithValue(FakeAdminGateway(state: const AdminMfaOk())),
       ],
@@ -241,6 +244,58 @@ void main() {
       await tester.tap(find.text(l10nJa.back));
       await tester.pumpAndSettle();
       expect(tasks.actions, isEmpty);
+    });
+
+    testWidgets('担当者のメール・今月の売上・評価・最近の出品・精算を出す（承認済み）', (tester) async {
+      _tall(tester);
+      final opened = <String>[];
+      final tasks = FakeAdminTasksGateway(
+        members: [
+          AdminRestaurantMember(userId: 'u-1', name: '並木 七海', email: 'owner@nami.jp', isOwner: true, createdAt: DateTime(2026, 10, 1)),
+        ],
+        batches: [
+          AdminBatch(id: 'b-1', isConfirmed: true, quantity: 6, unitPrice: 450, sellByAt: DateTime.utc(2026, 10, 12, 11)),
+        ],
+      );
+      final store = FakeStoreGateway(settlements: [
+        StoreSettlement(id: 's-0001', periodMonth: '2026-09-01', orders: 30, sales: 12000, payout: 3000,
+            confirmedAt: DateTime(2026, 10, 2), paidAt: DateTime(2026, 10, 5)),
+      ]);
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          storeGatewayProvider.overrideWithValue(store),
+          adminTasksGatewayProvider.overrideWithValue(tasks),
+          adminGatewayProvider.overrideWithValue(FakeAdminGateway(state: const AdminMfaOk())),
+          openExternalUrlProvider.overrideWithValue((url) async {
+            opened.add(url);
+            return true;
+          }),
+        ],
+        child: testApp(AdminRestaurantPage(restaurant: _restaurant(pending: false))),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.adminRestOwner), findsOneWidget);
+      await tester.tap(find.text('owner@nami.jp'));
+      expect(opened, ['mailto:owner@nami.jp']);
+      // FakeStoreGateway: 売上 ¥53,320・還元額 ¥10,664・86食・還元率 20%、評価 4.3（28件）
+      expect(find.text('¥53,320'), findsOneWidget);
+      expect(find.text(l10nJa.adminRestSharePct('20')), findsOneWidget);
+      expect(find.text(l10nJa.adminRestRatingsValue('4.3', 28)), findsOneWidget);
+      expect(find.text(l10nJa.adminRestBatchLine(6, '¥450')), findsOneWidget);
+      expect(find.text('¥3,000'), findsOneWidget);
+      expect(find.text(l10nJa.storeSettlementPaid), findsOneWidget);
+    });
+
+    testWidgets('審査待ちの店舗は担当者だけ出し、売上などは出さない', (tester) async {
+      _tall(tester);
+      final tasks = FakeAdminTasksGateway(members: [
+        AdminRestaurantMember(userId: 'u-1', name: '並木 七海', email: 'owner@nami.jp', isOwner: true, createdAt: DateTime(2026, 10, 1)),
+      ]);
+      await tester.pumpWidget(_app(AdminRestaurantPage(restaurant: _restaurant()), tasks));
+      await tester.pumpAndSettle();
+      expect(find.text('owner@nami.jp'), findsOneWidget);
+      expect(find.text(l10nJa.adminRestMonth), findsNothing);
+      expect(find.text(l10nJa.adminRestSettlements), findsNothing);
     });
 
     testWidgets('承認済みの店舗にはボタンを出さない', (tester) async {

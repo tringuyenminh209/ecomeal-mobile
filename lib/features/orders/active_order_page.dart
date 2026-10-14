@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../core/screen_brightness.dart';
 import '../../core/haptics.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
@@ -156,7 +157,8 @@ class ActiveOrderPage extends ConsumerWidget {
           if (pickedUp)
             _PickupComplete(order: order)
           else ...[
-            PickupQrBlock(orderId: order.id, size: 220),
+            // QR đang hiện → màn sáng tối đa (trả lại khi đã nhận / rời màn)
+            MaxBrightness(child: PickupQrBlock(orderId: order.id, size: 220)),
             const SizedBox(height: 20),
             Text(l10n.activeOrderFindTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),

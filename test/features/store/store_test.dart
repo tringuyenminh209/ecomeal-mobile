@@ -165,8 +165,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('storeRegisterCta')));
       await tester.pumpAndSettle();
-      final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(bar.selectedIndex, StoreTab.register);
+      // tab 登録 đang chọn: viên thuốc của thanh tab nằm dưới mục 登録
+      final pill = find.descendant(of: find.byKey(const Key('pillTabBar')), matching: find.byKey(const Key('slidingPill')));
+      expect(tester.getCenter(pill).dx, closeTo(tester.getCenter(find.byKey(const Key('storeNavRegister'))).dx, 0.5));
     });
 
     testWidgets('ロットをタップ → ロット詳細', (tester) async {

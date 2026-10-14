@@ -93,6 +93,41 @@ class AdminRestaurant {
   bool get isPending => !isApproved && rejectedAt == null;
 }
 
+// 店舗の担当者（get_restaurant_members、API-088、0069 — 運営だけ。メールは auth.users から）
+// SCR-A03 店舗の詳細に出す最近の出品の件数
+const recentBatchCount = 5;
+
+class AdminRestaurantMember {
+  const AdminRestaurantMember({
+    required this.userId,
+    required this.name,
+    required this.email,
+    required this.isOwner,
+    required this.createdAt,
+  });
+  final String userId;
+  final String name;
+  final String? email;
+  final bool isOwner;
+  final DateTime createdAt;
+}
+
+// 店舗の最近の出品（surplus_batches、RLS で運営が読める）
+class AdminBatch {
+  const AdminBatch({
+    required this.id,
+    required this.isConfirmed,
+    required this.quantity,
+    required this.unitPrice,
+    required this.sellByAt,
+  });
+  final String id;
+  final bool isConfirmed;
+  final int quantity; // 確定数（なければ概算数）
+  final int unitPrice;
+  final DateTime sellByAt;
+}
+
 class AdminLicense {
   const AdminLicense({
     required this.driverId,
@@ -151,6 +186,8 @@ abstract class AdminTasksGateway {
   // Trả về: đã gửi được mail / thông báo kết quả (API-035) hay chưa — việc duyệt đã chốt dù gửi lỗi
   Future<bool> decideRestaurant(String restaurantId, {required bool approve, String? reason});
   Future<String> plDocUrl(String path);
+  Future<List<AdminRestaurantMember>> fetchRestaurantMembers(String restaurantId);
+  Future<List<AdminBatch>> fetchRecentBatches(String restaurantId);
   Future<List<AdminLicense>> fetchLicenses();
   Future<String> licenseImageUrl(String path);
   Future<String?> assignedTruck(String driverId);
@@ -246,6 +283,41 @@ class SupabaseAdminTasksGateway implements AdminTasksGateway {
 
   @override
   Future<String> plDocUrl(String path) => _client.storage.from('pl_docs').createSignedUrl(path, _signedUrlSeconds);
+
+  @override
+  Future<List<AdminRestaurantMember>> fetchRestaurantMembers(String restaurantId) async {
+    final data = await _client.rpc('get_restaurant_members', params: {'p_restaurant_id': restaurantId}) as List;
+    return [
+      for (final m in data.cast<Map<String, dynamic>>())
+        AdminRestaurantMember(
+          userId: m['user_id'] as String,
+          name: m['name'] as String,
+          email: m['email'] as String?,
+          isOwner: m['role'] == 'owner',
+          createdAt: DateTime.parse(m['created_at'] as String),
+        ),
+    ];
+  }
+
+  @override
+  Future<List<AdminBatch>> fetchRecentBatches(String restaurantId) async {
+    final data = await _client
+        .from('surplus_batches')
+        .select('id, stage, estimated_qty, confirmed_qty, unit_price, restaurant_sell_by_at')
+        .eq('restaurant_id', restaurantId)
+        .order('restaurant_sell_by_at', ascending: false)
+        .limit(recentBatchCount);
+    return [
+      for (final b in data)
+        AdminBatch(
+          id: b['id'] as String,
+          isConfirmed: b['stage'] == 'confirmed',
+          quantity: (b['confirmed_qty'] ?? b['estimated_qty']) as int,
+          unitPrice: b['unit_price'] as int,
+          sellByAt: DateTime.parse(b['restaurant_sell_by_at'] as String),
+        ),
+    ];
+  }
 
   @override
   Future<List<AdminLicense>> fetchLicenses() async {
@@ -355,6 +427,12 @@ final adminIssuesProvider = FutureProvider.autoDispose<List<AdminIssue>>(
 );
 final adminRestaurantsProvider = FutureProvider.autoDispose<List<AdminRestaurant>>(
   (ref) => ref.watch(adminTasksGatewayProvider).fetchRestaurants(),
+);
+final adminRestaurantMembersProvider = FutureProvider.autoDispose.family<List<AdminRestaurantMember>, String>(
+  (ref, restaurantId) => ref.watch(adminTasksGatewayProvider).fetchRestaurantMembers(restaurantId),
+);
+final adminRecentBatchesProvider = FutureProvider.autoDispose.family<List<AdminBatch>, String>(
+  (ref, restaurantId) => ref.watch(adminTasksGatewayProvider).fetchRecentBatches(restaurantId),
 );
 final adminLicensesProvider = FutureProvider.autoDispose<List<AdminLicense>>(
   (ref) => ref.watch(adminTasksGatewayProvider).fetchLicenses(),

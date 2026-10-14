@@ -88,7 +88,7 @@ void main() {
     expect(find.text('合計（税込・数量 1）'), findsOneWidget);
     expect(find.text('うち消費税（8%）'), findsOneWidget);
     expect(tester.widget<Text>(find.byKey(const Key('taxAmount'))).data, '¥48');
-    expect(find.text('受取予定の30分前まで無料キャンセル'), findsOneWidget); // BR-003 vẫn hiện
+    expect(find.text(l10nJa.freeCancelTitle), findsOneWidget); // BR-003 vẫn hiện
     expect(payButton(tester).onPressed, isNotNull);
   });
 
@@ -198,6 +198,34 @@ void main() {
     await tester.tap(find.byKey(const Key('recheckPaymentButton')));
     await tester.pumpAndSettle();
     expect(find.text('お支払いが完了しました'), findsOneWidget);
+  });
+
+  testWidgets('0070: 再確認 thấy đơn nhưng CHƯA chốt tiền → gọi thanh toán lại cùng khoá, xong mới 完了', (tester) async {
+    var calls = 0;
+    stubCreateOrder(() async {
+      calls++;
+      if (calls == 1) throw TimeoutException('no response');
+      return const CreateOrderResult(orderId: 'o-1', status: 'allocated', pricePaid: 650);
+    });
+    when(() => orderGateway.findOrderByIdempotencyKey(any())).thenAnswer(
+        (_) async => const CreateOrderResult(orderId: 'o-1', status: 'allocated', pricePaid: 650, paymentConfirmed: false));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('confirmReservationButton')));
+    await tester.pumpAndSettle();
+    expect(find.text('決済結果を確認できません'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('recheckPaymentButton')));
+    await tester.pumpAndSettle();
+    expect(find.text('お支払いが完了しました'), findsOneWidget);
+    final keys = verify(() => orderGateway.createOrder(
+          surplusBatchId: 'b-1',
+          pickupRouteStopId: 'rs-1',
+          paymentMethodId: 'pm-visa',
+          idempotencyKey: captureAny(named: 'idempotencyKey'),
+        )).captured;
+    expect(keys, hasLength(2));
+    expect(keys[0], keys[1]); // server đối chiếu với Stripe theo đơn cũ, không tạo khoản trừ mới
   });
 
   testWidgets('結果確認待ち → 再確認 không thấy đơn → quay lại màn xác nhận + báo chưa thanh toán', (tester) async {

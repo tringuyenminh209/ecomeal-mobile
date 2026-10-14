@@ -6,10 +6,12 @@ import '../../core/supabase_client.dart';
 import '../payment/payment_api.dart';
 
 class CreateOrderResult {
-  const CreateOrderResult({required this.orderId, required this.status, required this.pricePaid});
+  const CreateOrderResult({required this.orderId, required this.status, required this.pricePaid, this.paymentConfirmed = true});
   final String orderId;
   final String status; // 'pending' | 'allocated' — xem 13_詳細設計書 §5.2 (Chương 05)
   final int pricePaid;
+  // 0070: đơn Stripe đã có nhưng server chưa ghi nhận chốt tiền (orders.payment_captured_at NULL) → chưa phải "đã trả"
+  final bool paymentConfirmed;
 }
 
 class CancelOrderResult {
@@ -156,7 +158,7 @@ class SupabaseOrderGateway implements OrderGateway {
   Future<CreateOrderResult?> findOrderByIdempotencyKey(String idempotencyKey) async {
     final row = await _client
         .from('orders')
-        .select('id, status, price_paid')
+        .select('id, status, price_paid, payment_intent_id, payment_captured_at')
         .eq('payment_idempotency_key', idempotencyKey)
         .maybeSingle()
         .timeout(paymentTimeout);
@@ -165,6 +167,7 @@ class SupabaseOrderGateway implements OrderGateway {
       orderId: row['id'] as String,
       status: row['status'] as String,
       pricePaid: row['price_paid'] as int,
+      paymentConfirmed: row['payment_intent_id'] == null || row['payment_captured_at'] != null,
     );
   }
 

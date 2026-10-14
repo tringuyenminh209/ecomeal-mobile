@@ -57,6 +57,7 @@ dependencies:
   sentry_flutter: ^9.30.1 # theo dõi lỗi (ADR-010) — chỉ bật khi có SENTRY_DSN trong env.json
   sign_in_with_apple: ^7.0.1
   crypto: ^3.0.7
+  screen_brightness: ^2.1.11
 
 dev_dependencies:
   flutter_test:

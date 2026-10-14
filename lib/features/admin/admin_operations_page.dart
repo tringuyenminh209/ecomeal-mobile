@@ -15,9 +15,17 @@ import 'admin_gateway.dart';
 // Vị trí xe đổi mỗi 10 giây (GPS tài xế) — tải lại mỗi 20 giây khi màn đang mở (nhãn「ライブ」của Figma)
 const adminOperationsRefresh = Duration(seconds: 20);
 
+// Bề rộng cột 運行モニタ bên phải ダッシュボード trên iPad (Figma 791:3126)
+const adminMonitorPaneWidth = 440.0;
+// Từ bề rộng này (bản thân trang, không phải cả màn) trở lên: bản đồ lớn bên trái + danh sách xe bên phải (Figma 791:3350)
+const _splitWidth = 720.0;
+const _trucksPaneWidth = 380.0;
+
 // SCR-A02 運行モニタ（563:1038）: bản đồ xe + điểm dừng, danh sách xe với điểm kế tiếp và giờ dự kiến
 class AdminOperationsPage extends ConsumerStatefulWidget {
-  const AdminOperationsPage({super.key});
+  // pollRoutes: false khi nhúng vào ダッシュボード (iPad) — tab 運行 vẫn sống trong IndexedStack và đã tải lại định kỳ
+  const AdminOperationsPage({super.key, this.pollRoutes = true});
+  final bool pollRoutes;
 
   @override
   ConsumerState<AdminOperationsPage> createState() => _AdminOperationsPageState();
@@ -31,7 +39,9 @@ class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(adminOperationsRefresh, (_) => ref.invalidate(adminRoutesProvider(_date)));
+    if (widget.pollRoutes) {
+      _timer = Timer.periodic(adminOperationsRefresh, (_) => ref.invalidate(adminRoutesProvider(_date)));
+    }
     if (isGoogleMapsConfigured) {
       loadTruckMarkerIcon().then((icon) {
         if (mounted) setState(() => _truckIcon = icon);
@@ -53,72 +63,117 @@ class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
     final routes = ref.watch(adminRoutesProvider(_date));
     final list = routes.valueOrNull ?? const <AdminRoute>[];
 
+    final header = Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.adminOpsTitle, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+              Text(
+                l10n.adminOpsSubtitle(formatServiceDate(_date, locale), list.length),
+                style: TextStyle(fontSize: 13, color: eco.textSecondary),
+              ),
+            ],
+          ),
+        ),
+        Icon(Icons.sensors_rounded, size: 16, color: eco.primary),
+        const SizedBox(width: 4),
+        Text(
+          l10n.adminOpsLive,
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.primary),
+        ),
+      ],
+    );
+    final trucks = routes.when(
+      loading: () => <Widget>[const SkeletonPulse(child: SkeletonBox(height: 160, radius: 16))],
+      error: (_, _) => [
+        StatePanel.error(
+          title: l10n.storeLoadErrorTitle,
+          message: l10n.storeLoadErrorBody,
+          actionLabel: l10n.storeReload,
+          onAction: () => ref.invalidate(adminRoutesProvider(_date)),
+        ),
+      ],
+      data: (rs) => rs.isEmpty
+          ? [StatePanel(icon: Icons.local_shipping_outlined, title: l10n.adminNoRouteTonight)]
+          : [
+              Container(
+                decoration: BoxDecoration(
+                  color: eco.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: eco.border),
+                ),
+                child: Column(
+                  children: [
+                    for (final (i, r) in rs.indexed) ...[
+                      if (i > 0) Divider(height: 1, color: eco.border),
+                      _RouteTile(route: r),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+    );
+    Future<void> refresh() => ref.refresh(adminRoutesProvider(_date).future).then((_) {}, onError: (_) {});
+
     return SafeArea(
-      child: RefreshIndicator(
-        onRefresh: () => ref.refresh(adminRoutesProvider(_date).future).then((_) {}, onError: (_) {}),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          children: [
-            Row(
+      child: LayoutBuilder(
+        builder: (context, box) {
+          if (box.maxWidth >= _splitWidth) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(l10n.adminOpsTitle, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
-                      Text(
-                        l10n.adminOpsSubtitle(formatServiceDate(_date, locale), list.length),
-                        style: TextStyle(fontSize: 13, color: eco.textSecondary),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 16, 32, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        header,
+                        const SizedBox(height: 14),
+                        Expanded(
+                          child: ClipRRect(borderRadius: BorderRadius.circular(16), child: _map(list, l10n, eco)),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                Icon(Icons.sensors_rounded, size: 16, color: eco.primary),
-                const SizedBox(width: 4),
-                Text(
-                  l10n.adminOpsLive,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.primary),
+                VerticalDivider(width: 1, color: eco.border),
+                SizedBox(
+                  width: _trucksPaneWidth,
+                  child: RefreshIndicator(
+                    onRefresh: refresh,
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                      children: [
+                        Text(l10n.adminOpsTrucks, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 12),
+                        ...trucks,
+                      ],
+                    ),
+                  ),
                 ),
               ],
-            ),
-            const SizedBox(height: 14),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: SizedBox(height: 260, child: _map(list, l10n, eco)),
-            ),
-            const SizedBox(height: 14),
-            ...routes.when(
-              loading: () => [const SkeletonPulse(child: SkeletonBox(height: 160, radius: 16))],
-              error: (_, _) => [
-                StatePanel.error(
-                  title: l10n.storeLoadErrorTitle,
-                  message: l10n.storeLoadErrorBody,
-                  actionLabel: l10n.storeReload,
-                  onAction: () => ref.invalidate(adminRoutesProvider(_date)),
+            );
+          }
+          return RefreshIndicator(
+            onRefresh: refresh,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              children: [
+                header,
+                const SizedBox(height: 14),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(height: 260, child: _map(list, l10n, eco)),
                 ),
+                const SizedBox(height: 14),
+                ...trucks,
               ],
-              data: (rs) => rs.isEmpty
-                  ? [StatePanel(icon: Icons.local_shipping_outlined, title: l10n.adminNoRouteTonight)]
-                  : [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: eco.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: eco.border),
-                        ),
-                        child: Column(
-                          children: [
-                            for (final (i, r) in rs.indexed) ...[
-                              if (i > 0) Divider(height: 1, color: eco.border),
-                              _RouteTile(route: r),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

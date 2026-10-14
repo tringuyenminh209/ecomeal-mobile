@@ -60,6 +60,9 @@ void main() {
     await tester.tap(find.byKey(const Key('navOrders')));
     await tester.pumpAndSettle();
     expect(find.text('予約履歴'), findsOneWidget);
+    // viên thuốc của thanh tab đã trượt sang 予約 (chip lọc của 予約履歴 cũng có viên thuốc riêng)
+    final tabPill = find.descendant(of: find.byKey(const Key('pillTabBar')), matching: find.byKey(const Key('slidingPill')));
+    expect(tester.getCenter(tabPill).dx, closeTo(tester.getCenter(find.byKey(const Key('navOrders'))).dx, 0.5));
     verify(() => orders.fetchMyOrders()).called(1); // mở tab → tải lại
 
     await tester.tap(find.byKey(const Key('navProfile')));

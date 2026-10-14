@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/theme/app_theme.dart';
+import '../core/wide_layout.dart';
 import '../features/admin/admin_dashboard_page.dart';
 import '../features/admin/admin_gateway.dart';
 import '../features/admin/admin_operations_page.dart';
@@ -8,6 +10,7 @@ import '../features/admin/admin_tasks_page.dart';
 import '../features/notifications/notification_inbox.dart';
 import '../features/notifications/push_registration.dart';
 import '../l10n/l10n.dart';
+import 'adaptive_nav_shell.dart';
 
 // Thứ tự tab của app vận hành: ホーム / 運行 / 対応 / 設定 (Figma "Admin/Tab bar" 550:223).
 abstract final class AdminTab {
@@ -63,52 +66,40 @@ class AdminShell extends ConsumerWidget {
       goTo(tab);
     }
 
-    return Scaffold(
-      body: IndexedStack(
-        index: index,
-        children: [
-          AdminDashboardPage(
-            userId: userId,
-            onOpenTask: (task) {
-              ref.read(adminTaskProvider.notifier).state = task;
-              goTo(AdminTab.tasks);
-            },
-          ),
-          const AdminOperationsPage(),
-          AdminTasksPage(task: task, onSelect: (t) => ref.read(adminTaskProvider.notifier).state = t),
-          AdminSettingsPage(userId: userId, email: email),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: select,
-        destinations: [
-          NavigationDestination(
-            key: const Key('adminNavHome'),
-            icon: const Icon(Icons.grid_view_outlined),
-            selectedIcon: const Icon(Icons.grid_view_rounded),
-            label: l10n.adminTabHome,
-          ),
-          NavigationDestination(
-            key: const Key('adminNavOperations'),
-            icon: const Icon(Icons.map_outlined),
-            selectedIcon: const Icon(Icons.map),
-            label: l10n.adminTabOperations,
-          ),
-          NavigationDestination(
-            key: const Key('adminNavTasks'),
-            icon: const Icon(Icons.inbox_outlined),
-            selectedIcon: const Icon(Icons.inbox),
-            label: l10n.adminTabTasks,
-          ),
-          NavigationDestination(
-            key: const Key('adminNavSettings'),
-            icon: const Icon(Icons.tune),
-            selectedIcon: const Icon(Icons.tune),
-            label: l10n.adminTabSettings,
-          ),
-        ],
-      ),
+    final wide = isWideLayout(context);
+    final dashboard = AdminDashboardPage(
+      userId: userId,
+      onOpenTask: (task) {
+        ref.read(adminTaskProvider.notifier).state = task;
+        goTo(AdminTab.tasks);
+      },
     );
+    final pages = IndexedStack(
+      index: index,
+      children: [
+        // iPad ngang (Figma 791:3126): bên phải ダッシュボード là 運行モニタ — cùng dữ liệu với tab 運行 (adminRoutesProvider)
+        if (wide)
+          Row(
+            children: [
+              Expanded(child: dashboard),
+              VerticalDivider(width: 1, color: context.eco.border),
+              const SizedBox(width: adminMonitorPaneWidth, child: AdminOperationsPage(pollRoutes: false)),
+            ],
+          )
+        else
+          dashboard,
+        const AdminOperationsPage(),
+        AdminTasksPage(task: task, onSelect: (t) => ref.read(adminTaskProvider.notifier).state = t),
+        AdminSettingsPage(userId: userId, email: email),
+      ],
+    );
+    final tabs = <NavTab>[
+      (const Key('adminNavHome'), Icons.grid_view_outlined, Icons.grid_view_rounded, l10n.adminTabHome),
+      (const Key('adminNavOperations'), Icons.map_outlined, Icons.map, l10n.adminTabOperations),
+      (const Key('adminNavTasks'), Icons.inbox_outlined, Icons.inbox, l10n.adminTabTasks),
+      (const Key('adminNavSettings'), Icons.tune, Icons.tune, l10n.adminTabSettings),
+    ];
+
+    return AdaptiveNavShell(index: index, onSelect: select, tabs: tabs, body: pages);
   }
 }

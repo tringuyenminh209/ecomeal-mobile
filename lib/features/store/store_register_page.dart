@@ -9,7 +9,7 @@ import '../home/home_gateway.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/error_banner.dart';
 import 'store_gateway.dart';
-import 'store_layout.dart';
+import '../../core/wide_layout.dart';
 import 'store_register_logic.dart';
 
 const _maxQty = 99;
@@ -398,7 +398,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
     ];
 
     // iPad ngang (Figma 559:968): ảnh + nút xác nhận bên trái, các ô nhập bên phải (form rộng, không cuộn qua ảnh)
-    if (isStoreWide(context)) {
+    if (isWideLayout(context)) {
       return Scaffold(
         body: SafeArea(
           child: AbsorbPointer(

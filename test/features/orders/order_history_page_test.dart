@@ -75,6 +75,8 @@ void main() {
 
     await tester.tap(find.text('予約中'));
     await tester.pumpAndSettle();
+    // nền xanh (viên thuốc) đã trượt sang chip 予約中
+    expect(tester.getCenter(find.byKey(const Key('slidingPill'))).dx, closeTo(tester.getCenter(find.text('予約中')).dx, 1));
 
     expect(find.byKey(const Key('orderCard_00000000-0000-0000-0000-00000000a001')), findsOneWidget);
     expect(find.byKey(const Key('orderCard_00000000-0000-0000-0000-00000000a002')), findsNothing);
@@ -128,7 +130,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('cancelOrderButton')));
     await tester.pumpAndSettle();
-    expect(find.text('受取予定の30分前を過ぎているため、キャンセルしても返金されません。'), findsOneWidget);
+    expect(find.text(l10nJa.cancelDialogNoRefund), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('confirmCancelButton')));
     await tester.pumpAndSettle();
@@ -161,7 +163,7 @@ void main() {
     // Figma 78:192 không vẽ nút huỷ cho thẻ allocated, nhưng 06 (レビュー第25回) cho huỷ mọi đơn pending/allocated.
     await tester.ensureVisible(find.byKey(const Key('cancelOrderButton')));
     expect(find.byKey(const Key('cancelOrderButton')), findsOneWidget);
-    expect(find.text('受取予定の30分前まで無料キャンセル'), findsOneWidget);
+    expect(find.text(l10nJa.freeCancelTitle), findsOneWidget);
     await tester.ensureVisible(open);
     await tester.tap(open);
     await tester.pumpAndSettle();

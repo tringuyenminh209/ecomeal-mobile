@@ -1415,13 +1415,13 @@ abstract class AppLocalizations {
   /// No description provided for @freeCancelTitle.
   ///
   /// In ja, this message translates to:
-  /// **'受取予定の30分前まで無料キャンセル'**
+  /// **'受取予定の30分前になるまで無料キャンセル'**
   String get freeCancelTitle;
 
   /// No description provided for @freeCancelBody.
   ///
   /// In ja, this message translates to:
-  /// **'受取予定の30分前まで無料キャンセルできます。キャンセルは予約履歴から行えます。'**
+  /// **'受取予定の30分前になるまでなら無料でキャンセルできます（20:00受取なら19:30より前まで）。キャンセルは予約履歴から行えます。'**
   String get freeCancelBody;
 
   /// No description provided for @errorReservationFailed.
@@ -1481,13 +1481,13 @@ abstract class AppLocalizations {
   /// No description provided for @cancelDialogFree.
   ///
   /// In ja, this message translates to:
-  /// **'受取予定の30分前まで無料キャンセルできます。現在の状況では全額返金されます。'**
+  /// **'受取予定の30分前になるまでなら無料でキャンセルできます。今キャンセルすると全額返金されます。'**
   String get cancelDialogFree;
 
   /// No description provided for @cancelDialogNoRefund.
   ///
   /// In ja, this message translates to:
-  /// **'受取予定の30分前を過ぎているため、キャンセルしても返金されません。'**
+  /// **'受取予定の30分前になったため、キャンセルしても返金されません。'**
   String get cancelDialogNoRefund;
 
   /// No description provided for @back.
@@ -1589,7 +1589,7 @@ abstract class AppLocalizations {
   /// No description provided for @refundNoneNote.
   ///
   /// In ja, this message translates to:
-  /// **'受取予定の30分前を過ぎているため、キャンセル後の返金はありません。'**
+  /// **'受取予定の30分前になったため、キャンセル後の返金はありません。'**
   String get refundNoneNote;
 
   /// No description provided for @errorBadge.
@@ -2161,6 +2161,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'この予約は受け渡し確認できる状態ではありません'**
   String get errorNotHandoverable;
+
+  /// No description provided for @errorPaymentNotConfirmed.
+  ///
+  /// In ja, this message translates to:
+  /// **'この予約は支払いの確認が終わっていません。渡さずに運営に連絡してください'**
+  String get errorPaymentNotConfirmed;
 
   /// No description provided for @errorWalkupSoldOut.
   ///
@@ -2759,7 +2765,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsArticle5Body.
   ///
   /// In ja, this message translates to:
-  /// **'受取予定時刻の30分前までのキャンセルは全額返金、それ以降のキャンセルは返金なしとなります。数量不足で確保できなかった予約は自動で返金します。受取地点の出発時刻までに受け取られなかった予約は失効し、返金はありません。'**
+  /// **'受取予定時刻の30分前になるまでのキャンセルは全額返金、30分前ちょうど以降のキャンセルは返金なしとなります（例：20:00受取なら19:30より前は全額返金、19:30からは返金なし）。数量不足で確保できなかった予約は自動で返金します。受取地点の出発時刻までに受け取られなかった予約は失効し、返金はありません。'**
   String get termsArticle5Body;
 
   /// No description provided for @termsArticle6Title.
@@ -3215,7 +3221,7 @@ abstract class AppLocalizations {
   /// No description provided for @receiptIssuer.
   ///
   /// In ja, this message translates to:
-  /// **'EcoMeal 運営チーム（卒業制作プロジェクト「栗まんじゅう」）'**
+  /// **'EcoMeal 運営チーム（卒業制作プロジェクト）'**
   String get receiptIssuer;
 
   /// No description provided for @receiptNote.
@@ -6278,6 +6284,60 @@ abstract class AppLocalizations {
   /// **'保存しました'**
   String get adminInqSaved;
 
+  /// No description provided for @adminInqRetrySave.
+  ///
+  /// In ja, this message translates to:
+  /// **'もう一度保存する'**
+  String get adminInqRetrySave;
+
+  /// No description provided for @adminInqErrorTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'保存できませんでした'**
+  String get adminInqErrorTitle;
+
+  /// No description provided for @adminInqErrorBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信状況を確認して、もう一度お試しください。入力した状態とメモは残っています。'**
+  String get adminInqErrorBody;
+
+  /// No description provided for @adminLicRetryVerify.
+  ///
+  /// In ja, this message translates to:
+  /// **'もう一度確認済みにする'**
+  String get adminLicRetryVerify;
+
+  /// No description provided for @adminLicErrorBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信状況を確認して、もう一度お試しください。入力した有効期限は残っています。'**
+  String get adminLicErrorBody;
+
+  /// No description provided for @adminRestRetryApprove.
+  ///
+  /// In ja, this message translates to:
+  /// **'もう一度承認する'**
+  String get adminRestRetryApprove;
+
+  /// No description provided for @adminRestRetryReject.
+  ///
+  /// In ja, this message translates to:
+  /// **'もう一度却下を通知する'**
+  String get adminRestRetryReject;
+
+  /// No description provided for @adminRestErrorBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信状況を確認して、もう一度お試しください。審査はまだ確定していません。'**
+  String get adminRestErrorBody;
+
+  /// No description provided for @adminRestRejectErrorBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信状況を確認して、もう一度お試しください。却下はまだ確定していません。選んだ理由はそのまま再送できます。'**
+  String get adminRestRejectErrorBody;
+
   /// No description provided for @adminSaveFailed.
   ///
   /// In ja, this message translates to:
@@ -6301,6 +6361,48 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'ライブ'**
   String get adminOpsLive;
+
+  /// No description provided for @adminOpsTrucks.
+  ///
+  /// In ja, this message translates to:
+  /// **'今夜の車両'**
+  String get adminOpsTrucks;
+
+  /// No description provided for @adminPickIssue.
+  ///
+  /// In ja, this message translates to:
+  /// **'問題報告を選んでください'**
+  String get adminPickIssue;
+
+  /// No description provided for @adminPickRestaurant.
+  ///
+  /// In ja, this message translates to:
+  /// **'飲食店を選んでください'**
+  String get adminPickRestaurant;
+
+  /// No description provided for @adminPickLicense.
+  ///
+  /// In ja, this message translates to:
+  /// **'運転免許を選んでください'**
+  String get adminPickLicense;
+
+  /// No description provided for @adminPickInquiry.
+  ///
+  /// In ja, this message translates to:
+  /// **'問い合わせを選んでください'**
+  String get adminPickInquiry;
+
+  /// No description provided for @adminPickDriverReport.
+  ///
+  /// In ja, this message translates to:
+  /// **'運行の連絡を選んで対応してください'**
+  String get adminPickDriverReport;
+
+  /// No description provided for @adminPickBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'左の一覧から選ぶと、ここに詳細が表示されます。'**
+  String get adminPickBody;
 
   /// No description provided for @adminOpsShowing.
   ///
@@ -6403,6 +6505,132 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'承認すると、店舗アプリで余剰の登録ができるようになり、店舗担当者に通知メールが届きます。'**
   String get adminRestApproveConfirmBody;
+
+  /// No description provided for @adminRestMembers.
+  ///
+  /// In ja, this message translates to:
+  /// **'担当者'**
+  String get adminRestMembers;
+
+  /// No description provided for @adminRestOwner.
+  ///
+  /// In ja, this message translates to:
+  /// **'オーナー'**
+  String get adminRestOwner;
+
+  /// No description provided for @adminRestStaff.
+  ///
+  /// In ja, this message translates to:
+  /// **'スタッフ'**
+  String get adminRestStaff;
+
+  /// No description provided for @adminRestNoMembers.
+  ///
+  /// In ja, this message translates to:
+  /// **'担当者が登録されていません'**
+  String get adminRestNoMembers;
+
+  /// No description provided for @adminRestMonth.
+  ///
+  /// In ja, this message translates to:
+  /// **'今月の売上'**
+  String get adminRestMonth;
+
+  /// No description provided for @adminRestSales.
+  ///
+  /// In ja, this message translates to:
+  /// **'売上'**
+  String get adminRestSales;
+
+  /// No description provided for @adminRestPayout.
+  ///
+  /// In ja, this message translates to:
+  /// **'還元額'**
+  String get adminRestPayout;
+
+  /// No description provided for @adminRestSold.
+  ///
+  /// In ja, this message translates to:
+  /// **'販売食数'**
+  String get adminRestSold;
+
+  /// No description provided for @adminRestShare.
+  ///
+  /// In ja, this message translates to:
+  /// **'還元率'**
+  String get adminRestShare;
+
+  /// No description provided for @adminRestSharePct.
+  ///
+  /// In ja, this message translates to:
+  /// **'{pct}%'**
+  String adminRestSharePct(String pct);
+
+  /// No description provided for @adminRestRatings.
+  ///
+  /// In ja, this message translates to:
+  /// **'お客様の評価（直近30日）'**
+  String get adminRestRatings;
+
+  /// No description provided for @adminRestRatingsValue.
+  ///
+  /// In ja, this message translates to:
+  /// **'★{average}（{count}件）'**
+  String adminRestRatingsValue(String average, int count);
+
+  /// No description provided for @adminRestNoRatings.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ評価はありません'**
+  String get adminRestNoRatings;
+
+  /// No description provided for @adminRestBatches.
+  ///
+  /// In ja, this message translates to:
+  /// **'最近の出品'**
+  String get adminRestBatches;
+
+  /// No description provided for @adminRestNoBatches.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ出品はありません'**
+  String get adminRestNoBatches;
+
+  /// No description provided for @adminRestBatchLine.
+  ///
+  /// In ja, this message translates to:
+  /// **'{qty}食 × {price}'**
+  String adminRestBatchLine(int qty, String price);
+
+  /// No description provided for @adminRestBatchConfirmed.
+  ///
+  /// In ja, this message translates to:
+  /// **'確定'**
+  String get adminRestBatchConfirmed;
+
+  /// No description provided for @adminRestBatchEstimated.
+  ///
+  /// In ja, this message translates to:
+  /// **'概算'**
+  String get adminRestBatchEstimated;
+
+  /// No description provided for @adminRestSettlements.
+  ///
+  /// In ja, this message translates to:
+  /// **'精算'**
+  String get adminRestSettlements;
+
+  /// No description provided for @adminRestNoSettlements.
+  ///
+  /// In ja, this message translates to:
+  /// **'確定した精算はまだありません'**
+  String get adminRestNoSettlements;
+
+  /// No description provided for @adminRestSettlementConfirmed.
+  ///
+  /// In ja, this message translates to:
+  /// **'確定済み'**
+  String get adminRestSettlementConfirmed;
 
   /// No description provided for @adminLicVerifyConfirmTitle.
   ///

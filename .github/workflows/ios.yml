@@ -75,15 +75,33 @@ jobs:
           # 0047: khoá CÔNG KHAI của Stripe (pk_test_… / pk_live_…). Không có → app dùng thanh toán giả (0043).
           # Khoá bí mật sk_… chỉ nằm ở Supabase secrets (STRIPE_SECRET_KEY), không bao giờ vào app
           STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          # Firebase (push, ADR-016): cấu hình app CÔNG KHAI giống GoogleService-Info.plist. Thiếu → initPush bỏ qua
+          # Firebase, app vẫn chạy nhưng không có thông báo (ponytail audit #7). App ID riêng theo flavor iOS.
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_IOS_APP_ID: ${{ secrets.FIREBASE_IOS_APP_ID }}
+          FIREBASE_IOS_APP_ID_STORE: ${{ secrets.FIREBASE_IOS_APP_ID_STORE }}
+          FIREBASE_IOS_APP_ID_ADMIN: ${{ secrets.FIREBASE_IOS_APP_ID_ADMIN }}
         run: |
           case "${STRIPE_PUBLISHABLE_KEY:-}" in ""|pk_*) ;; *) echo "STRIPE_PUBLISHABLE_KEY phải là khoá pk_…" >&2; exit 1 ;; esac
           jq -n --arg url "${SUPABASE_URL:-https://example.supabase.co}" \
                 --arg anon "${SUPABASE_ANON_KEY:-}" \
                 --arg maps "${GOOGLE_MAPS_IOS_API_KEY:-}" \
                 --arg stripe "${STRIPE_PUBLISHABLE_KEY:-}" \
-            '{SUPABASE_URL:$url, SUPABASE_ANON_KEY:$anon, GOOGLE_MAPS_ANDROID_API_KEY:"", GOOGLE_MAPS_IOS_API_KEY:$maps, LINE_CHANNEL_ID:"2011847544", LINE_OFFICIAL_ACCOUNT_ID:"@939hqcxi", STRIPE_PUBLISHABLE_KEY:$stripe}' > env.json
+                --arg fbKey "${FIREBASE_API_KEY:-}" \
+                --arg fbProject "${FIREBASE_PROJECT_ID:-}" \
+                --arg fbSender "${FIREBASE_MESSAGING_SENDER_ID:-}" \
+                --arg fbIos "${FIREBASE_IOS_APP_ID:-}" \
+                --arg fbIosStore "${FIREBASE_IOS_APP_ID_STORE:-}" \
+                --arg fbIosAdmin "${FIREBASE_IOS_APP_ID_ADMIN:-}" \
+            '{SUPABASE_URL:$url, SUPABASE_ANON_KEY:$anon, GOOGLE_MAPS_ANDROID_API_KEY:"", GOOGLE_MAPS_IOS_API_KEY:$maps, LINE_CHANNEL_ID:"2011847544", LINE_OFFICIAL_ACCOUNT_ID:"@939hqcxi", STRIPE_PUBLISHABLE_KEY:$stripe, FIREBASE_API_KEY:$fbKey, FIREBASE_PROJECT_ID:$fbProject, FIREBASE_MESSAGING_SENDER_ID:$fbSender, FIREBASE_IOS_APP_ID:$fbIos, FIREBASE_IOS_APP_ID_STORE:$fbIosStore, FIREBASE_IOS_APP_ID_ADMIN:$fbIosAdmin}' > env.json
           [ -n "${SUPABASE_ANON_KEY:-}" ] && echo "Supabase secrets: có" || echo "Supabase secrets: KHÔNG (chỉ kiểm build)"
           [ -n "${STRIPE_PUBLISHABLE_KEY:-}" ] && echo "Stripe: có (thanh toán thật bằng thẻ thử)" || echo "Stripe: KHÔNG (thanh toán giả)"
+          # chỉ in có/không, không in giá trị. Push iOS còn cần APNs (Apple Developer) — có Firebase chưa đủ
+          for k in FIREBASE_API_KEY FIREBASE_PROJECT_ID FIREBASE_MESSAGING_SENDER_ID FIREBASE_IOS_APP_ID FIREBASE_IOS_APP_ID_STORE FIREBASE_IOS_APP_ID_ADMIN; do
+            [ -n "${!k:-}" ] && echo "$k: có" || echo "$k: KHÔNG (không có push)"
+          done
 
       - name: Dependencies
         run: flutter pub get

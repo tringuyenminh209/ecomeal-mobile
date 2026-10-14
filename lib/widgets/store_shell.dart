@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../core/theme/app_theme.dart';
 import '../features/notifications/notification_inbox.dart';
 import '../features/notifications/push_registration.dart';
 import '../features/store/store_batch_detail_page.dart';
@@ -9,10 +8,9 @@ import '../features/store/store_home_page.dart';
 import '../features/store/store_register_done_page.dart';
 import '../features/store/store_register_page.dart';
 import '../features/store/store_settings_page.dart';
-import '../features/store/store_layout.dart';
 import '../features/store/store_settlement_page.dart';
 import '../l10n/l10n.dart';
-import 'ecomeal_logo.dart';
+import 'adaptive_nav_shell.dart';
 
 // Thứ tự tab của app nhà hàng: ホーム / 登録 / 精算 / 設定 (Figma "Store/Tab bar" 550:118).
 abstract final class StoreTab {
@@ -96,7 +94,7 @@ class StoreShell extends ConsumerWidget {
       goTo(tab);
     }
 
-    final tabs = [
+    final tabs = <NavTab>[
       (const Key('storeNavHome'), Icons.home_outlined, Icons.home, l10n.storeTabHome),
       (const Key('storeNavRegister'), Icons.add_circle_outline, Icons.add_circle, l10n.storeTabRegister),
       (
@@ -117,49 +115,6 @@ class StoreShell extends ConsumerWidget {
       ],
     );
 
-    // iPad ngang (Figma "Store/Side rail" 559:677): thanh dọc bên trái thay cho tab dưới
-    if (isStoreWide(context)) {
-      return Scaffold(
-        body: Row(
-          children: [
-            SafeArea(
-              right: false,
-              child: NavigationRail(
-                selectedIndex: index,
-                onDestinationSelected: select,
-                labelType: NavigationRailLabelType.all,
-                leading: const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: EcoMealLogo.symbol()),
-                destinations: [
-                  for (final (key, icon, selectedIcon, label) in tabs)
-                    NavigationRailDestination(
-                      icon: Icon(icon, key: key),
-                      selectedIcon: Icon(selectedIcon),
-                      label: Text(label),
-                    ),
-                ],
-              ),
-            ),
-            const VerticalDivider(width: 1, color: AppColors.border),
-            Expanded(child: pages),
-          ],
-        ),
-      );
-    }
-    return Scaffold(
-      body: pages,
-      bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.border)),
-        ),
-        child: NavigationBar(
-          selectedIndex: index,
-          onDestinationSelected: select,
-          destinations: [
-            for (final (key, icon, selectedIcon, label) in tabs)
-              NavigationDestination(key: key, icon: Icon(icon), selectedIcon: Icon(selectedIcon), label: label),
-          ],
-        ),
-      ),
-    );
+    return AdaptiveNavShell(index: index, onSelect: select, tabs: tabs, body: pages, bottomBarBorder: true);
   }
 }

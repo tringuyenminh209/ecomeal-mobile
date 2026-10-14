@@ -76,12 +76,12 @@ void main() {
     _ipad(tester);
     await tester.pumpWidget(_app(StoreShell(restaurant: _restaurant(), userId: 'u-1'), FakeStoreGateway(batches: [_onSale()])));
     await tester.pumpAndSettle();
-    expect(find.byType(NavigationRail), findsOneWidget);
-    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byKey(const Key('sideRail')), findsOneWidget);
+    expect(find.byKey(const Key('pillTabBar')), findsNothing);
     // rail chỉ có cái bát 40×40 (Figma 179:85), không phải logo ngang có chữ
-    final logo = tester.widget<EcoMealLogo>(find.descendant(of: find.byType(NavigationRail), matching: find.byType(EcoMealLogo)));
+    final logo = tester.widget<EcoMealLogo>(find.descendant(of: find.byKey(const Key('sideRail')), matching: find.byType(EcoMealLogo)));
     expect(logo.symbolOnly, isTrue);
-    expect(tester.getSize(find.descendant(of: find.byType(NavigationRail), matching: find.byType(Image))).width, 40);
+    expect(tester.getSize(find.descendant(of: find.byKey(const Key('sideRail')), matching: find.byType(Image))).width, 40);
     expect(find.text(l10nJa.storeBatchQtyConfirmed(12, 10)), findsOneWidget);
     expect(find.byKey(const Key('storeMonthSales')), findsOneWidget);
     final cta = tester.getRect(find.byKey(const Key('storeRegisterCta')));
@@ -96,6 +96,9 @@ void main() {
     await tester.tap(find.byKey(const Key('storeNavSettlement')));
     await tester.pumpAndSettle();
     expect(find.text(l10nJa.storeSettlementEmptyTitle), findsOneWidget);
+    // nền của mục đang chọn (khối trượt dọc) đã nằm sau 精算
+    final pill = find.descendant(of: find.byKey(const Key('sideRail')), matching: find.byKey(const Key('slidingPill')));
+    expect(tester.getRect(pill), tester.getRect(find.byKey(const Key('storeNavSettlement'))));
   });
 
   testWidgets('iPad: 精算は一覧と支払通知書を並べて表示、選んだ月に切り替わる（画面遷移しない）', (tester) async {

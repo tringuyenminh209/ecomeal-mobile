@@ -8,7 +8,8 @@ import '../../l10n/l10n.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import 'admin_gateway.dart';
-import 'admin_restaurant_page.dart' show AdminReasonSheet, maxRejectionReasonLength;
+import 'admin_restaurant_page.dart' show AdminReasonSheet, maxRejectionReasonLength, showAdminReasonSheet;
+import '../../widgets/error_banner.dart';
 import 'admin_tasks_gateway.dart';
 
 final _licenseImageUrlProvider = FutureProvider.autoDispose.family<String, String>(
@@ -21,8 +22,10 @@ final _assignedTruckProvider = FutureProvider.autoDispose.family<String?, String
 // SCR-A05 免許の確認（565:1304）— API-037 review_driver_license. Ngày hết hạn admin nhập theo ảnh (bắt buộc khi xác nhận,
 // không được là ngày đã qua — server: E-DRV-004).
 class AdminLicensePage extends ConsumerStatefulWidget {
-  const AdminLicensePage({super.key, required this.license});
+  // onClose: trong cột chi tiết của iPad — xong thì bỏ chọn thay vì pop
+  const AdminLicensePage({super.key, required this.license, this.onClose});
   final AdminLicense license;
+  final VoidCallback? onClose;
 
   @override
   ConsumerState<AdminLicensePage> createState() => _AdminLicensePageState();
@@ -31,6 +34,7 @@ class AdminLicensePage extends ConsumerStatefulWidget {
 class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
   late String? _expiresOn = widget.license.expiresOn;
   bool _busy = false;
+  bool _failed = false;
   String? _expiryError;
 
   Future<void> _pickExpiry() async {
@@ -68,8 +72,11 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
       if (ok != true || !mounted) return;
     }
     final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-    setState(() => _busy = true);
+    final close = widget.onClose ?? Navigator.of(context).pop;
+    setState(() {
+      _busy = true;
+      _failed = false;
+    });
     try {
       await ref
           .read(adminTasksGatewayProvider)
@@ -82,12 +89,13 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
       ref.invalidate(adminLicensesProvider);
       ref.invalidate(adminBadgesProvider);
       messenger.showSnackBar(SnackBar(content: Text(l10n.adminLicDone(widget.license.name))));
-      navigator.pop();
+      close();
     } catch (e) {
       if (rpcErrorCode(e) == 'E-DRV-004') {
         setState(() => _expiryError = l10n.adminLicErrExpiry);
-      } else {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.adminSaveFailed)));
+      } else if (mounted) {
+        // Giữ ngày hết hạn đã nhập — báo ngay trong trang (Figma 797:4525)
+        setState(() => _failed = true);
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -96,14 +104,9 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
 
   Future<void> _reject() async {
     final l10n = context.l10n;
-    final reason = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => AdminReasonSheet(
-        title: l10n.adminLicRejectTitle,
-        note: l10n.adminRestRejectNote,
-        sendLabel: l10n.adminLicReject,
-      ),
+    final reason = await showAdminReasonSheet(
+      context,
+      AdminReasonSheet(title: l10n.adminLicRejectTitle, note: l10n.adminRestRejectNote, sendLabel: l10n.adminLicReject),
     );
     if (reason != null && reason.length <= maxRejectionReasonLength) await _review(verify: false, reason: reason);
   }
@@ -130,7 +133,8 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
+        automaticallyImplyLeading: widget.onClose == null,
+        titleSpacing: widget.onClose == null ? 0 : null,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -209,6 +213,15 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
           ),
           const SizedBox(height: 8),
           Text(l10n.adminLicVerifyNote, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
+          if (_failed)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: ErrorBanner(
+                key: const Key('adminLicError'),
+                title: l10n.adminIssueErrorTitle,
+                message: l10n.adminLicErrorBody,
+              ),
+            ),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -228,7 +241,7 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
                 child: FilledButton(
                   key: const Key('adminLicVerify'),
                   onPressed: _busy ? null : () => _review(verify: true),
-                  child: Text(l10n.adminLicVerify),
+                  child: Text(_failed ? l10n.adminLicRetryVerify : l10n.adminLicVerify),
                 ),
               ),
             ],

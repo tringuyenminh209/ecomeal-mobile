@@ -11,6 +11,7 @@ import '../../widgets/confirm_dialog.dart';
 import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import '../orders/order_helpers.dart';
 import 'admin_gateway.dart';
+import '../../widgets/error_banner.dart';
 import 'admin_tasks_gateway.dart';
 
 // Giới hạn của order_issues.resolution (0050: 1〜500 ký tự)
@@ -25,8 +26,10 @@ int? parseRefund(String text, int refundable) {
 
 // SCR-A04 問題報告の対応（565:1246 / ¥0 568:1486 / 送信中 568:1544 / 送信エラー 568:1602）
 class AdminIssuePage extends ConsumerStatefulWidget {
-  const AdminIssuePage({super.key, required this.issue});
+  // onClose: trong cột chi tiết của iPad (2 cột) — xong / đóng thì bỏ chọn thay vì pop
+  const AdminIssuePage({super.key, required this.issue, this.onClose});
   final AdminIssue issue;
+  final VoidCallback? onClose;
 
   @override
   ConsumerState<AdminIssuePage> createState() => _AdminIssuePageState();
@@ -90,26 +93,34 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
       ref.invalidate(adminBadgesProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.adminIssueResolvedToast)));
-      Navigator.of(context).pop();
+      _close();
     } catch (e) {
       if (!mounted) return;
       if (rpcErrorCode(e) == 'E-ISSUE-409') {
         // Người khác đã xử lý (Web / admin khác): không gửi lại được — báo và tải lại danh sách
         ref.invalidate(adminIssuesProvider);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.adminIssueErrAlready)));
-        Navigator.of(context).pop();
+        _close();
         return;
       }
       // Giữ nguyên số tiền và câu trả lời để gửi lại (bài học 第50回)
       setState(() => _failed = true);
       // Khung lỗi nằm cuối danh sách, sát thanh nút cố định — cuộn tới để đọc được hết
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scroll.hasClients) _scroll.animateTo(_scroll.position.maxScrollExtent, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+        if (_scroll.hasClients) {
+          _scroll.animateTo(
+            _scroll.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+          );
+        }
       });
     } finally {
       if (mounted) setState(() => _sending = false);
     }
   }
+
+  void _close() => widget.onClose != null ? widget.onClose!() : Navigator.of(context).pop();
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +150,8 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
+        automaticallyImplyLeading: widget.onClose == null,
+        titleSpacing: widget.onClose == null ? 0 : null,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -216,21 +228,12 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
               decoration: InputDecoration(errorText: _answerError),
             ),
             if (_failed)
-              Container(
-                key: const Key('adminIssueError'),
-                margin: const EdgeInsets.only(top: 8),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: eco.errorSoft, borderRadius: BorderRadius.circular(12)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.adminIssueErrorTitle,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: eco.error),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(l10n.adminIssueErrorBody, style: TextStyle(fontSize: 13, height: 1.5, color: eco.error)),
-                  ],
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: ErrorBanner(
+                  key: const Key('adminIssueError'),
+                  title: l10n.adminIssueErrorTitle,
+                  message: l10n.adminIssueErrorBody,
                 ),
               ),
           ],

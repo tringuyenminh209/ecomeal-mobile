@@ -14,7 +14,7 @@ import '../notifications/notification_inbox.dart';
 import 'store_batch_detail_page.dart';
 import 'store_gateway.dart';
 import 'store_register_logic.dart';
-import 'store_layout.dart';
+import '../../core/wide_layout.dart';
 import 'store_ratings_page.dart';
 
 // Mốc 概算登録 trong ngày (02 §3.1.1「15〜16時頃」) — chỉ là mốc hướng dẫn: server không chặn đăng ký sau 16:00.
@@ -117,7 +117,7 @@ class StoreHomePage extends ConsumerWidget {
               ],
       ),
     ];
-    final wide = isStoreWide(context);
+    final wide = isWideLayout(context);
     final side = <Widget>[
       _RevenueCards(restaurantId: id, stacked: wide),
       const SizedBox(height: 12),
@@ -372,7 +372,6 @@ class StoreBatchCard extends StatelessWidget {
     );
   }
 }
-
 
 class _RevenueCards extends ConsumerWidget {
   const _RevenueCards({required this.restaurantId, this.stacked = false});

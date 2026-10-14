@@ -338,33 +338,7 @@ ThemeData buildAppTheme({bool dark = false}) {
       ),
       padding: EdgeInsets.symmetric(horizontal: 4),
     ),
-    // Mobile/Bottom Navigation: nền trắng, KHÔNG có viên chỉ báo, mục đang chọn tô màu Primary.
-    navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: p.surface,
-      indicatorColor: Colors.transparent,
-      elevation: 0,
-      height: 64,
-      labelTextStyle: WidgetStateProperty.resolveWith(
-        (states) => TextStyle(
-          fontFamily: _fontFamily,
-          fontSize: 11,
-          fontWeight: states.contains(WidgetState.selected)
-              ? FontWeight.w700
-              : FontWeight.w500,
-          color: states.contains(WidgetState.selected)
-              ? p.primary
-              : p.textSecondary,
-        ),
-      ),
-      iconTheme: WidgetStateProperty.resolveWith(
-        (states) => IconThemeData(
-          size: 24,
-          color: states.contains(WidgetState.selected)
-              ? p.primary
-              : p.textSecondary,
-        ),
-      ),
-    ),
+    // Tab dưới: PillTabBar (widgets/pill_tab_bar.dart) tự vẽ; app tài xế có NavigationBarTheme riêng (driver_shell.dart).
     dividerTheme: DividerThemeData(
       color: p.border,
       thickness: 1,

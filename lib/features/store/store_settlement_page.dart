@@ -12,7 +12,7 @@ import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import 'store_gateway.dart';
 import 'store_register_logic.dart';
-import 'store_layout.dart';
+import '../../core/wide_layout.dart';
 
 String _md(DateTime t, String locale) => DateFormat.MMMd(locale).format(DateTime.parse(dateInTokyo(t)));
 String _ym(String periodMonth, String locale) => DateFormat.yMMM(locale).format(DateTime.parse(periodMonth));
@@ -39,7 +39,7 @@ class StoreSettlementPage extends ConsumerWidget {
     final revenue = ref.watch(storeMonthRevenueProvider(id)).valueOrNull;
     final settlements = ref.watch(storeSettlementsProvider(id));
     final month = DateFormat.MMM(locale).format(DateTime.parse(todayInTokyo()));
-    final wide = isStoreWide(context);
+    final wide = isWideLayout(context);
     final list = settlements.valueOrNull ?? const <StoreSettlement>[];
     final selectedId = ref.watch(selectedSettlementProvider(id));
     final selected = list.isEmpty ? null : list.firstWhere((s) => s.id == selectedId, orElse: () => list.first);

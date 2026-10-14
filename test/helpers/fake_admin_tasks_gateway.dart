@@ -2,12 +2,14 @@ import 'package:ecomeal_mobile/features/admin/admin_tasks_gateway.dart';
 
 // Tab 対応 giả: danh sách cố định, ghi lại thao tác; [writeError] != null → mọi thao tác ghi ném lỗi này
 class FakeAdminTasksGateway implements AdminTasksGateway {
-  FakeAdminTasksGateway({this.issues = const [], this.restaurants = const [], this.licenses = const [], this.inquiries = const [], this.driverReports = const []});
+  FakeAdminTasksGateway({this.issues = const [], this.restaurants = const [], this.licenses = const [], this.inquiries = const [], this.driverReports = const [], this.members = const [], this.batches = const []});
   List<AdminIssue> issues;
   List<AdminRestaurant> restaurants;
   List<AdminLicense> licenses;
   List<AdminInquiry> inquiries;
   List<AdminDriverReport> driverReports;
+  List<AdminRestaurantMember> members;
+  List<AdminBatch> batches;
   Object? writeError;
   bool notifyOk = true;
   final actions = <String>[];
@@ -33,6 +35,10 @@ class FakeAdminTasksGateway implements AdminTasksGateway {
 
   @override
   Future<String> plDocUrl(String path) async => 'https://example.test/$path';
+  @override
+  Future<List<AdminRestaurantMember>> fetchRestaurantMembers(String restaurantId) async => members;
+  @override
+  Future<List<AdminBatch>> fetchRecentBatches(String restaurantId) async => batches;
   @override
   Future<List<AdminLicense>> fetchLicenses() async => licenses;
   @override
