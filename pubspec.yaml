@@ -59,6 +59,12 @@ dependencies:
   crypto: ^3.0.7
   screen_brightness: ^2.1.11
 
+# screen_brightness_ios 2.1.4 dùng API Flutter mới (FlutterSceneLifeCycleDelegate, addSceneDelegate) mà Flutter 3.32.5 của CI iOS
+# chưa có → build IPA lỗi. Ghim 2.1.2 cho tới khi nâng Flutter của CI (.github/workflows/ios.yml). Bản ghim này trước đây chỉ
+# được sửa thẳng ở repo ecomeal-mobile (9db5c01) nên bị publish-mobile.sh ghi đè — phải sửa ở đây (pj).
+dependency_overrides:
+  screen_brightness_ios: 2.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
