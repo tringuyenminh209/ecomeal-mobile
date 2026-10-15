@@ -181,6 +181,7 @@
   "stopWalk": "{stop} · 徒歩{minutes}分",
   "@stopWalk": {"placeholders": {"stop": {"type": "String"}, "minutes": {"type": "int"}}},
   "errorSessionExpired": "ログインの有効期限が切れました。もう一度ログインしてください",
+  "errorPaymentService": "決済サービスで問題が起きたため、予約できませんでした。時間をおいて、もう一度お試しください",
   "errorPriceTooLow": "このフードバッグは、今の値段ではカードで支払えません。別のフードバッグをお選びください",
   "minutesRemaining": "あと{minutes}分",
   "@minutesRemaining": {

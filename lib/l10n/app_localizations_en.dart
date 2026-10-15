@@ -421,6 +421,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your login has expired. Please log in again';
 
   @override
+  String get errorPaymentService =>
+      'We couldn\'t complete the payment because of a problem with the payment service. Please try again later';
+
+  @override
   String get errorPriceTooLow =>
       'This meal can’t be paid by card at its current price. Please choose another meal';
 

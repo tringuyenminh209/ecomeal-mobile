@@ -10,6 +10,7 @@ enum PaymentFailure {
   rateLimited, // E-RATE-429 (0052) → thanh toán quá nhiều lần trong 1 giờ: chưa giữ tiền, thử lại sau
   sessionExpired, // E-AUTH-401 → server không nhận phiên: không phải lỗi đặt hàng, phải đăng nhập lại (2026-10-14)
   priceUnavailable, // E-ORDER-011 (0071) → giá hiện tại dưới mức Stripe nhận (¥50): chưa giữ tiền
+  serviceError, // E-PAY-502 → Stripe trả lỗi không phải lỗi thẻ (cấu hình / API): không phải hết hàng, thử lại sau (2026-10-15)
   unknown, // mất mạng / quá giờ → 結果確認待ち: server có thể ĐÃ tạo đơn
   other, // hết hàng, giới hạn ngày… → khung lỗi đặt hàng như trước
 }
@@ -26,6 +27,7 @@ PaymentFailure classifyPaymentError(Object error) {
     'E-AUTH-401' => PaymentFailure.sessionExpired,
     'E-ORDER-011' => PaymentFailure.priceUnavailable,
     'E-COUPON-404' || 'E-COUPON-409' || 'E-COUPON-410' => PaymentFailure.couponUnavailable,
+    'E-PAY-502' => PaymentFailure.serviceError,
     'E-PAY-504' => PaymentFailure.unknown, // Stripe không trả lời kịp: có thể đã giữ/chốt tiền
     _ => PaymentFailure.other,
   };

@@ -92,6 +92,8 @@ void main() {
   test('2026-10-14: hết phiên (E-AUTH-401) và giá không trả được bằng thẻ (E-ORDER-011) không bị coi là hết hàng', () {
     expect(classifyPaymentError(const PaymentApiException('E-AUTH-401')), PaymentFailure.sessionExpired);
     expect(classifyPaymentError(const PaymentApiException('E-ORDER-011')), PaymentFailure.priceUnavailable);
+    // 2026-10-15: lỗi phía Stripe không phải lỗi thẻ (vd tham số API bị bỏ) — không phải hết hàng
+    expect(classifyPaymentError(const PaymentApiException('E-PAY-502')), PaymentFailure.serviceError);
   });
 
   group('SCR-M09 カードを追加 (Stripe)', () {

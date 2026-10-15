@@ -8,6 +8,7 @@ import 'package:ecomeal_mobile/features/home/home_gateway.dart';
 import 'package:ecomeal_mobile/features/orders/order_gateway.dart';
 import 'package:ecomeal_mobile/features/orders/reservation_confirm_page.dart';
 import 'package:ecomeal_mobile/features/payment/card_input.dart';
+import 'package:ecomeal_mobile/features/payment/payment_api.dart' show PaymentApiException;
 import 'package:ecomeal_mobile/features/payment/payment_gateway.dart';
 import 'package:ecomeal_mobile/widgets/customer_shell.dart';
 import 'package:ecomeal_mobile/features/coupons/coupons.dart';
@@ -250,6 +251,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(l10nJa.errorReservationFailed), findsOneWidget);
+    expect(find.text('もう一度試す'), findsOneWidget);
+  });
+
+  testWidgets('2026-10-15: Stripe trả lỗi hệ thống (E-PAY-502) → câu 決済サービス, không nói 売り切れ', (tester) async {
+    stubCreateOrder(() async => throw const PaymentApiException('E-PAY-502'));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('confirmReservationButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nJa.errorPaymentService), findsOneWidget);
+    expect(find.text(l10nJa.errorReservationFailed), findsNothing);
     expect(find.text('もう一度試す'), findsOneWidget);
   });
 

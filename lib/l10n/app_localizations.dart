@@ -818,6 +818,12 @@ abstract class AppLocalizations {
   /// **'ログインの有効期限が切れました。もう一度ログインしてください'**
   String get errorSessionExpired;
 
+  /// No description provided for @errorPaymentService.
+  ///
+  /// In ja, this message translates to:
+  /// **'決済サービスで問題が起きたため、予約できませんでした。時間をおいて、もう一度お試しください'**
+  String get errorPaymentService;
+
   /// No description provided for @errorPriceTooLow.
   ///
   /// In ja, this message translates to:

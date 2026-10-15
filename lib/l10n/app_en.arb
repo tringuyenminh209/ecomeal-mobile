@@ -120,6 +120,7 @@
   "truckPeek": "Eco-Truck running · next: {stop} {time} ({minutes} min)",
   "stopWalk": "{stop} · {minutes} min walk",
   "errorSessionExpired": "Your login has expired. Please log in again",
+  "errorPaymentService": "We couldn't complete the payment because of a problem with the payment service. Please try again later",
   "errorPriceTooLow": "This meal can’t be paid by card at its current price. Please choose another meal",
   "minutesRemaining": "{minutes} min left",
   "pickupByEcoTruck": "Pick up at the Eco-Truck",

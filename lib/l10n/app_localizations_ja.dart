@@ -397,6 +397,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorSessionExpired => 'ログインの有効期限が切れました。もう一度ログインしてください';
 
   @override
+  String get errorPaymentService =>
+      '決済サービスで問題が起きたため、予約できませんでした。時間をおいて、もう一度お試しください';
+
+  @override
   String get errorPriceTooLow => 'このフードバッグは、今の値段ではカードで支払えません。別のフードバッグをお選びください';
 
   @override

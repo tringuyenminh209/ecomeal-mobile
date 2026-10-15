@@ -78,6 +78,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
   bool _rateLimited = false; // E-RATE-429: cùng khung lỗi với _orderError, khác câu
   bool _couponError = false; // E-COUPON-*: coupon vừa được dùng ở máy khác / hết hạn
   bool _priceUnavailable = false; // E-ORDER-011 (0071): giá hiện tại dưới mức Stripe nhận
+  bool _serviceError = false; // E-PAY-502: lỗi phía hệ thống thanh toán — không được nói 「売り切れ」
   bool _useCoupon = true; // 0056 (Figma 470:1318): coupon có lợi nhất được bật sẵn, khách có thể tắt
 
   PaymentMethod? _selectedCard(List<PaymentMethod> methods) {
@@ -99,6 +100,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
       _rateLimited = false;
       _couponError = false;
       _priceUnavailable = false;
+      _serviceError = false;
     });
     try {
       final result = await ref.read(orderGatewayProvider).createOrder(
@@ -137,6 +139,10 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
             _phase = PaymentPhase.review;
             _orderError = true;
             _priceUnavailable = true;
+          case PaymentFailure.serviceError:
+            _phase = PaymentPhase.review;
+            _orderError = true;
+            _serviceError = true;
           case PaymentFailure.sessionExpired:
             // không phải lỗi đặt hàng: đăng xuất trên máy → SessionGuard đóng màn này và báo 「ログインし直してください」
             _phase = PaymentPhase.review;
@@ -441,6 +447,8 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                                   ? l10n.errorCouponUnavailable
                                   : _priceUnavailable
                                       ? l10n.errorPriceTooLow
+                                      : _serviceError
+                                      ? l10n.errorPaymentService
                                       : l10n.errorReservationFailed,
                     ),
                     const SizedBox(height: 10),
