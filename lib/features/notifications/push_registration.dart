@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/app_flavor.dart';
 import '../../core/push_notifications.dart';
@@ -60,6 +61,12 @@ Future<PushStatus> enablePush(WidgetRef ref) async {
   if (permission == PushPermission.granted) await _registerCurrentToken(ref, client);
   ref.invalidate(pushStatusProvider);
   return permission == PushPermission.granted ? PushStatus.on : PushStatus.denied;
+}
+
+// Quyền thông báo bị từ chối → mở trang Cài đặt của app; quay lại app thì đọc lại quyền (SCR-M07, thẻ ☆ của SCR-M04)
+Future<void> openPushSettings(WidgetRef ref) async {
+  await Geolocator.openAppSettings();
+  ref.invalidate(pushStatusProvider);
 }
 
 // Gọi TRƯỚC khi đăng xuất (lúc còn JWT): máy này thôi nhận thông báo của tài khoản cũ. Lỗi thì bỏ qua — không được chặn

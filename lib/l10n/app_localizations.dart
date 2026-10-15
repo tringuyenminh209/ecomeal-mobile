@@ -3506,17 +3506,47 @@ abstract class AppLocalizations {
   /// **'{count}件 ・ 新しいフードバッグをお知らせ'**
   String favoriteStopsRowCount(int count);
 
-  /// No description provided for @favoriteAdded.
+  /// No description provided for @favoriteAddedTitle.
   ///
   /// In ja, this message translates to:
-  /// **'お気に入りに追加しました。この受取地点に新しいフードバッグが出たらお知らせします'**
-  String get favoriteAdded;
+  /// **'お気に入りに追加しました'**
+  String get favoriteAddedTitle;
 
-  /// No description provided for @favoriteRemoved.
+  /// No description provided for @favoriteAddedBody.
   ///
   /// In ja, this message translates to:
-  /// **'お気に入りから外しました'**
-  String get favoriteRemoved;
+  /// **'この受取地点の新着をお知らせします。'**
+  String get favoriteAddedBody;
+
+  /// No description provided for @favoriteAddedPushOff.
+  ///
+  /// In ja, this message translates to:
+  /// **'いまは通知がオフのため、新着のお知らせは届きません。'**
+  String get favoriteAddedPushOff;
+
+  /// No description provided for @favoriteAddedPushDenied.
+  ///
+  /// In ja, this message translates to:
+  /// **'通知が許可されていないため、新着のお知らせは届きません。'**
+  String get favoriteAddedPushDenied;
+
+  /// No description provided for @favoriteRemovedTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'お気に入りを解除しました'**
+  String get favoriteRemovedTitle;
+
+  /// No description provided for @favoriteRemovedBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'この受取地点の新着通知を停止しました。'**
+  String get favoriteRemovedBody;
+
+  /// No description provided for @favoriteFeedbackClose.
+  ///
+  /// In ja, this message translates to:
+  /// **'閉じる'**
+  String get favoriteFeedbackClose;
 
   /// No description provided for @favoriteLimitReached.
   ///

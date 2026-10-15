@@ -8,13 +8,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:ecomeal_mobile/core/push_notifications.dart';
 import '../../helpers/fake_favorite_stops.dart';
+import '../../helpers/fake_push_client.dart';
 import '../../helpers/test_app.dart';
 
 const _dorm = FavoriteStop(stopLocationId: 'stop-1', name: '大阪学生寮前', address: '大阪市北区梅田3丁目');
 
-Widget _app(FakeFavoriteStopsGateway gateway, Widget child) => ProviderScope(
-      overrides: [favoriteStopsGatewayProvider.overrideWithValue(gateway)],
+// push: null = máy không có thông báo đẩy (Firebase chưa cấu hình) → thẻ ☆ hiện câu thường
+Widget _app(FakeFavoriteStopsGateway gateway, Widget child, {PushClient? push}) => ProviderScope(
+      overrides: [favoriteStopsGatewayProvider.overrideWithValue(gateway), pushClientProvider.overrideWithValue(push)],
       child: testApp(Scaffold(body: Center(child: child))),
     );
 
@@ -53,8 +56,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(gateway.calls, [('stop-9', true)]);
-      expect(find.text('お気に入りに追加しました。この受取地点に新しいフードバッグが出たらお知らせします'), findsOneWidget);
-      expect(find.byIcon(Icons.star_rounded), findsOneWidget);
+      expect(find.text(l10nJa.favoriteAddedTitle), findsOneWidget);
+      expect(find.text(l10nJa.favoriteAddedBody), findsOneWidget);
+      expect(find.byKey(const Key('favoriteFeedbackAction')), findsNothing);
+      expect(find.descendant(of: find.byKey(const Key('favoriteStarButton')), matching: find.byIcon(Icons.star_rounded)), findsOneWidget);
     });
 
     testWidgets('đã đăng ký → bấm ★ → gọi set false', (tester) async {
@@ -65,7 +70,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(gateway.calls, [('stop-1', false)]);
-      expect(find.text('お気に入りから外しました'), findsOneWidget);
+      expect(find.text(l10nJa.favoriteRemovedTitle), findsOneWidget);
+      expect(find.text(l10nJa.favoriteRemovedBody), findsOneWidget);
     });
 
     testWidgets('đã đủ 5 điểm (E-FAV-409) → câu giới hạn, nút vẫn ☆', (tester) async {
@@ -78,6 +84,58 @@ void main() {
 
       expect(find.text('お気に入りの受取地点は5件まで登録できます。マイページから整理してください'), findsOneWidget);
       expect(find.byIcon(Icons.star_outline_rounded), findsOneWidget);
+    });
+  });
+
+  group('thẻ kết quả ☆ (Figma 873:1544)', () {
+    Future<void> add(WidgetTester tester, {PushClient? push}) async {
+      await tester.pumpWidget(_app(FakeFavoriteStopsGateway([]), const FavoriteStarButton(stopLocationId: 'stop-9'), push: push));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('favoriteStarButton')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('× đóng thẻ ngay; không bấm thì tự tắt sau 4 giây', (tester) async {
+      await add(tester);
+      await tester.tap(find.byKey(const Key('favoriteFeedbackClose')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('favoriteFeedbackCard')), findsNothing);
+
+      await tester.tap(find.byKey(const Key('favoriteStarButton'))); // bỏ ★ → thẻ 解除
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.favoriteRemovedTitle), findsOneWidget);
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('favoriteFeedbackCard')), findsNothing);
+    });
+
+    testWidgets('thêm khi thông báo đang tắt → nói rõ không nhận được + 「通知をオンにする」 hỏi quyền', (tester) async {
+      final push = FakePushClient(PushPermission.notDetermined);
+      await add(tester, push: push);
+      expect(find.text(l10nJa.favoriteAddedPushOff), findsOneWidget);
+      await tester.tap(find.byKey(const Key('favoriteFeedbackAction')));
+      await tester.pumpAndSettle();
+      expect(push.requests, 1);
+      expect(find.byKey(const Key('favoriteFeedbackCard')), findsNothing);
+    });
+
+    testWidgets('thêm khi bị từ chối quyền → câu 「許可されていない」 + 「設定を開く」; đã bật thì câu thường', (tester) async {
+      await add(tester, push: FakePushClient(PushPermission.denied));
+      expect(find.text(l10nJa.favoriteAddedPushDenied), findsOneWidget);
+      expect(find.text(l10nJa.openSettings), findsOneWidget);
+
+      await add(tester, push: FakePushClient(PushPermission.granted));
+      expect(find.text(l10nJa.favoriteAddedBody), findsOneWidget);
+      expect(find.byKey(const Key('favoriteFeedbackAction')), findsNothing);
+    });
+
+    testWidgets('lưu thất bại → không hiện thẻ (chỉ câu lỗi)', (tester) async {
+      await tester.pumpWidget(_app(FakeFavoriteStopsGateway([])..error = Exception('network'), const FavoriteStarButton(stopLocationId: 'stop-9')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('favoriteStarButton')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('favoriteFeedbackCard')), findsNothing);
+      expect(find.text(l10nJa.favoriteUpdateFailed), findsOneWidget);
     });
   });
 

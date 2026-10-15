@@ -1,43 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ecomeal_mobile/core/push_notifications.dart';
 import 'package:ecomeal_mobile/features/notifications/push_registration.dart';
 import 'package:ecomeal_mobile/widgets/customer_shell.dart';
+import '../../helpers/fake_push_client.dart';
 import '../../helpers/test_app.dart';
-
-class FakePushClient implements PushClient {
-  FakePushClient(this.current, {this.afterRequest = PushPermission.granted});
-  PushPermission current;
-  final PushPermission afterRequest;
-  int requests = 0;
-  final refresh = StreamController<String>.broadcast();
-  final foreground = StreamController<({String title, String body})>.broadcast();
-  final opened = StreamController<void>.broadcast();
-
-  @override
-  String get platform => 'android';
-  @override
-  Future<PushPermission> permission() async => current;
-  @override
-  Future<PushPermission> requestPermission() async {
-    requests++;
-    return current = afterRequest;
-  }
-
-  @override
-  Future<String?> token() async => 'device-token-1';
-  @override
-  Stream<String> get onTokenRefresh => refresh.stream;
-  @override
-  Stream<({String title, String body})> get onForegroundMessage => foreground.stream;
-  @override
-  Stream<void> get onOpened => opened.stream;
-  @override
-  Future<bool> openedFromTerminated() async => false;
-}
 
 class FakeTokenGateway implements PushTokenGateway {
   final registered = <String>[];

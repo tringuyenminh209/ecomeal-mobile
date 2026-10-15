@@ -6,6 +6,7 @@ import '../../core/motion.dart';
 import '../../core/supabase_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
+import '../notifications/push_registration.dart';
 
 // UC-41 お気に入りの受取地点 (0053, API-067〜068). Đăng ký điểm nhận công khai (tối đa 5) → có túi đồ ăn mới ở đó thì
 // server tự gửi thông báo (outbox new_batch). App chỉ đọc danh sách và bật/tắt.
@@ -76,11 +77,15 @@ class _FavoriteStarButtonState extends ConsumerState<FavoriteStarButton> {
   bool _justToggled = false;
 
   // Nút này nằm ở SCR-M04, nơi nút 「予約する」 cố định ở cuối màn: SnackBar nổi lên phía trên nút (không che, không chặn thao tác), tự tắt sau 4 giây
-  SnackBar _snack(String text) => SnackBar(
-        content: Text(text),
+  SnackBar _snack(Widget content, {bool card = false}) => SnackBar(
+        content: content,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 96),
         duration: const Duration(seconds: 4),
+        // Thẻ kết quả tự vẽ nền / viền / bóng (Figma 873:1782)
+        backgroundColor: card ? Colors.transparent : null,
+        elevation: card ? 0 : null,
+        padding: card ? EdgeInsets.zero : null,
       );
 
   Future<void> _toggle(bool current) async {
@@ -92,9 +97,12 @@ class _FavoriteStarButtonState extends ConsumerState<FavoriteStarButton> {
       ref.invalidate(myFavoriteStopsProvider);
       _justToggled = true; // chỉ nảy khi chính người dùng vừa bật, không nảy lúc mở màn đã có ★
       Haptics.selection();
-      messenger.showSnackBar(_snack(current ? l10n.favoriteRemoved : l10n.favoriteAdded));
+      // Chỉ hiện SAU khi server lưu xong. Vừa thêm mà thông báo của máy đang tắt → nói rõ sẽ không nhận được + nút mở
+      final push = current ? null : await ref.read(pushStatusProvider.future).catchError((_) => PushStatus.unavailable);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(_snack(FavoriteFeedbackCard(added: !current, push: push), card: true));
     } catch (e) {
-      messenger.showSnackBar(_snack(favoriteErrorMessage(e, l10n)));
+      messenger.showSnackBar(_snack(Text(favoriteErrorMessage(e, l10n))));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -130,6 +138,90 @@ class _FavoriteStarButtonState extends ConsumerState<FavoriteStarButton> {
             size: 22,
             color: isFavorite ? context.eco.primary : context.eco.textSecondary,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Thẻ kết quả ☆ (Figma 873:1544 "M04 お気に入り / 追加・解除のフィードバック"): viền xanh, icon sao trong vòng xanh nhạt,
+// tiêu đề + 1 dòng giải thích, nút × 44px. Đọc cho trình đọc màn hình kiểu "polite" (liveRegion, không ngắt lời).
+class FavoriteFeedbackCard extends ConsumerWidget {
+  const FavoriteFeedbackCard({super.key, required this.added, this.push});
+  final bool added;
+  // Chỉ có khi vừa thêm: off / denied → câu khác + nút bật thông báo / mở cài đặt
+  final PushStatus? push;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final eco = context.eco;
+    final messenger = ScaffoldMessenger.of(context);
+    final body = !added
+        ? l10n.favoriteRemovedBody
+        : switch (push) {
+            PushStatus.off => l10n.favoriteAddedPushOff,
+            PushStatus.denied => l10n.favoriteAddedPushDenied,
+            _ => l10n.favoriteAddedBody,
+          };
+    final (actionLabel, action) = switch (added ? push : null) {
+      PushStatus.off => (l10n.pushEnableButton, () => enablePush(ref).catchError((_) => PushStatus.off)),
+      PushStatus.denied => (l10n.openSettings, () => openPushSettings(ref)),
+      _ => (null, null),
+    };
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        key: const Key('favoriteFeedbackCard'),
+        padding: const EdgeInsets.fromLTRB(12, 14, 8, 14),
+        decoration: BoxDecoration(
+          color: eco.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: eco.primary),
+          boxShadow: const [BoxShadow(color: Color(0x1F142617), blurRadius: 18, offset: Offset(0, 6))],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: eco.primarySoft, shape: BoxShape.circle),
+              child: Icon(added ? Icons.star_rounded : Icons.star_outline_rounded, size: 22, color: eco.primary),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    added ? l10n.favoriteAddedTitle : l10n.favoriteRemovedTitle,
+                    style: TextStyle(fontSize: 13, height: 1.5, fontWeight: FontWeight.w700, color: eco.textPrimary),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(body, style: TextStyle(fontSize: 12, height: 1.5, color: eco.textSecondary)),
+                  if (action != null)
+                    TextButton(
+                      key: const Key('favoriteFeedbackAction'),
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 36)),
+                      onPressed: () {
+                        messenger.hideCurrentSnackBar();
+                        action();
+                      },
+                      child: Text(actionLabel!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            IconButton(
+              key: const Key('favoriteFeedbackClose'),
+              tooltip: l10n.favoriteFeedbackClose,
+              style: IconButton.styleFrom(fixedSize: const Size(44, 44)),
+              onPressed: messenger.hideCurrentSnackBar,
+              icon: Icon(Icons.close_rounded, size: 18, color: eco.textSecondary),
+            ),
+          ],
         ),
       ),
     );

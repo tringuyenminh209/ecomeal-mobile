@@ -16,7 +16,6 @@ import '../favorites/favorite_stops.dart';
 import '../favorites/favorite_stops_page.dart';
 import '../coupons/coupons.dart';
 import '../coupons/coupons_page.dart';
-import 'package:geolocator/geolocator.dart' show Geolocator;
 import '../legal/legal_pages.dart';
 import '../notifications/push_registration.dart';
 import '../legal/terms_gateway.dart';
@@ -381,11 +380,7 @@ class _AppNotificationSectionState extends ConsumerState<_AppNotificationSection
                   const SizedBox(height: 10),
                   OutlinedButton(
                     key: const Key('pushSettingsButton'),
-                    // Quay lại app sau khi đổi trong Cài đặt → đọc lại quyền
-                    onPressed: () async {
-                      await Geolocator.openAppSettings();
-                      ref.invalidate(pushStatusProvider);
-                    },
+                    onPressed: () => openPushSettings(ref),
                     child: Text(l10n.openSettings),
                   ),
                 ],

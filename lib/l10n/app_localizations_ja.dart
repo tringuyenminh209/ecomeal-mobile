@@ -1889,10 +1889,25 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get favoriteAdded => 'お気に入りに追加しました。この受取地点に新しいフードバッグが出たらお知らせします';
+  String get favoriteAddedTitle => 'お気に入りに追加しました';
 
   @override
-  String get favoriteRemoved => 'お気に入りから外しました';
+  String get favoriteAddedBody => 'この受取地点の新着をお知らせします。';
+
+  @override
+  String get favoriteAddedPushOff => 'いまは通知がオフのため、新着のお知らせは届きません。';
+
+  @override
+  String get favoriteAddedPushDenied => '通知が許可されていないため、新着のお知らせは届きません。';
+
+  @override
+  String get favoriteRemovedTitle => 'お気に入りを解除しました';
+
+  @override
+  String get favoriteRemovedBody => 'この受取地点の新着通知を停止しました。';
+
+  @override
+  String get favoriteFeedbackClose => '閉じる';
 
   @override
   String get favoriteLimitReached => 'お気に入りの受取地点は5件まで登録できます。マイページから整理してください';

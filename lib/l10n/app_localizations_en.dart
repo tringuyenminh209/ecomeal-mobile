@@ -1983,11 +1983,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get favoriteAdded =>
-      'Added to favorites. We\'ll let you know when new food bags are available at this pickup point';
+  String get favoriteAddedTitle => 'Added to favorites';
 
   @override
-  String get favoriteRemoved => 'Removed from favorites';
+  String get favoriteAddedBody =>
+      'We\'ll let you know about new food bags here.';
+
+  @override
+  String get favoriteAddedPushOff =>
+      'Notifications are off, so you won\'t get updates yet.';
+
+  @override
+  String get favoriteAddedPushDenied =>
+      'Notifications aren\'t allowed, so you won\'t get updates.';
+
+  @override
+  String get favoriteRemovedTitle => 'Removed from favorites';
+
+  @override
+  String get favoriteRemovedBody =>
+      'Notifications for this pickup point are off.';
+
+  @override
+  String get favoriteFeedbackClose => 'Close';
 
   @override
   String get favoriteLimitReached =>
