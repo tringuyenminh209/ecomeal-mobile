@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/batch_photo.dart';
 import '../../core/jst_date.dart';
 import '../../core/supabase_client.dart';
 
@@ -141,8 +142,7 @@ class SupabaseHomeGateway implements HomeGateway {
   SupabaseHomeGateway(this._client);
   final SupabaseClient _client;
 
-  // Bucket công khai (0038): đường dẫn trong bucket → URL hiển thị. 1 chỗ duy nhất cho cả danh sách và chi tiết.
-  String? _photoUrl(String? path) => path == null ? null : _client.storage.from('batch_photos').getPublicUrl(path);
+  String? _photoUrl(String? path) => batchPhotoUrl(_client, path);
 
   // Bắt đầu từ batch_route_stops (không phải surplus_batches) — xem box-why đầu chương: mỗi dòng
   // ở đây là 1 "cặp lô hàng + điểm dừng" bán được thật sự, khớp đúng đơn vị create_order cần.

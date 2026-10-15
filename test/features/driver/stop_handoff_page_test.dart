@@ -41,7 +41,7 @@ void main() {
 
   // Mở D03 bằng push từ 1 màn có Scaffold (giống D01 thật) để nhận message khi pop sau "出発".
   Future<void> pumpPage(WidgetTester tester, {void Function(String?)? onResult}) async {
-    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.physicalSize = const Size(1080, 3600); // D03 dài: thẻ この場所で渡すもの + các bước ở trên
     addTearDown(tester.view.reset);
     await tester.pumpWidget(ProviderScope(
       overrides: [
@@ -69,6 +69,19 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('この場所で渡すもの: số đơn đặt trước, số suất bán không cần đặt (API-025), tổng và từng lô', (tester) async {
+    when(() => gateway.fetchStopHandoff('p2')).thenAnswer((_) async => handoff());
+    await pumpPage(tester);
+
+    expect(find.text('この場所で渡すもの'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('handout_total'))).data, '合計 12食');
+    expect(tester.widget<Text>(find.byKey(const Key('handout_reserved'))).data, '2件');
+    expect(tester.widget<Text>(find.byKey(const Key('handout_sellable'))).data, '3食');
+    // tên lô = điểm thu gom của quán B (restaurants bị RLS ẩn)
+    expect(find.text('12食（予約なしの残り 3食）'), findsOneWidget);
+    expect(find.text('ここでの流れ'), findsOneWidget);
+  });
 
   testWidgets('quét QR của đơn đang chờ ở điểm này → confirm_pickup đúng order_id', (tester) async {
     when(() => gateway.fetchStopHandoff('p2')).thenAnswer((_) async => handoff());
@@ -135,7 +148,8 @@ void main() {
     await tester.tap(find.text('予約なし販売'));
     await tester.pumpAndSettle();
     expect(find.text('残り 1食'), findsOneWidget);
-    expect(find.text('Stop rB'), findsOneWidget); // tên lô = tên điểm thu gom của nhà hàng đó
+    // tên lô = tên điểm thu gom của nhà hàng đó (ở thẻ この場所で渡すもの và ở thẻ Walk-up)
+    expect(find.text('Stop rB'), findsNWidgets(2));
 
     await tester.tap(find.byKey(const Key('sellWalkup_batch-1')));
     await tester.pumpAndSettle();

@@ -47,4 +47,14 @@ void main() {
     expect(validateConfirmedQty('2.5', l10nJa), '0以上の整数で入力してください');
     expect(validateConfirmedQty('0', l10nJa), isNull); // 0 hợp lệ: quán báo không còn gì — FIFO hoàn tiền toàn bộ
   });
+
+  test('batchesAt() / pickupLoadOf(): lô của đúng quán, sớm ngừng bán trước; tách chưa nhận / đã nhận', () {
+    expect(batchesAt(routeFixture, stops[2]).map((b) => b.id), ['bB1', 'bB2']);
+    expect(pickupLoadOf(routeFixture, stops[2]), (toPick: 16, picked: 0));
+    expect(pickupLoadOf(routeFixture, stops[0]), (toPick: 0, picked: 12)); // dùng số đã chốt, không phải số dự kiến 14
+  });
+
+  test('routeProgressOf(): đếm điểm đã rời, tách thu gom / bán', () {
+    expect(routeProgressOf(stops), (done: 2, total: 5, pickupDone: 1, pickupTotal: 2, salesDone: 1, salesTotal: 3));
+  });
 }

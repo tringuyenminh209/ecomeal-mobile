@@ -14,6 +14,7 @@ import 'driver_gateway.dart';
 import 'driver_route_helpers.dart';
 import 'handoff_gateway.dart';
 import 'handoff_helpers.dart';
+import 'pickup_stop_page.dart' show DriverStepsCard;
 import 'qr_scan_page.dart';
 import '../../widgets/skeleton.dart';
 import '../../core/haptics.dart';
@@ -210,6 +211,10 @@ class _StopHandoffPageState extends ConsumerState<StopHandoffPage> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                   children: [
+                    _HandoutSummary(data: data, route: widget.route),
+                    const SizedBox(height: 12),
+                    DriverStepsCard(title: l10n.handoutStepsTitle, steps: [l10n.handoutStep1, l10n.handoutStep2, l10n.handoutStep3]),
+                    const SizedBox(height: 14),
                     _ModeTabs(
                       labels: [l10n.reservationHandoffTab, l10n.walkupTab],
                       selected: _tab,
@@ -256,6 +261,85 @@ class _StopHandoffPageState extends ConsumerState<StopHandoffPage> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+// restaurants bị RLS ẩn với tài xế → đặt tên lô theo điểm thu gom của nhà hàng đó trên tuyến (Chương 19).
+String _batchLabel(TonightRoute route, WalkupStock stock, AppLocalizations l10n) {
+  for (final s in route.stops) {
+    if (s.type == 'restaurant' && s.restaurantId == stock.restaurantId) return s.name;
+  }
+  return l10n.batchLabel;
+}
+
+// 「この場所で渡すもの」(2026-10-16, Figma 897:1695): tới nơi là biết phải giao gì — số đơn đặt trước (quét QR), số suất
+// còn bán được cho khách không đặt (API-025, không tự tính), tổng suất và số của từng lô.
+class _HandoutSummary extends StatelessWidget {
+  const _HandoutSummary({required this.data, required this.route});
+  final StopHandoff data;
+  final TonightRoute route;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final eco = context.eco;
+    final total = data.walkupStocks.fold(0, (sum, s) => sum + s.capacity);
+    final sellable = data.walkupStocks.fold(0, (sum, s) => sum + s.remaining);
+    Widget box(String label, String value, String caption, String id) => Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: eco.background, borderRadius: BorderRadius.circular(10)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontSize: 11, color: eco.textSecondary)),
+                Text(value, key: Key('handout_$id'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                Text(caption, style: TextStyle(fontSize: 11, color: eco.textSecondary)),
+              ],
+            ),
+          ),
+        );
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: eco.surface,
+        border: Border.all(color: eco.amber, width: 1.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(l10n.handoutHereTitle, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: eco.amber))),
+              Text(l10n.totalMeals(total), key: const Key('handout_total'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              box(l10n.reservedCustomers, l10n.countItems(data.reservations.length), l10n.scanQrToHand, 'reserved'),
+              const SizedBox(width: 8),
+              box(l10n.walkupSellable, l10n.mealsCount(sellable), l10n.registerOnSpot, 'sellable'),
+            ],
+          ),
+          if (data.walkupStocks.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(l10n.perFoodLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: eco.textSecondary)),
+            for (final stock in data.walkupStocks)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(_batchLabel(route, stock, l10n), style: const TextStyle(fontSize: 12))),
+                    Text(l10n.batchCapacityRow(stock.capacity, stock.remaining), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+          ],
+        ],
       ),
     );
   }
@@ -383,14 +467,6 @@ class _WalkupSection extends StatelessWidget {
   final bool enabled;
   final Future<void> Function(WalkupStock) onSell;
 
-  // restaurants bị RLS ẩn với tài xế → đặt tên lô theo điểm thu gom của nhà hàng đó trên tuyến (Chương 19).
-  String _labelOf(WalkupStock stock, AppLocalizations l10n) {
-    for (final s in route.stops) {
-      if (s.type == 'restaurant' && s.restaurantId == stock.restaurantId) return s.name;
-    }
-    return l10n.batchLabel;
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -415,7 +491,7 @@ class _WalkupSection extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(_labelOf(stock, l10n), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                      child: Text(_batchLabel(route, stock, l10n), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                     ),
                     StatusBadge(label: l10n.mealsRemaining(stock.remaining), tone: BadgeTone.warning),
                   ],

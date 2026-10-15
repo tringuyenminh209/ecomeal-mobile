@@ -3916,4 +3916,245 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get noticeDriverReportedBody => '運行中のドライバーから遅れ・トラブルの連絡が届きました。';
+
+  @override
+  String get driverReportShort => '運営に連絡';
+
+  @override
+  String get driverProgressTitle => '今夜の進み具合';
+
+  @override
+  String driverProgressCount(int done, int total) {
+    return '$totalか所中 $doneか所 完了';
+  }
+
+  @override
+  String driverProgressPickup(int done, int total) {
+    return '集荷 $done/$total';
+  }
+
+  @override
+  String driverProgressSales(int done, int total) {
+    return '販売 $done/$total';
+  }
+
+  @override
+  String get nextTaskLabel => '次にやること';
+
+  @override
+  String stepBadgePickup(int number) {
+    return '$numberか所目・集荷';
+  }
+
+  @override
+  String stepBadgeSales(int number) {
+    return '$numberか所目・販売';
+  }
+
+  @override
+  String nextTaskPickupTitle(String name) {
+    return '$name で料理を受け取る';
+  }
+
+  @override
+  String nextTaskSalesTitle(String name) {
+    return '$name でお客様に渡す';
+  }
+
+  @override
+  String get arriveByLabel => '着く予定';
+
+  @override
+  String get timeLeftLabel => 'あと';
+
+  @override
+  String get pickupAmountLabel => '受け取る量';
+
+  @override
+  String get handoutAmountLabel => '渡す量';
+
+  @override
+  String approxMeals(int qty) {
+    return '約$qty食';
+  }
+
+  @override
+  String get nothingToPickUp => 'ここで受け取る料理はもうありません';
+
+  @override
+  String nextTaskPickupDetail(int count, String time) {
+    return '受け取る料理 $countつ ・ お店の販売終了 $time';
+  }
+
+  @override
+  String nextTaskSalesDetail(int count) {
+    return '予約 $count件は受け取りQRを読んで渡します';
+  }
+
+  @override
+  String get navigateButton => 'ナビで行く';
+
+  @override
+  String get arrivedPickupButton => '着いた・受け取る';
+
+  @override
+  String get arrivedSalesButton => '着いた・渡す';
+
+  @override
+  String get navigationFailed => '地図アプリを開けませんでした';
+
+  @override
+  String get allStopsDoneTitle => 'すべての場所が終わりました';
+
+  @override
+  String get allStopsDoneBody => '売れ残りがあれば「終了」タブで寄付を記録できます。';
+
+  @override
+  String get routePhasePickup => '① お店で受け取る（集荷）';
+
+  @override
+  String get routePhaseSales => '② お客様に渡す（販売）';
+
+  @override
+  String placesCount(int count) {
+    return '$countか所';
+  }
+
+  @override
+  String stopPickupPending(int qty) {
+    return '約$qty食を受け取る';
+  }
+
+  @override
+  String stopPickupDone(int qty) {
+    return '受け取り済み・$qty食';
+  }
+
+  @override
+  String stopSalesLoad(int reserved, int total) {
+    return '予約 $reserved件 ・ 全部で $total食';
+  }
+
+  @override
+  String pickupStopSubtitle(int index, int total, String time) {
+    return '集荷 $index/$total ・ $time 着く予定';
+  }
+
+  @override
+  String get addressLabel => '住所';
+
+  @override
+  String get copyAddressButton => '住所をコピー';
+
+  @override
+  String get addressCopied => '住所をコピーしました';
+
+  @override
+  String foodsToPickUp(int count) {
+    return '受け取る料理（$countつ）';
+  }
+
+  @override
+  String get shopPlannedQty => '（お店の予定）';
+
+  @override
+  String shopSellByLabel(String time) {
+    return 'お店の販売終了 $time';
+  }
+
+  @override
+  String get pickUpThisFood => 'この料理を受け取る';
+
+  @override
+  String pickedUpChip(int qty) {
+    return '受け取り済み・$qty食';
+  }
+
+  @override
+  String get pickupStepsTitle => '受け取りの流れ';
+
+  @override
+  String get pickupStep1 => '数を数える（お店の予定と違っても大丈夫。実際の数を入れます）';
+
+  @override
+  String get pickupStep2 => '中心温度を測る（冷蔵品は10℃以下）';
+
+  @override
+  String get pickupStep3 => '「受け取りを確定」を押すと、渡す場所と数が決まります';
+
+  @override
+  String pickupDoneTitle(int qty) {
+    return '$qty食を積みました';
+  }
+
+  @override
+  String pickupDoneSubtitle(String name, String temp) {
+    return '$name ・ 中心温度 $temp℃';
+  }
+
+  @override
+  String get securedReservations => '確保した予約';
+
+  @override
+  String get refundedReservations => '返金した予約';
+
+  @override
+  String get dropsTitle => 'この料理を渡す場所';
+
+  @override
+  String dropSubtitle(String time, int count) {
+    return '$time ・ うち予約 $count件';
+  }
+
+  @override
+  String get allPickupsDoneHint => '集荷はすべて終わりました。料理が冷えたままか確認して出発してください。';
+
+  @override
+  String get morePickupsHint => '次のお店へ向かってください。';
+
+  @override
+  String get moreFoodHereHint => 'このお店にまだ受け取る料理があります。';
+
+  @override
+  String get backToHome => 'ホームへ';
+
+  @override
+  String get handoutHereTitle => 'この場所で渡すもの';
+
+  @override
+  String totalMeals(int qty) {
+    return '合計 $qty食';
+  }
+
+  @override
+  String get reservedCustomers => '予約のお客様';
+
+  @override
+  String get walkupSellable => '予約なしで売れる';
+
+  @override
+  String get scanQrToHand => 'QRを読んで渡す';
+
+  @override
+  String get registerOnSpot => 'その場で販売を登録';
+
+  @override
+  String get perFoodLabel => '料理ごとの数';
+
+  @override
+  String batchCapacityRow(int capacity, int remaining) {
+    return '$capacity食（予約なしの残り $remaining食）';
+  }
+
+  @override
+  String get handoutStepsTitle => 'ここでの流れ';
+
+  @override
+  String get handoutStep1 => '予約のお客様: 受け取りQRを読み取る（読めないときは4桁のコード）';
+
+  @override
+  String get handoutStep2 => '予約のないお客様: 「予約なし販売」タブで1食ずつ登録';
+
+  @override
+  String get handoutStep3 => '終わったら「停車地点を出発」→ 次の場所へ';
 }

@@ -11,7 +11,7 @@ class MockDriverGateway extends Mock implements DriverGateway {}
 
 void main() {
   late MockDriverGateway gateway;
-  const batch = PickupBatch(id: 'batch-1', estimatedQty: 30);
+  final batch = RouteBatch(id: 'batch-1', restaurantId: 'rest-B', estimatedQty: 30, confirmedQty: null, sellByAt: DateTime.utc(2026, 10, 2, 9, 30));
 
   setUp(() => gateway = MockDriverGateway());
 
@@ -24,8 +24,8 @@ void main() {
         )).thenAnswer((_) async => const ConfirmResult(allocatedOrderCount: 12, refundedOrderCount: 3));
   }
 
-  // Mở D02 bằng push từ 1 màn có Scaffold (giống D01 thật) để nhận lại message khi pop.
-  Future<void> pumpPage(WidgetTester tester, {void Function(String?)? onResult, Locale locale = const Locale('ja')}) async {
+  // Mở D02 bằng push từ 1 màn có Scaffold (giống D07 thật) để nhận lại kết quả khi pop.
+  Future<void> pumpPage(WidgetTester tester, {void Function(PickupOutcome?)? onResult, Locale locale = const Locale('ja')}) async {
     tester.view.physicalSize = const Size(1080, 2400); // màn dọc như điện thoại — D02 dài
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
@@ -36,7 +36,7 @@ void main() {
             body: Builder(
               builder: (context) => TextButton(
                 onPressed: () async {
-                  final r = await Navigator.of(context).push<String>(MaterialPageRoute(
+                  final r = await Navigator.of(context).push<PickupOutcome>(MaterialPageRoute(
                     builder: (_) => PickupConfirmPage(route: routeFixture, collectionStop: routeFixture.stops[2], batch: batch),
                   ));
                   onResult?.call(r);
@@ -54,7 +54,7 @@ void main() {
   }
 
   testWidgets('bỏ chọn 1 điểm → 1 RPC nhận đúng số lượng + điểm còn lại theo thứ tự tuyến + nhiệt độ', (tester) async {
-    String? result;
+    PickupOutcome? result;
     stubConfirm();
     await pumpPage(tester, onResult: (r) => result = r);
 
@@ -68,7 +68,7 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => gateway.confirmWithTemperature(batchId: 'batch-1', confirmedQty: 28, routeStopIds: ['p2'], celsius: 5.2)).called(1);
-    expect(result, '28食の受け取りを確定しました（予約12件確保・3件返金）');
+    expect((result?.batchId, result?.confirmedQty, result?.celsius, result?.result.allocatedOrderCount), ('batch-1', 28, 5.2, 12));
   });
 
   testWidgets('chưa nhập nhiệt độ → nút xác nhận disabled', (tester) async {
@@ -158,7 +158,7 @@ void main() {
   });
 
   testWidgets('10℃超 → 「回収しない」で送信、サーバーが回収しなかった結果を伝える', (tester) async {
-    String? result;
+    PickupOutcome? result;
     when(() => gateway.confirmWithTemperature(
           batchId: any(named: 'batchId'),
           confirmedQty: any(named: 'confirmedQty'),
@@ -174,7 +174,7 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => gateway.confirmWithTemperature(batchId: 'batch-1', confirmedQty: 30, routeStopIds: ['p2', 'p3'], celsius: 12.5)).called(1);
-    expect(result, '温度基準外のため回収しませんでした（予約4件を返金）');
+    expect((result?.result.rejectedForTemperature, result?.result.refundedOrderCount), (true, 4));
   });
 
   testWidgets('10.0℃ ちょうどは基準内 → 通常の確定ボタン', (tester) async {

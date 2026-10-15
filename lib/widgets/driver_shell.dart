@@ -117,7 +117,7 @@ class _StopsTab extends ConsumerWidget {
                 onRefresh: () async => ref.invalidate(tonightRouteProvider),
                 child: ListView(
                   padding: const EdgeInsets.all(16),
-                  children: [RouteStopList(stops: stops, onTapStop: (stop) => openStop(context, ref, route, stop))],
+                  children: [RouteStopList(route: route, onlyType: type, onTapStop: (stop) => openStop(context, ref, route, stop))],
                 ),
               );
             },

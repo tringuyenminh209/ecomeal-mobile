@@ -4085,4 +4085,252 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noticeDriverReportedBody =>
       'A driver reported a delay or problem on tonight\'s route.';
+
+  @override
+  String get driverReportShort => 'Contact ops';
+
+  @override
+  String get driverProgressTitle => 'Tonight\'s progress';
+
+  @override
+  String driverProgressCount(int done, int total) {
+    return '$done of $total stops done';
+  }
+
+  @override
+  String driverProgressPickup(int done, int total) {
+    return 'Pickups $done/$total';
+  }
+
+  @override
+  String driverProgressSales(int done, int total) {
+    return 'Sales $done/$total';
+  }
+
+  @override
+  String get nextTaskLabel => 'Next';
+
+  @override
+  String stepBadgePickup(int number) {
+    return 'Stop $number · Pickup';
+  }
+
+  @override
+  String stepBadgeSales(int number) {
+    return 'Stop $number · Sales';
+  }
+
+  @override
+  String nextTaskPickupTitle(String name) {
+    return 'Pick up food at $name';
+  }
+
+  @override
+  String nextTaskSalesTitle(String name) {
+    return 'Hand out food at $name';
+  }
+
+  @override
+  String get arriveByLabel => 'Arrive by';
+
+  @override
+  String get timeLeftLabel => 'Time left';
+
+  @override
+  String get pickupAmountLabel => 'To pick up';
+
+  @override
+  String get handoutAmountLabel => 'To hand out';
+
+  @override
+  String approxMeals(int qty) {
+    return 'About $qty';
+  }
+
+  @override
+  String get nothingToPickUp => 'Nothing left to pick up here';
+
+  @override
+  String nextTaskPickupDetail(int count, String time) {
+    return '$count items · shop stops selling at $time';
+  }
+
+  @override
+  String nextTaskSalesDetail(int count) {
+    return 'Scan the pickup QR for $count reservations';
+  }
+
+  @override
+  String get navigateButton => 'Navigate';
+
+  @override
+  String get arrivedPickupButton => 'I\'m here · pick up';
+
+  @override
+  String get arrivedSalesButton => 'I\'m here · hand out';
+
+  @override
+  String get navigationFailed => 'Couldn\'t open the map app';
+
+  @override
+  String get allStopsDoneTitle => 'All stops are done';
+
+  @override
+  String get allStopsDoneBody =>
+      'If food is left, record the donation in the End tab.';
+
+  @override
+  String get routePhasePickup => '1. Pick up at shops';
+
+  @override
+  String get routePhaseSales => '2. Hand out to customers';
+
+  @override
+  String placesCount(int count) {
+    return '$count stops';
+  }
+
+  @override
+  String stopPickupPending(int qty) {
+    return 'Pick up about $qty';
+  }
+
+  @override
+  String stopPickupDone(int qty) {
+    return 'Picked up · $qty';
+  }
+
+  @override
+  String stopSalesLoad(int reserved, int total) {
+    return '$reserved reserved · $total in total';
+  }
+
+  @override
+  String pickupStopSubtitle(int index, int total, String time) {
+    return 'Pickup $index/$total · arrive by $time';
+  }
+
+  @override
+  String get addressLabel => 'Address';
+
+  @override
+  String get copyAddressButton => 'Copy address';
+
+  @override
+  String get addressCopied => 'Address copied';
+
+  @override
+  String foodsToPickUp(int count) {
+    return 'Food to pick up ($count)';
+  }
+
+  @override
+  String get shopPlannedQty => '(shop\'s estimate)';
+
+  @override
+  String shopSellByLabel(String time) {
+    return 'Shop stops selling at $time';
+  }
+
+  @override
+  String get pickUpThisFood => 'Pick up this food';
+
+  @override
+  String pickedUpChip(int qty) {
+    return 'Picked up · $qty';
+  }
+
+  @override
+  String get pickupStepsTitle => 'How to pick up';
+
+  @override
+  String get pickupStep1 =>
+      'Count the meals (it\'s fine if it differs from the estimate — enter the real number)';
+
+  @override
+  String get pickupStep2 =>
+      'Measure the core temperature (chilled food: 10℃ or below)';
+
+  @override
+  String get pickupStep3 =>
+      'Press confirm — the app decides where each meal goes';
+
+  @override
+  String pickupDoneTitle(int qty) {
+    return 'Loaded $qty meals';
+  }
+
+  @override
+  String pickupDoneSubtitle(String name, String temp) {
+    return '$name · core temp $temp℃';
+  }
+
+  @override
+  String get securedReservations => 'Reservations kept';
+
+  @override
+  String get refundedReservations => 'Reservations refunded';
+
+  @override
+  String get dropsTitle => 'Where this food goes';
+
+  @override
+  String dropSubtitle(String time, int count) {
+    return '$time · $count reserved';
+  }
+
+  @override
+  String get allPickupsDoneHint =>
+      'All pickups are done. Check the food is still cold, then head out.';
+
+  @override
+  String get morePickupsHint => 'Head to the next shop.';
+
+  @override
+  String get moreFoodHereHint => 'There is more food to pick up at this shop.';
+
+  @override
+  String get backToHome => 'Home';
+
+  @override
+  String get handoutHereTitle => 'To hand out here';
+
+  @override
+  String totalMeals(int qty) {
+    return '$qty in total';
+  }
+
+  @override
+  String get reservedCustomers => 'Reserved';
+
+  @override
+  String get walkupSellable => 'Can sell without reservation';
+
+  @override
+  String get scanQrToHand => 'Scan QR, then hand over';
+
+  @override
+  String get registerOnSpot => 'Register each sale';
+
+  @override
+  String get perFoodLabel => 'By food';
+
+  @override
+  String batchCapacityRow(int capacity, int remaining) {
+    return '$capacity ($remaining left without reservation)';
+  }
+
+  @override
+  String get handoutStepsTitle => 'What to do here';
+
+  @override
+  String get handoutStep1 =>
+      'Reserved customers: scan their pickup QR (or the 4-digit code)';
+
+  @override
+  String get handoutStep2 =>
+      'Customers without a reservation: register each meal in the Walk-up tab';
+
+  @override
+  String get handoutStep3 => 'When done, press Depart and go to the next stop';
 }

@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/batch_photo.dart';
 import '../../core/jst_date.dart';
 import '../../core/supabase_client.dart';
+import '../home/home_gateway.dart' show AllergenName;
 
 class DriverTruck {
   const DriverTruck({required this.id, required this.plateNumber});
@@ -39,16 +41,51 @@ class DriverStop {
 }
 
 class TonightRoute {
-  const TonightRoute({required this.truck, required this.routeId, required this.stops});
+  const TonightRoute({
+    required this.truck,
+    required this.routeId,
+    required this.stops,
+    this.batches = const [],
+    this.capacityAtStop = const {},
+  });
   final DriverTruck truck;
   final String? routeId; // null: đêm nay xe chưa có tuyến nào (chưa nhà hàng nào đăng ký ước tính)
   final List<DriverStop> stops; // đã sắp theo sequence
+  final List<RouteBatch> batches; // mọi lô của tuyến đêm nay (SCR-D07: ở quán nào lấy gì, bao nhiêu)
+  // route_stop_id → tổng số suất các lô ĐÃ CHỐT chia cho điểm bán đó (batch_route_stops.available_qty, gồm cả suất đã
+  // giữ cho đơn đặt trước). Điểm chưa nhận lô nào thì không có khoá.
+  final Map<String, int> capacityAtStop;
 }
 
-class PickupBatch {
-  const PickupBatch({required this.id, required this.estimatedQty});
+// 1 lô hàng của tuyến (surplus_batches). Tài xế không thấy restaurants (RLS) → nhận diện quán qua restaurantId ==
+// điểm thu gom (DriverStop.restaurantId).
+class RouteBatch {
+  const RouteBatch({
+    required this.id,
+    required this.restaurantId,
+    required this.estimatedQty,
+    required this.confirmedQty,
+    required this.sellByAt,
+    this.photoUrl,
+    this.allergens = const [],
+  });
   final String id;
-  final int estimatedQty;
+  final String restaurantId;
+  final int estimatedQty; // số quán dự kiến (S02)
+  final int? confirmedQty; // null: chưa nhận (stage='estimated'); có số: tài xế đã chốt ở SCR-D02
+  final DateTime sellByAt; // restaurant_sell_by_at — giờ quán ngừng bán, UTC
+  final String? photoUrl;
+  final List<AllergenName> allergens;
+
+  bool get isPickedUp => confirmedQty != null;
+}
+
+// SCR-D02 受け取り完了: 1 điểm bán nhận bao nhiêu suất của lô vừa chốt, trong đó bao nhiêu đã có người đặt.
+class BatchDrop {
+  const BatchDrop({required this.routeStopId, required this.qty, required this.reservedCount});
+  final String routeStopId;
+  final int qty;
+  final int reservedCount;
 }
 
 class ConfirmResult {
@@ -65,7 +102,8 @@ abstract class DriverGateway {
   Future<bool> fetchIsActive();
   Future<TonightRoute?> fetchTonightRoute(); // null: tài khoản này chưa được gán xe nào
   Future<void> sendLocation({required String truckId, required double lat, required double lng}); // API-008
-  Future<List<PickupBatch>> fetchPendingBatches({required String routeId, required String restaurantId});
+  // Sau khi chốt 1 lô (API-026): server đã chia số suất cho các điểm bán (distribute_qty_to_stops) và giữ suất cho đơn.
+  Future<List<BatchDrop>> fetchBatchDrops(String batchId);
   // API-026: chốt số lượng + ghi nhiệt độ trong 1 transaction (migration 0033, レビュー第30回)
   Future<ConfirmResult> confirmWithTemperature({
     required String batchId,
@@ -136,7 +174,38 @@ class SupabaseDriverGateway implements DriverGateway {
         pickedUpCount: countAt(id, {'picked_up'}),
       );
     }).toList();
-    return TonightRoute(truck: truck, routeId: routeId, stops: stops);
+    final batchRows = await _client
+        .from('surplus_batches')
+        .select('id, restaurant_id, estimated_qty, confirmed_qty, restaurant_sell_by_at, photo_path, '
+            'surplus_batch_allergens(allergen_types(name_ja, name_en))')
+        .eq('route_id', routeId) as List;
+    final batches = batchRows.map((raw) {
+      final row = raw as Map<String, dynamic>;
+      return RouteBatch(
+        id: row['id'] as String,
+        restaurantId: row['restaurant_id'] as String,
+        estimatedQty: row['estimated_qty'] as int,
+        confirmedQty: row['confirmed_qty'] as int?,
+        sellByAt: DateTime.parse(row['restaurant_sell_by_at'] as String),
+        photoUrl: batchPhotoUrl(_client, row['photo_path'] as String?),
+        allergens: (row['surplus_batch_allergens'] as List).map((a) {
+          final type = (a as Map<String, dynamic>)['allergen_types'] as Map<String, dynamic>;
+          return AllergenName(ja: type['name_ja'] as String, en: type['name_en'] as String);
+        }).toList(),
+      );
+    }).toList();
+
+    // batch_route_stops chỉ có dòng sau khi lô được chốt (distribute_qty_to_stops) — tổng theo điểm bán.
+    final dropRows = stopIds.isEmpty
+        ? const <dynamic>[]
+        : await _client.from('batch_route_stops').select('route_stop_id, available_qty').inFilter('route_stop_id', stopIds) as List;
+    final capacityAtStop = <String, int>{};
+    for (final raw in dropRows) {
+      final row = raw as Map<String, dynamic>;
+      final id = row['route_stop_id'] as String;
+      capacityAtStop[id] = (capacityAtStop[id] ?? 0) + (row['available_qty'] as int);
+    }
+    return TonightRoute(truck: truck, routeId: routeId, stops: stops, batches: batches, capacityAtStop: capacityAtStop);
   }
 
   // API-008: INSERT trực tiếp — RLS truck_locations_insert_own_truck (Chương 13) chặn xe của người khác,
@@ -147,16 +216,22 @@ class SupabaseDriverGateway implements DriverGateway {
   }
 
   @override
-  Future<List<PickupBatch>> fetchPendingBatches({required String routeId, required String restaurantId}) async {
-    final rows = await _client
-        .from('surplus_batches')
-        .select('id, estimated_qty')
-        .eq('route_id', routeId)
-        .eq('restaurant_id', restaurantId)
-        .eq('stage', 'estimated') as List;
-    return rows.map((raw) {
+  Future<List<BatchDrop>> fetchBatchDrops(String batchId) async {
+    final drops = await _client.from('batch_route_stops').select('route_stop_id, available_qty').eq('surplus_batch_id', batchId) as List;
+    // RLS orders_select_driver: tài xế thấy đơn của lô trên xe mình — đủ để đếm đơn đã được giữ suất ở từng điểm.
+    final orders = await _client
+        .from('orders')
+        .select('pickup_route_stop_id')
+        .eq('surplus_batch_id', batchId)
+        .eq('status', 'allocated') as List;
+    return drops.map((raw) {
       final row = raw as Map<String, dynamic>;
-      return PickupBatch(id: row['id'] as String, estimatedQty: row['estimated_qty'] as int);
+      final stopId = row['route_stop_id'] as String;
+      return BatchDrop(
+        routeStopId: stopId,
+        qty: row['available_qty'] as int,
+        reservedCount: orders.where((o) => (o as Map<String, dynamic>)['pickup_route_stop_id'] == stopId).length,
+      );
     }).toList();
   }
 

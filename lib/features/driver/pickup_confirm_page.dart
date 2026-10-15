@@ -15,6 +15,15 @@ import '../../core/haptics.dart';
 // 超えたロットはサーバーが確定数量0で確定し、予約をすべて返金する。画面はその前に確認を求めるだけ（判定の正はサーバー）。
 const _coldChainLimit = 10.0;
 
+// Kết quả trả về D07: đủ để dựng SCR-D02 受け取り完了 (hoặc toast "回収しない" khi quá nhiệt).
+class PickupOutcome {
+  const PickupOutcome({required this.batchId, required this.confirmedQty, required this.celsius, required this.result});
+  final String batchId;
+  final int confirmedQty; // số tài xế nhập (khi quá nhiệt server chốt 0 — xem result.rejectedForTemperature)
+  final double celsius;
+  final ConfirmResult result;
+}
+
 // SCR-D02 集荷を確認 — 06_画面設計 §SCR-D02 (viết mới ở レビュー第28回), khớp frame Figma 16:16808 (thường) / 137:1199 (温度超過).
 // 1 lệnh ghi duy nhất: confirm_surplus_batch_with_temperature (API-026) — chốt số lượng và ghi nhiệt độ
 // trong cùng 1 transaction (box-why đầu chương). Lỗi thì không có gì được ghi → bấm lại là gửi lại cả 2.
@@ -22,7 +31,7 @@ class PickupConfirmPage extends ConsumerStatefulWidget {
   const PickupConfirmPage({super.key, required this.route, required this.collectionStop, required this.batch});
   final TonightRoute route;
   final DriverStop collectionStop;
-  final PickupBatch batch;
+  final RouteBatch batch;
 
   @override
   ConsumerState<PickupConfirmPage> createState() => _PickupConfirmPageState();
@@ -91,11 +100,12 @@ class _PickupConfirmPageState extends ConsumerState<PickupConfirmPage> {
           );
       Haptics.success();
       if (!mounted) return;
-      Navigator.of(context).pop(
-        r.rejectedForTemperature
-            ? l10n.pickupRejectedToast(r.refundedOrderCount)
-            : l10n.pickupConfirmedToast(int.parse(_qtyController.text.trim()), r.allocatedOrderCount, r.refundedOrderCount),
-      );
+      Navigator.of(context).pop(PickupOutcome(
+        batchId: widget.batch.id,
+        confirmedQty: int.parse(_qtyController.text.trim()),
+        celsius: double.parse(_tempController.text.trim()),
+        result: r,
+      ));
     } catch (e) {
       Haptics.error();
       if (mounted) {

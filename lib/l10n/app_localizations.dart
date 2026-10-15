@@ -7083,6 +7083,396 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'運行中のドライバーから遅れ・トラブルの連絡が届きました。'**
   String get noticeDriverReportedBody;
+
+  /// No description provided for @driverReportShort.
+  ///
+  /// In ja, this message translates to:
+  /// **'運営に連絡'**
+  String get driverReportShort;
+
+  /// No description provided for @driverProgressTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'今夜の進み具合'**
+  String get driverProgressTitle;
+
+  /// No description provided for @driverProgressCount.
+  ///
+  /// In ja, this message translates to:
+  /// **'{total}か所中 {done}か所 完了'**
+  String driverProgressCount(int done, int total);
+
+  /// No description provided for @driverProgressPickup.
+  ///
+  /// In ja, this message translates to:
+  /// **'集荷 {done}/{total}'**
+  String driverProgressPickup(int done, int total);
+
+  /// No description provided for @driverProgressSales.
+  ///
+  /// In ja, this message translates to:
+  /// **'販売 {done}/{total}'**
+  String driverProgressSales(int done, int total);
+
+  /// No description provided for @nextTaskLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'次にやること'**
+  String get nextTaskLabel;
+
+  /// No description provided for @stepBadgePickup.
+  ///
+  /// In ja, this message translates to:
+  /// **'{number}か所目・集荷'**
+  String stepBadgePickup(int number);
+
+  /// No description provided for @stepBadgeSales.
+  ///
+  /// In ja, this message translates to:
+  /// **'{number}か所目・販売'**
+  String stepBadgeSales(int number);
+
+  /// No description provided for @nextTaskPickupTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} で料理を受け取る'**
+  String nextTaskPickupTitle(String name);
+
+  /// No description provided for @nextTaskSalesTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} でお客様に渡す'**
+  String nextTaskSalesTitle(String name);
+
+  /// No description provided for @arriveByLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'着く予定'**
+  String get arriveByLabel;
+
+  /// No description provided for @timeLeftLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'あと'**
+  String get timeLeftLabel;
+
+  /// No description provided for @pickupAmountLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取る量'**
+  String get pickupAmountLabel;
+
+  /// No description provided for @handoutAmountLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'渡す量'**
+  String get handoutAmountLabel;
+
+  /// No description provided for @approxMeals.
+  ///
+  /// In ja, this message translates to:
+  /// **'約{qty}食'**
+  String approxMeals(int qty);
+
+  /// No description provided for @nothingToPickUp.
+  ///
+  /// In ja, this message translates to:
+  /// **'ここで受け取る料理はもうありません'**
+  String get nothingToPickUp;
+
+  /// No description provided for @nextTaskPickupDetail.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取る料理 {count}つ ・ お店の販売終了 {time}'**
+  String nextTaskPickupDetail(int count, String time);
+
+  /// No description provided for @nextTaskSalesDetail.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約 {count}件は受け取りQRを読んで渡します'**
+  String nextTaskSalesDetail(int count);
+
+  /// No description provided for @navigateButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'ナビで行く'**
+  String get navigateButton;
+
+  /// No description provided for @arrivedPickupButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'着いた・受け取る'**
+  String get arrivedPickupButton;
+
+  /// No description provided for @arrivedSalesButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'着いた・渡す'**
+  String get arrivedSalesButton;
+
+  /// No description provided for @navigationFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図アプリを開けませんでした'**
+  String get navigationFailed;
+
+  /// No description provided for @allStopsDoneTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'すべての場所が終わりました'**
+  String get allStopsDoneTitle;
+
+  /// No description provided for @allStopsDoneBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'売れ残りがあれば「終了」タブで寄付を記録できます。'**
+  String get allStopsDoneBody;
+
+  /// No description provided for @routePhasePickup.
+  ///
+  /// In ja, this message translates to:
+  /// **'① お店で受け取る（集荷）'**
+  String get routePhasePickup;
+
+  /// No description provided for @routePhaseSales.
+  ///
+  /// In ja, this message translates to:
+  /// **'② お客様に渡す（販売）'**
+  String get routePhaseSales;
+
+  /// No description provided for @placesCount.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count}か所'**
+  String placesCount(int count);
+
+  /// No description provided for @stopPickupPending.
+  ///
+  /// In ja, this message translates to:
+  /// **'約{qty}食を受け取る'**
+  String stopPickupPending(int qty);
+
+  /// No description provided for @stopPickupDone.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取り済み・{qty}食'**
+  String stopPickupDone(int qty);
+
+  /// No description provided for @stopSalesLoad.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約 {reserved}件 ・ 全部で {total}食'**
+  String stopSalesLoad(int reserved, int total);
+
+  /// No description provided for @pickupStopSubtitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'集荷 {index}/{total} ・ {time} 着く予定'**
+  String pickupStopSubtitle(int index, int total, String time);
+
+  /// No description provided for @addressLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'住所'**
+  String get addressLabel;
+
+  /// No description provided for @copyAddressButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'住所をコピー'**
+  String get copyAddressButton;
+
+  /// No description provided for @addressCopied.
+  ///
+  /// In ja, this message translates to:
+  /// **'住所をコピーしました'**
+  String get addressCopied;
+
+  /// No description provided for @foodsToPickUp.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取る料理（{count}つ）'**
+  String foodsToPickUp(int count);
+
+  /// No description provided for @shopPlannedQty.
+  ///
+  /// In ja, this message translates to:
+  /// **'（お店の予定）'**
+  String get shopPlannedQty;
+
+  /// No description provided for @shopSellByLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'お店の販売終了 {time}'**
+  String shopSellByLabel(String time);
+
+  /// No description provided for @pickUpThisFood.
+  ///
+  /// In ja, this message translates to:
+  /// **'この料理を受け取る'**
+  String get pickUpThisFood;
+
+  /// No description provided for @pickedUpChip.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取り済み・{qty}食'**
+  String pickedUpChip(int qty);
+
+  /// No description provided for @pickupStepsTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'受け取りの流れ'**
+  String get pickupStepsTitle;
+
+  /// No description provided for @pickupStep1.
+  ///
+  /// In ja, this message translates to:
+  /// **'数を数える（お店の予定と違っても大丈夫。実際の数を入れます）'**
+  String get pickupStep1;
+
+  /// No description provided for @pickupStep2.
+  ///
+  /// In ja, this message translates to:
+  /// **'中心温度を測る（冷蔵品は10℃以下）'**
+  String get pickupStep2;
+
+  /// No description provided for @pickupStep3.
+  ///
+  /// In ja, this message translates to:
+  /// **'「受け取りを確定」を押すと、渡す場所と数が決まります'**
+  String get pickupStep3;
+
+  /// No description provided for @pickupDoneTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{qty}食を積みました'**
+  String pickupDoneTitle(int qty);
+
+  /// No description provided for @pickupDoneSubtitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} ・ 中心温度 {temp}℃'**
+  String pickupDoneSubtitle(String name, String temp);
+
+  /// No description provided for @securedReservations.
+  ///
+  /// In ja, this message translates to:
+  /// **'確保した予約'**
+  String get securedReservations;
+
+  /// No description provided for @refundedReservations.
+  ///
+  /// In ja, this message translates to:
+  /// **'返金した予約'**
+  String get refundedReservations;
+
+  /// No description provided for @dropsTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'この料理を渡す場所'**
+  String get dropsTitle;
+
+  /// No description provided for @dropSubtitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{time} ・ うち予約 {count}件'**
+  String dropSubtitle(String time, int count);
+
+  /// No description provided for @allPickupsDoneHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'集荷はすべて終わりました。料理が冷えたままか確認して出発してください。'**
+  String get allPickupsDoneHint;
+
+  /// No description provided for @morePickupsHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'次のお店へ向かってください。'**
+  String get morePickupsHint;
+
+  /// No description provided for @moreFoodHereHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'このお店にまだ受け取る料理があります。'**
+  String get moreFoodHereHint;
+
+  /// No description provided for @backToHome.
+  ///
+  /// In ja, this message translates to:
+  /// **'ホームへ'**
+  String get backToHome;
+
+  /// No description provided for @handoutHereTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'この場所で渡すもの'**
+  String get handoutHereTitle;
+
+  /// No description provided for @totalMeals.
+  ///
+  /// In ja, this message translates to:
+  /// **'合計 {qty}食'**
+  String totalMeals(int qty);
+
+  /// No description provided for @reservedCustomers.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約のお客様'**
+  String get reservedCustomers;
+
+  /// No description provided for @walkupSellable.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約なしで売れる'**
+  String get walkupSellable;
+
+  /// No description provided for @scanQrToHand.
+  ///
+  /// In ja, this message translates to:
+  /// **'QRを読んで渡す'**
+  String get scanQrToHand;
+
+  /// No description provided for @registerOnSpot.
+  ///
+  /// In ja, this message translates to:
+  /// **'その場で販売を登録'**
+  String get registerOnSpot;
+
+  /// No description provided for @perFoodLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'料理ごとの数'**
+  String get perFoodLabel;
+
+  /// No description provided for @batchCapacityRow.
+  ///
+  /// In ja, this message translates to:
+  /// **'{capacity}食（予約なしの残り {remaining}食）'**
+  String batchCapacityRow(int capacity, int remaining);
+
+  /// No description provided for @handoutStepsTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'ここでの流れ'**
+  String get handoutStepsTitle;
+
+  /// No description provided for @handoutStep1.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約のお客様: 受け取りQRを読み取る（読めないときは4桁のコード）'**
+  String get handoutStep1;
+
+  /// No description provided for @handoutStep2.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約のないお客様: 「予約なし販売」タブで1食ずつ登録'**
+  String get handoutStep2;
+
+  /// No description provided for @handoutStep3.
+  ///
+  /// In ja, this message translates to:
+  /// **'終わったら「停車地点を出発」→ 次の場所へ'**
+  String get handoutStep3;
 }
 
 class _AppLocalizationsDelegate

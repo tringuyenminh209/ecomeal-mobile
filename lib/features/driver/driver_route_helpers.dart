@@ -24,6 +24,38 @@ List<DriverStop> distributableStopsAfter(List<DriverStop> stops, DriverStop coll
       .toList();
 }
 
+// SCR-D07: các lô của quán có điểm thu gom này (cả lô đã nhận lẫn chưa nhận), theo giờ quán ngừng bán.
+List<RouteBatch> batchesAt(TonightRoute route, DriverStop collectionStop) {
+  return route.batches.where((b) => b.restaurantId == collectionStop.restaurantId).toList()
+    ..sort((a, b) => a.sellByAt.compareTo(b.sellByAt));
+}
+
+// SCR-D01: "約16食を受け取る" / "受け取り済み・12食" — số dự kiến của lô chưa nhận, số đã chốt của lô đã nhận.
+({int toPick, int picked}) pickupLoadOf(TonightRoute route, DriverStop collectionStop) {
+  var toPick = 0, picked = 0;
+  for (final b in batchesAt(route, collectionStop)) {
+    if (b.isPickedUp) {
+      picked += b.confirmedQty!;
+    } else {
+      toPick += b.estimatedQty;
+    }
+  }
+  return (toPick: toPick, picked: picked);
+}
+
+// SCR-D01 「今夜の進み具合」: điểm đã rời / tổng, tách theo thu gom và bán.
+({int done, int total, int pickupDone, int pickupTotal, int salesDone, int salesTotal}) routeProgressOf(List<DriverStop> stops) {
+  int count(bool Function(DriverStop) test) => stops.where(test).length;
+  return (
+    done: count((s) => s.departedAt != null),
+    total: stops.length,
+    pickupDone: count((s) => s.type == 'restaurant' && s.departedAt != null),
+    pickupTotal: count((s) => s.type == 'restaurant'),
+    salesDone: count((s) => s.type == 'public' && s.departedAt != null),
+    salesTotal: count((s) => s.type == 'public'),
+  );
+}
+
 // "集荷 2/5" — thứ tự của điểm thu gom này trong các điểm thu gom (type='restaurant') của tuyến.
 ({int index, int total}) pickupPositionOf(List<DriverStop> stops, DriverStop collectionStop) {
   final restaurantStops = stops.where((s) => s.type == 'restaurant').toList();

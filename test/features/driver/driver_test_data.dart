@@ -38,4 +38,12 @@ final routeFixture = TonightRoute(
     stopFixture('p2', type: 'public', sequence: 4, reserved: 24),
     stopFixture('p3', type: 'public', sequence: 5, reserved: 17),
   ],
+  // Quán A đã nhận 12 suất; quán B còn 2 lô chưa nhận (10 + 6). 18:30 / 18:45 JST là giờ quán B ngừng bán.
+  batches: [
+    RouteBatch(id: 'bA1', restaurantId: 'rest-A', estimatedQty: 14, confirmedQty: 12, sellByAt: DateTime.utc(2026, 10, 2, 9, 0)),
+    RouteBatch(id: 'bB2', restaurantId: 'rest-B', estimatedQty: 6, confirmedQty: null, sellByAt: DateTime.utc(2026, 10, 2, 9, 45)),
+    RouteBatch(id: 'bB1', restaurantId: 'rest-B', estimatedQty: 10, confirmedQty: null, sellByAt: DateTime.utc(2026, 10, 2, 9, 30)),
+  ],
+  // Lô của quán A đã chia: điểm p1 (đã rời) 18 suất, p2 8 suất. p3 chưa nhận lô nào.
+  capacityAtStop: {'p1': 18, 'p2': 8},
 );

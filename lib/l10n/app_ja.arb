@@ -498,20 +498,6 @@
       }
     }
   },
-  "pickupConfirmedToast": "{qty}食の受け取りを確定しました（予約{allocated}件確保・{refunded}件返金）",
-  "@pickupConfirmedToast": {
-    "placeholders": {
-      "qty": {
-        "type": "int"
-      },
-      "allocated": {
-        "type": "int"
-      },
-      "refunded": {
-        "type": "int"
-      }
-    }
-  },
   "rejectPickupButton": "回収しない（温度基準外）",
   "rejectPickupDialogTitle": "この料理を回収しませんか？",
   "rejectPickupDialogBody": "中心温度が{celsius}℃で、基準（10℃以下）を超えています。この料理は販売せず、予約はすべて返金されてお客様に通知されます。温度の記録は残ります。",
@@ -526,8 +512,6 @@
   "noTruckAssigned": "担当トラックが割り当てられていません。運営へ連絡してください",
   "noRouteTonight": "今夜のルートはまだありません",
   "errorLoad": "データの取得に失敗しました",
-  "noPendingPickup": "この店舗の未確定の集荷はありません",
-  "selectBatchToPickUp": "集荷する料理を選択",
   "tonightRouteTitle": "今夜のルート",
   "gpsUnavailable": "位置情報取得不可",
   "settings": "設定",
@@ -539,10 +523,6 @@
       }
     }
   },
-  "allStopsCompleted": "全停車地点を完了",
-  "reservedOrdersLabel": "予約注文",
-  "reservedOrdersCaption": "未完了の停車地点の合計",
-  "stopDonePickup": "完了 • 集荷済み",
   "stopDoneHandoff": "完了 • {count}件引き渡し",
   "@stopDoneHandoff": {
     "placeholders": {
@@ -568,16 +548,6 @@
       }
     }
   },
-  "stopCount": "{count}つの停車地点",
-  "@stopCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "routeDone": "完了",
-  "routeInProgress": "運行中",
   "driverProfileTitle": "プロフィール・設定",
   "driverRoleChip": "ドライバー",
   "assignedTruck": "担当トラック",
@@ -1604,7 +1574,6 @@
   "pickupCompleteTitle": "受け取り完了",
   "pickupCompleteBody": "ご利用ありがとうございました。",
   "leftoverAutoRecordNote": "寄付しなかった分は、最後の販売地点を出発してから1時間後に「売れ残り（廃棄）」として自動で記録されます。寄付する場合は、それまでに記録してください。",
-  "driverReportButton": "運営に連絡（遅れ・トラブル）",
   "driverReportTitle": "運営に連絡",
   "driverReportLead": "送ると運営に通知が届き、影響する予約のお客様には運営から連絡します。急ぎの安全上の問題は、まず安全な場所に停車してください。",
   "driverReportDelay": "到着が遅れそう（次の停車地）",
@@ -1638,5 +1607,93 @@
   "adminDriverReportAlready": "ほかの運営がすでに対応済みにしました",
   "adminDriverReportError": "対応済みにできませんでした。もう一度お試しください",
   "noticeDriverReportedTitle": "ドライバーから連絡",
-  "noticeDriverReportedBody": "運行中のドライバーから遅れ・トラブルの連絡が届きました。"
+  "noticeDriverReportedBody": "運行中のドライバーから遅れ・トラブルの連絡が届きました。",
+  "driverReportShort": "運営に連絡",
+  "driverProgressTitle": "今夜の進み具合",
+  "driverProgressCount": "{total}か所中 {done}か所 完了",
+  "@driverProgressCount": {"placeholders":{"done":{"type":"int"},"total":{"type":"int"}}},
+  "driverProgressPickup": "集荷 {done}/{total}",
+  "@driverProgressPickup": {"placeholders":{"done":{"type":"int"},"total":{"type":"int"}}},
+  "driverProgressSales": "販売 {done}/{total}",
+  "@driverProgressSales": {"placeholders":{"done":{"type":"int"},"total":{"type":"int"}}},
+  "nextTaskLabel": "次にやること",
+  "stepBadgePickup": "{number}か所目・集荷",
+  "@stepBadgePickup": {"placeholders":{"number":{"type":"int"}}},
+  "stepBadgeSales": "{number}か所目・販売",
+  "@stepBadgeSales": {"placeholders":{"number":{"type":"int"}}},
+  "nextTaskPickupTitle": "{name} で料理を受け取る",
+  "@nextTaskPickupTitle": {"placeholders":{"name":{"type":"String"}}},
+  "nextTaskSalesTitle": "{name} でお客様に渡す",
+  "@nextTaskSalesTitle": {"placeholders":{"name":{"type":"String"}}},
+  "arriveByLabel": "着く予定",
+  "timeLeftLabel": "あと",
+  "pickupAmountLabel": "受け取る量",
+  "handoutAmountLabel": "渡す量",
+  "approxMeals": "約{qty}食",
+  "@approxMeals": {"placeholders":{"qty":{"type":"int"}}},
+  "nothingToPickUp": "ここで受け取る料理はもうありません",
+  "nextTaskPickupDetail": "受け取る料理 {count}つ ・ お店の販売終了 {time}",
+  "@nextTaskPickupDetail": {"placeholders":{"count":{"type":"int"},"time":{"type":"String"}}},
+  "nextTaskSalesDetail": "予約 {count}件は受け取りQRを読んで渡します",
+  "@nextTaskSalesDetail": {"placeholders":{"count":{"type":"int"}}},
+  "navigateButton": "ナビで行く",
+  "arrivedPickupButton": "着いた・受け取る",
+  "arrivedSalesButton": "着いた・渡す",
+  "navigationFailed": "地図アプリを開けませんでした",
+  "allStopsDoneTitle": "すべての場所が終わりました",
+  "allStopsDoneBody": "売れ残りがあれば「終了」タブで寄付を記録できます。",
+  "routePhasePickup": "① お店で受け取る（集荷）",
+  "routePhaseSales": "② お客様に渡す（販売）",
+  "placesCount": "{count}か所",
+  "@placesCount": {"placeholders":{"count":{"type":"int"}}},
+  "stopPickupPending": "約{qty}食を受け取る",
+  "@stopPickupPending": {"placeholders":{"qty":{"type":"int"}}},
+  "stopPickupDone": "受け取り済み・{qty}食",
+  "@stopPickupDone": {"placeholders":{"qty":{"type":"int"}}},
+  "stopSalesLoad": "予約 {reserved}件 ・ 全部で {total}食",
+  "@stopSalesLoad": {"placeholders":{"reserved":{"type":"int"},"total":{"type":"int"}}},
+  "pickupStopSubtitle": "集荷 {index}/{total} ・ {time} 着く予定",
+  "@pickupStopSubtitle": {"placeholders":{"index":{"type":"int"},"total":{"type":"int"},"time":{"type":"String"}}},
+  "addressLabel": "住所",
+  "copyAddressButton": "住所をコピー",
+  "addressCopied": "住所をコピーしました",
+  "foodsToPickUp": "受け取る料理（{count}つ）",
+  "@foodsToPickUp": {"placeholders":{"count":{"type":"int"}}},
+  "shopPlannedQty": "（お店の予定）",
+  "shopSellByLabel": "お店の販売終了 {time}",
+  "@shopSellByLabel": {"placeholders":{"time":{"type":"String"}}},
+  "pickUpThisFood": "この料理を受け取る",
+  "pickedUpChip": "受け取り済み・{qty}食",
+  "@pickedUpChip": {"placeholders":{"qty":{"type":"int"}}},
+  "pickupStepsTitle": "受け取りの流れ",
+  "pickupStep1": "数を数える（お店の予定と違っても大丈夫。実際の数を入れます）",
+  "pickupStep2": "中心温度を測る（冷蔵品は10℃以下）",
+  "pickupStep3": "「受け取りを確定」を押すと、渡す場所と数が決まります",
+  "pickupDoneTitle": "{qty}食を積みました",
+  "@pickupDoneTitle": {"placeholders":{"qty":{"type":"int"}}},
+  "pickupDoneSubtitle": "{name} ・ 中心温度 {temp}℃",
+  "@pickupDoneSubtitle": {"placeholders":{"name":{"type":"String"},"temp":{"type":"String"}}},
+  "securedReservations": "確保した予約",
+  "refundedReservations": "返金した予約",
+  "dropsTitle": "この料理を渡す場所",
+  "dropSubtitle": "{time} ・ うち予約 {count}件",
+  "@dropSubtitle": {"placeholders":{"time":{"type":"String"},"count":{"type":"int"}}},
+  "allPickupsDoneHint": "集荷はすべて終わりました。料理が冷えたままか確認して出発してください。",
+  "morePickupsHint": "次のお店へ向かってください。",
+  "moreFoodHereHint": "このお店にまだ受け取る料理があります。",
+  "backToHome": "ホームへ",
+  "handoutHereTitle": "この場所で渡すもの",
+  "totalMeals": "合計 {qty}食",
+  "@totalMeals": {"placeholders":{"qty":{"type":"int"}}},
+  "reservedCustomers": "予約のお客様",
+  "walkupSellable": "予約なしで売れる",
+  "scanQrToHand": "QRを読んで渡す",
+  "registerOnSpot": "その場で販売を登録",
+  "perFoodLabel": "料理ごとの数",
+  "batchCapacityRow": "{capacity}食（予約なしの残り {remaining}食）",
+  "@batchCapacityRow": {"placeholders":{"capacity":{"type":"int"},"remaining":{"type":"int"}}},
+  "handoutStepsTitle": "ここでの流れ",
+  "handoutStep1": "予約のお客様: 受け取りQRを読み取る（読めないときは4桁のコード）",
+  "handoutStep2": "予約のないお客様: 「予約なし販売」タブで1食ずつ登録",
+  "handoutStep3": "終わったら「停車地点を出発」→ 次の場所へ"
 }
