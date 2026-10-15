@@ -218,7 +218,26 @@ class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             mapToolbarEnabled: false,
+            gestureRecognizers: mapGestureRecognizers,
             markers: markers,
+            // Mỗi tuyến 1 đường nối các điểm theo thứ tự (đường thẳng giữa 2 điểm, không phải đường xe chạy)
+            polylines: {
+              for (final r in routes)
+                if (r.stops.length > 1)
+                  Polyline(
+                    polylineId: PolylineId('route-${r.id}'),
+                    points: [for (final s in r.stops) LatLng(s.lat, s.lng)],
+                    width: 4,
+                    color: eco.primary.withValues(alpha: 0.8),
+                  ),
+            },
+            // Mở bản đồ → vừa mọi điểm và xe của đêm nay
+            onMapCreated: (c) => fitCameraTo(c, [
+              for (final r in routes) ...[
+                for (final s in r.stops) LatLng(s.lat, s.lng),
+                if (r.lat != null && r.lng != null) LatLng(r.lat!, r.lng!),
+              ],
+            ]),
             style: mapStyleFor(Theme.of(context).brightness),
           ),
         ),

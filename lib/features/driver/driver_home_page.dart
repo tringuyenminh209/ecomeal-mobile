@@ -231,12 +231,26 @@ class _DriverMapState extends State<_DriverMap> {
       final center = gps.lat != null
           ? LatLng(gps.lat!, gps.lng!)
           : (stops.isNotEmpty ? LatLng(stops.first.lat, stops.first.lng) : osakaCenter);
+      // Đường nối các điểm theo đúng thứ tự tuyến (đường thẳng giữa 2 điểm, không phải đường xe chạy); điểm đã rời mờ đi
+      final route = [for (final s in stops) LatLng(s.lat, s.lng)];
       map = GoogleMap(
         initialCameraPosition: CameraPosition(target: center, zoom: 13),
         myLocationButtonEnabled: false,
         zoomControlsEnabled: false,
         mapToolbarEnabled: false,
+        gestureRecognizers: mapGestureRecognizers,
         markers: markers,
+        polylines: {
+          if (route.length > 1)
+            Polyline(
+              polylineId: const PolylineId('route'),
+              points: route,
+              width: 4,
+              color: context.eco.primary.withValues(alpha: 0.8),
+            ),
+        },
+        // Mở bản đồ → vừa cả tuyến + vị trí xe
+        onMapCreated: (c) => fitCameraTo(c, [...route, if (gps.lat != null) LatLng(gps.lat!, gps.lng!)]),
         style: mapStyleFor(Theme.of(context).brightness),
       );
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -46,3 +47,33 @@ const _nightMapStyle = '''
   {"featureType": "water", "elementType": "geometry", "stylers": [{"color": "#0f1a14"}]}
 ]
 ''';
+
+// Bản đồ đặt trong danh sách cuộn (SCR-D01 tài xế, 運行モニタ của 運営): không có cái này thì cử chỉ kéo / chụm 2 ngón
+// bị ListView giành mất → không phóng to, thu nhỏ, kéo bản đồ được (2026-10-15). Bản đồ nhận cử chỉ trước.
+final Set<Factory<OneSequenceGestureRecognizer>> mapGestureRecognizers = {
+  Factory<OneSequenceGestureRecognizer>(EagerGestureRecognizer.new),
+};
+
+// Khung bao các điểm (tuyến + xe) để camera vừa cả tuyến. null = chưa có điểm nào. 1 điểm → khung rỗng quanh điểm đó.
+LatLngBounds? boundsOf(Iterable<LatLng> points) {
+  if (points.isEmpty) return null;
+  var south = points.first.latitude, north = south, west = points.first.longitude, east = west;
+  for (final p in points) {
+    if (p.latitude < south) south = p.latitude;
+    if (p.latitude > north) north = p.latitude;
+    if (p.longitude < west) west = p.longitude;
+    if (p.longitude > east) east = p.longitude;
+  }
+  return LatLngBounds(southwest: LatLng(south, west), northeast: LatLng(north, east));
+}
+
+// Camera vừa cả tuyến khi bản đồ vừa mở. 1 điểm thì chỉ dời tâm (newLatLngBounds với khung rỗng phóng quá sát).
+Future<void> fitCameraTo(GoogleMapController controller, Iterable<LatLng> points) async {
+  final bounds = boundsOf(points);
+  if (bounds == null) return;
+  await controller.animateCamera(
+    bounds.southwest == bounds.northeast
+        ? CameraUpdate.newLatLng(bounds.southwest)
+        : CameraUpdate.newLatLngBounds(bounds, 48),
+  );
+}
