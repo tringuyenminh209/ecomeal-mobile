@@ -1090,11 +1090,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String pickupConfirmedToast(int qty, int allocated, int refunded) {
-    return 'Confirmed $qty meals ($allocated reservations kept, $refunded refunded)';
-  }
-
-  @override
   String get rejectPickupButton => 'Don\'t collect (over temperature limit)';
 
   @override
@@ -1124,12 +1119,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorLoad => 'Couldn’t load data';
 
   @override
-  String get noPendingPickup => 'No unconfirmed pickups at this store';
-
-  @override
-  String get selectBatchToPickUp => 'Select the food to pick up';
-
-  @override
   String get tonightRouteTitle => 'Tonight\'s route';
 
   @override
@@ -1142,18 +1131,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String minutesShort(int minutes) {
     return '$minutes min';
   }
-
-  @override
-  String get allStopsCompleted => 'All stops completed';
-
-  @override
-  String get reservedOrdersLabel => 'Reservations';
-
-  @override
-  String get reservedOrdersCaption => 'Total for remaining stops';
-
-  @override
-  String get stopDonePickup => 'Done • Picked up';
 
   @override
   String stopDoneHandoff(int count) {
@@ -1172,17 +1149,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String nextStopPrefixed(String body) {
     return 'Next stop • $body';
   }
-
-  @override
-  String stopCount(int count) {
-    return '$count stops';
-  }
-
-  @override
-  String get routeDone => 'Done';
-
-  @override
-  String get routeInProgress => 'In service';
 
   @override
   String get driverProfileTitle => 'Profile & settings';
@@ -3968,9 +3934,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get leftoverAutoRecordNote =>
       'Meals you do not donate are recorded automatically as unsold (discarded) one hour after you leave the last sales stop. Record any donation before then.';
-
-  @override
-  String get driverReportButton => 'Contact operations (delay or problem)';
 
   @override
   String get driverReportTitle => 'Contact operations';

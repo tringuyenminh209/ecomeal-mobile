@@ -1035,11 +1035,6 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String pickupConfirmedToast(int qty, int allocated, int refunded) {
-    return '$qty食の受け取りを確定しました（予約$allocated件確保・$refunded件返金）';
-  }
-
-  @override
   String get rejectPickupButton => '回収しない（温度基準外）';
 
   @override
@@ -1068,12 +1063,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorLoad => 'データの取得に失敗しました';
 
   @override
-  String get noPendingPickup => 'この店舗の未確定の集荷はありません';
-
-  @override
-  String get selectBatchToPickUp => '集荷する料理を選択';
-
-  @override
   String get tonightRouteTitle => '今夜のルート';
 
   @override
@@ -1086,18 +1075,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String minutesShort(int minutes) {
     return '$minutes分';
   }
-
-  @override
-  String get allStopsCompleted => '全停車地点を完了';
-
-  @override
-  String get reservedOrdersLabel => '予約注文';
-
-  @override
-  String get reservedOrdersCaption => '未完了の停車地点の合計';
-
-  @override
-  String get stopDonePickup => '完了 • 集荷済み';
 
   @override
   String stopDoneHandoff(int count) {
@@ -1116,17 +1093,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String nextStopPrefixed(String body) {
     return '次の停車 • $body';
   }
-
-  @override
-  String stopCount(int count) {
-    return '$countつの停車地点';
-  }
-
-  @override
-  String get routeDone => '完了';
-
-  @override
-  String get routeInProgress => '運行中';
 
   @override
   String get driverProfileTitle => 'プロフィール・設定';
@@ -3809,9 +3775,6 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get leftoverAutoRecordNote =>
       '寄付しなかった分は、最後の販売地点を出発してから1時間後に「売れ残り（廃棄）」として自動で記録されます。寄付する場合は、それまでに記録してください。';
-
-  @override
-  String get driverReportButton => '運営に連絡（遅れ・トラブル）';
 
   @override
   String get driverReportTitle => '運営に連絡';

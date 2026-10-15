@@ -1970,12 +1970,6 @@ abstract class AppLocalizations {
   /// **'{qty}食の受け取りを確定'**
   String confirmPickupButton(String qty);
 
-  /// No description provided for @pickupConfirmedToast.
-  ///
-  /// In ja, this message translates to:
-  /// **'{qty}食の受け取りを確定しました（予約{allocated}件確保・{refunded}件返金）'**
-  String pickupConfirmedToast(int qty, int allocated, int refunded);
-
   /// No description provided for @rejectPickupButton.
   ///
   /// In ja, this message translates to:
@@ -2024,18 +2018,6 @@ abstract class AppLocalizations {
   /// **'データの取得に失敗しました'**
   String get errorLoad;
 
-  /// No description provided for @noPendingPickup.
-  ///
-  /// In ja, this message translates to:
-  /// **'この店舗の未確定の集荷はありません'**
-  String get noPendingPickup;
-
-  /// No description provided for @selectBatchToPickUp.
-  ///
-  /// In ja, this message translates to:
-  /// **'集荷する料理を選択'**
-  String get selectBatchToPickUp;
-
   /// No description provided for @tonightRouteTitle.
   ///
   /// In ja, this message translates to:
@@ -2060,30 +2042,6 @@ abstract class AppLocalizations {
   /// **'{minutes}分'**
   String minutesShort(int minutes);
 
-  /// No description provided for @allStopsCompleted.
-  ///
-  /// In ja, this message translates to:
-  /// **'全停車地点を完了'**
-  String get allStopsCompleted;
-
-  /// No description provided for @reservedOrdersLabel.
-  ///
-  /// In ja, this message translates to:
-  /// **'予約注文'**
-  String get reservedOrdersLabel;
-
-  /// No description provided for @reservedOrdersCaption.
-  ///
-  /// In ja, this message translates to:
-  /// **'未完了の停車地点の合計'**
-  String get reservedOrdersCaption;
-
-  /// No description provided for @stopDonePickup.
-  ///
-  /// In ja, this message translates to:
-  /// **'完了 • 集荷済み'**
-  String get stopDonePickup;
-
   /// No description provided for @stopDoneHandoff.
   ///
   /// In ja, this message translates to:
@@ -2107,24 +2065,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'次の停車 • {body}'**
   String nextStopPrefixed(String body);
-
-  /// No description provided for @stopCount.
-  ///
-  /// In ja, this message translates to:
-  /// **'{count}つの停車地点'**
-  String stopCount(int count);
-
-  /// No description provided for @routeDone.
-  ///
-  /// In ja, this message translates to:
-  /// **'完了'**
-  String get routeDone;
-
-  /// No description provided for @routeInProgress.
-  ///
-  /// In ja, this message translates to:
-  /// **'運行中'**
-  String get routeInProgress;
 
   /// No description provided for @driverProfileTitle.
   ///
@@ -6893,12 +6833,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'寄付しなかった分は、最後の販売地点を出発してから1時間後に「売れ残り（廃棄）」として自動で記録されます。寄付する場合は、それまでに記録してください。'**
   String get leftoverAutoRecordNote;
-
-  /// No description provided for @driverReportButton.
-  ///
-  /// In ja, this message translates to:
-  /// **'運営に連絡（遅れ・トラブル）'**
-  String get driverReportButton;
 
   /// No description provided for @driverReportTitle.
   ///
