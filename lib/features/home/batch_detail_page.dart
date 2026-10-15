@@ -61,6 +61,7 @@ class BatchDetailPage extends ConsumerWidget {
     this.stopLocationId,
     this.heroTag,
     this.heroPhotoUrl,
+    this.reserved,
   });
   final String batchId;
   final String routeStopId;
@@ -71,6 +72,9 @@ class BatchDetailPage extends ConsumerWidget {
   // (heroPhotoUrl lấy từ thẻ) — nếu đợi tải xong mới có Hero đích thì hiệu ứng không chạy.
   final String? heroTag;
   final String? heroPhotoUrl;
+  // Mở từ thẻ đơn ở SCR-M06 (2026-10-15): túi khách đã đặt — hiện số đã trả, không có nút 予約する / đếm giờ,
+  // không tự đóng khi hết giờ bán, không tính là "đã xem túi" (0051)
+  final ReservedBag? reserved;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -78,10 +82,7 @@ class BatchDetailPage extends ConsumerWidget {
     final l10n = context.l10n;
 
     // 0051: đo chuyển đổi — "đã xem túi đồ ăn" (1 lần khi mở màn)
-    return LogAppEventOnce(
-      event: AppEvent.batchView,
-      surplusBatchId: batchId,
-      child: Scaffold(
+    final page = Scaffold(
       appBar: AppBar(title: Text(l10n.batchDetailTitle)),
       body: detailAsync.when(
         loading: () => _DetailSkeleton(heroTag: heroTag, heroPhotoUrl: heroPhotoUrl),
@@ -101,12 +102,17 @@ class BatchDetailPage extends ConsumerWidget {
           plannedPickupTime: plannedPickupTime,
           stopLocationId: stopLocationId,
           heroTag: heroTag,
+          reserved: reserved,
         ),
       ),
-      ),
     );
+    if (reserved != null) return page;
+    return LogAppEventOnce(event: AppEvent.batchView, surplusBatchId: batchId, child: page);
   }
 }
+
+// Đơn đã đặt của túi này: số đơn hiển thị (#EM-xxxx) và số tiền đã trả (orders.price_paid)
+typedef ReservedBag = ({String orderNumber, int pricePaid});
 
 class _BatchDetailBody extends ConsumerWidget {
   const _BatchDetailBody({
@@ -116,6 +122,7 @@ class _BatchDetailBody extends ConsumerWidget {
     required this.plannedPickupTime,
     this.stopLocationId,
     this.heroTag,
+    this.reserved,
   });
   final BatchDetail batch;
   final String routeStopId;
@@ -123,10 +130,12 @@ class _BatchDetailBody extends ConsumerWidget {
   final DateTime plannedPickupTime;
   final String? stopLocationId;
   final String? heroTag;
+  final ReservedBag? reserved;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final reserved = this.reserved;
     final textTheme = Theme.of(context).textTheme;
     final priceAsync = ref.watch(
       currentPriceProvider((
@@ -134,13 +143,15 @@ class _BatchDetailBody extends ConsumerWidget {
         expiresAt: batch.expiresAt,
       )),
     );
-    final reservationCountAsync = ref.watch(todayReservationCountProvider);
+    final reservationCountAsync =
+        reserved == null ? ref.watch(todayReservationCountProvider) : const AsyncValue<int>.data(0);
     // BR-002: tối đa 2 đơn/ngày (loại cancelled/refunded) — chỉ là UX sớm, create_order (Chương 17)
     // vẫn tự kiểm tra lại y hệt điều kiện này ở server, không tin tưởng tuyệt đối giá trị client.
     final now = ref.watch(homeClockProvider).valueOrNull ?? DateTime.now();
     final expired = !batch.expiresAt.isAfter(now);
     ref.listen(homeClockProvider, (_, tick) {
-      if (tick.valueOrNull != null &&
+      if (reserved == null &&
+          tick.valueOrNull != null &&
           !batch.expiresAt.isAfter(tick.requireValue) &&
           Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
@@ -175,6 +186,9 @@ class _BatchDetailBody extends ConsumerWidget {
                 style: textTheme.headlineSmall?.copyWith(fontSize: 22),
               ),
               const SizedBox(height: 8),
+              if (reserved != null)
+                _PaidPrice(reserved: reserved, unitPrice: batch.unitPrice)
+              else
               priceAsync.when(
                 loading: () =>
                     Text(l10n.priceCalculating, style: textTheme.bodySmall),
@@ -274,7 +288,9 @@ class _BatchDetailBody extends ConsumerWidget {
           child: SafeArea(
             top: false,
             minimum: const EdgeInsets.all(16),
-            child: Column(
+            child: reserved != null
+                ? _ReservedNote(reserved: reserved)
+                : Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -476,6 +492,59 @@ class _DetailSkeleton extends StatelessWidget {
               block(72, radius: 12),
             ],
           ),
+        ),
+      ],
+    );
+  }
+}
+
+// Túi đã đặt: số khách đã trả (không phải giá đang giảm theo giờ — giá đó không còn liên quan tới đơn này)
+class _PaidPrice extends StatelessWidget {
+  const _PaidPrice({required this.reserved, required this.unitPrice});
+  final ReservedBag reserved;
+  final int unitPrice;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          '¥${reserved.pricePaid}',
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.amberInk, height: 1.2),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '¥$unitPrice',
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary,
+            decoration: TextDecoration.lineThrough,
+          ),
+        ),
+        const Spacer(),
+        StatusBadge(label: context.l10n.reservedPaid, tone: BadgeTone.soft),
+      ],
+    );
+  }
+}
+
+// Thay nút 予約する: túi này đã đặt rồi (số đơn trùng với thẻ ở 予約履歴)
+class _ReservedNote extends StatelessWidget {
+  const _ReservedNote({required this.reserved});
+  final ReservedBag reserved;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      key: const Key('reservedNote'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.check_circle, size: 20, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(
+          context.l10n.reservedOrderLabel(reserved.orderNumber),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
         ),
       ],
     );

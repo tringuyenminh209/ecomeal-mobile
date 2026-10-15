@@ -44,7 +44,7 @@ void main() {
       plannedPickupTime: DateTime.now(),
       stopLat: 34.69,
       stopLng: 135.50,
-      availableQty: 4,
+      remainingQty: 4,
     );
     await tester.pumpWidget(
       ProviderScope(

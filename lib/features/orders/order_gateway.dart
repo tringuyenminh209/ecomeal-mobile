@@ -42,6 +42,9 @@ class OrderSummary {
     this.rating,
     this.discountAmount = 0,
     this.stopDepartedAt,
+    this.surplusBatchId,
+    this.pickupRouteStopId,
+    this.stopLocationId,
   });
   final String id;
   final String status;
@@ -55,6 +58,10 @@ class OrderSummary {
   final int? rating; // 0054: số sao đã đánh giá (1〜5), null = chưa đánh giá
   final int discountAmount; // 0056: tiền coupon đã trừ (pricePaid là số khách thật sự trả)
   final DateTime? stopDepartedAt; // route_stops.actual_departure_at: xe đã rời điểm nhận (SCR-M18 受け取りの案内)
+  // Chạm thẻ đơn ở SCR-M06 → chi tiết túi đã đặt (SCR-M04, chế độ 予約済み, 2026-10-15). null = không mở được
+  final String? surplusBatchId;
+  final String? pickupRouteStopId;
+  final String? stopLocationId;
 }
 
 abstract class OrderGateway {
@@ -180,7 +187,7 @@ class SupabaseOrderGateway implements OrderGateway {
     // khác, !inner sẽ làm MẤT CẢ ĐƠN khỏi lịch sử (không báo lỗi); left join chỉ mất tên điểm.
     final rows = await _client
         .from('orders')
-        .select('id, status, price_paid, discount_amount, tax_rate, tax_amount, created_at, route_stops!inner(planned_time, actual_departure_at, stop_locations(name)), order_issues(status, refund_amount, resolution), order_ratings(rating)')
+        .select('id, status, price_paid, discount_amount, tax_rate, tax_amount, created_at, surplus_batch_id, pickup_route_stop_id, route_stops!inner(planned_time, actual_departure_at, stop_location_id, stop_locations(name)), order_issues(status, refund_amount, resolution), order_ratings(rating)')
         .eq('user_id', userId)
         .order('created_at', ascending: false) as List;
 
@@ -201,6 +208,9 @@ class SupabaseOrderGateway implements OrderGateway {
         rating: _ratingOf(row['order_ratings']),
         discountAmount: (row['discount_amount'] as int?) ?? 0,
         stopDepartedAt: stop['actual_departure_at'] == null ? null : DateTime.parse(stop['actual_departure_at'] as String),
+        surplusBatchId: row['surplus_batch_id'] as String?,
+        pickupRouteStopId: row['pickup_route_stop_id'] as String?,
+        stopLocationId: stop['stop_location_id'] as String?,
       );
     }).toList();
   }

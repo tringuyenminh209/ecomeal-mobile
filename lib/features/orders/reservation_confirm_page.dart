@@ -11,6 +11,7 @@ import '../../l10n/l10n.dart';
 import '../../widgets/customer_shell.dart';
 import '../../widgets/status_badge.dart';
 import '../home/batch_detail_page.dart';
+import '../home/customer_home_page.dart' show activeListingsProvider;
 import '../payment/add_card_page.dart';
 import '../payment/card_widgets.dart';
 import '../payment/payment_gateway.dart';
@@ -166,6 +167,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
       _paidAmount = result.pricePaid;
     });
     ref.invalidate(usableCouponsProvider); // coupon đã dùng không còn hiện ở SCR-M19 / lần đặt sau
+    ref.invalidate(activeListingsProvider); // 「残り n袋」 giảm ngay (0073), túi vừa hết thì biến khỏi SCR-M03
   }
 
   // 結果確認待ち: đọc đơn theo khoá. Có đơn đã chốt tiền → thành công. Có đơn mà chưa chốt (0070: lần trước mất kết

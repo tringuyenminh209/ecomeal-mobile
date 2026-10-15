@@ -32,7 +32,7 @@ BatchListing _listing(String batchId, String? stopLocationId, DateTime pickup) =
       plannedPickupTime: pickup,
       stopLat: 34.7,
       stopLng: 135.5,
-      availableQty: 3,
+      remainingQty: 3,
       stopLocationId: stopLocationId,
     );
 

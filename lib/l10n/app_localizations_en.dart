@@ -839,6 +839,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorCancelFailed => 'Couldn’t cancel. Please try again';
 
   @override
+  String reservedOrderLabel(String number) {
+    return 'Reserved · Order $number';
+  }
+
+  @override
+  String get reservedPaid => 'Paid';
+
+  @override
   String orderNumber(String number) {
     return 'Order $number';
   }

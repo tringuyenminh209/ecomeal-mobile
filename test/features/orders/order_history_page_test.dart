@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:ecomeal_mobile/features/home/batch_detail_page.dart';
+import 'package:ecomeal_mobile/features/home/home_gateway.dart';
 import 'package:ecomeal_mobile/features/orders/order_gateway.dart';
+import 'package:ecomeal_mobile/features/orders/order_helpers.dart';
 import 'package:ecomeal_mobile/features/orders/order_history_page.dart';
 import 'package:ecomeal_mobile/features/orders/receipt_page.dart';
 import 'package:ecomeal_mobile/features/profile/profile_gateway.dart';
@@ -12,6 +15,8 @@ import '../../helpers/test_app.dart';
 class MockOrderGateway extends Mock implements OrderGateway {}
 
 class MockProfileGateway extends Mock implements ProfileGateway {}
+
+class MockHomeGateway extends Mock implements HomeGateway {}
 
 // id phải có dạng UUID thật: orderDisplayNumber()/pickupManualCode() đọc 4 ký tự hex cuối của orders.id.
 // Id kiểu 'o-1' làm card ném RangeError/FormatException ngay lúc build (đã bắt được khi chạy thật).
@@ -286,5 +291,49 @@ void main() {
     await tester.tap(find.byKey(const Key('submitRatingButton')));
     await tester.pumpAndSettle();
     expect(find.text('受け取りから7日を過ぎたため評価できません'), findsOneWidget);
+  });
+
+  testWidgets('2026-10-15: chạm thẻ đơn → chi tiết túi đã đặt (số đơn, số đã trả, không có nút 予約する)', (tester) async {
+    final home = MockHomeGateway();
+    when(() => home.fetchBatchDetail('batch-1')).thenAnswer((_) async => BatchDetail(
+          batchId: 'batch-1',
+          unitPrice: 5000,
+          expiresAt: DateTime.now().add(const Duration(hours: 6)),
+          allergens: const [],
+          ingredients: const [],
+        ));
+    when(() => gateway.fetchMyOrders()).thenAnswer((_) async => [
+          OrderSummary(
+            id: '00000000-0000-0000-0000-000000002146',
+            status: 'pending',
+            pricePaid: 3500,
+            createdAt: DateTime(2026, 10, 15, 10, 0),
+            plannedPickupTime: DateTime.now().add(const Duration(hours: 7)),
+            stopName: '大阪駅 南口広場',
+            taxRate: 8,
+            taxAmount: 259,
+            surplusBatchId: 'batch-1',
+            pickupRouteStopId: 'rs-1',
+          ),
+        ]);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        orderGatewayProvider.overrideWithValue(gateway),
+        profileGatewayProvider.overrideWithValue(profile),
+        homeGatewayProvider.overrideWithValue(home),
+      ],
+      child: testApp(const OrderHistoryPage()),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(l10nJa.mysteryBag)); // chỗ trống của thẻ (không phải nút)
+    await tester.pumpAndSettle();
+
+    final page = tester.widget<BatchDetailPage>(find.byType(BatchDetailPage));
+    expect(page.batchId, 'batch-1');
+    expect(page.routeStopId, 'rs-1');
+    expect(page.reserved, (orderNumber: orderDisplayNumber('00000000-0000-0000-0000-000000002146'), pricePaid: 3500));
+    expect(find.byKey(const Key('reserveButton')), findsNothing);
+    expect(find.byKey(const Key('reservedNote')), findsOneWidget);
   });
 }

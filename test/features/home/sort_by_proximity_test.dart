@@ -17,7 +17,7 @@ BatchListing _listing(
     plannedPickupTime: DateTime(2026, 10, 2, 20, 0),
     stopLat: lat,
     stopLng: lng,
-    availableQty: 3,
+    remainingQty: 3,
   );
 }
 

@@ -327,6 +327,9 @@
   },
   "cancelledNoRefund": "キャンセルしました（返金なし）",
   "errorCancelFailed": "キャンセルに失敗しました。もう一度お試しください",
+  "reservedOrderLabel": "予約済み · 注文 {number}",
+  "@reservedOrderLabel": {"placeholders": {"number": {"type": "String"}}},
+  "reservedPaid": "お支払い済み",
   "orderNumber": "注文 {number}",
   "@orderNumber": {
     "placeholders": {

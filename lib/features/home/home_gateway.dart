@@ -14,7 +14,7 @@ class BatchListing {
     required this.plannedPickupTime,
     required this.stopLat,
     required this.stopLng,
-    required this.availableQty,
+    required this.remainingQty,
     this.truckId,
     this.photoUrl,
     this.stopLocationId,
@@ -31,7 +31,7 @@ class BatchListing {
   final DateTime plannedPickupTime;
   final double stopLat;
   final double stopLng;
-  final int availableQty;
+  final int remainingQty;
   // surplus_batches.truck_id — chế độ "chọn xe" của SCR-M03 lọc lô theo xe (null: lô chưa gán xe).
   final String? truckId;
   // Ảnh món do quán đăng (0038, tuỳ chọn) — URL công khai của bucket batch_photos; null = dùng ảnh minh hoạ chung.
@@ -153,13 +153,14 @@ class SupabaseHomeGateway implements HomeGateway {
         await _client
                 .from('batch_route_stops')
                 .select(
-                  'available_qty, route_stop_id, '
+                  // remaining_qty (0073): phân bổ − đơn đang giữ của điểm này (available_qty không giảm khi đặt, BR-001)
+                  'remaining_qty, route_stop_id, '
                   'surplus_batches!inner(id, unit_price, expires_at, truck_id, photo_path), '
                   'route_stops!inner(planned_time, actual_departure_at, stop_locations!inner(id, name, lat, lng, type))',
                 )
                 .eq('route_stops.stop_locations.type', 'public')
                 .isFilter('route_stops.actual_departure_at', null)
-                .gt('available_qty', 0)
+                .gt('remaining_qty', 0) // đã đặt hết thì không hiện (chủ dự án quyết 2026-10-15)
                 .gt('surplus_batches.expires_at', nowIso)
             as List;
 
@@ -179,7 +180,7 @@ class SupabaseHomeGateway implements HomeGateway {
         ).toLocal(),
         stopLat: (stop['lat'] as num).toDouble(),
         stopLng: (stop['lng'] as num).toDouble(),
-        availableQty: row['available_qty'] as int,
+        remainingQty: row['remaining_qty'] as int,
         truckId: batch['truck_id'] as String?,
         photoUrl: _photoUrl(batch['photo_path'] as String?),
         stopLocationId: stop['id'] as String?,

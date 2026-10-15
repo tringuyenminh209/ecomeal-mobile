@@ -1550,6 +1550,18 @@ abstract class AppLocalizations {
   /// **'キャンセルに失敗しました。もう一度お試しください'**
   String get errorCancelFailed;
 
+  /// No description provided for @reservedOrderLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約済み · 注文 {number}'**
+  String reservedOrderLabel(String number);
+
+  /// No description provided for @reservedPaid.
+  ///
+  /// In ja, this message translates to:
+  /// **'お支払い済み'**
+  String get reservedPaid;
+
   /// No description provided for @orderNumber.
   ///
   /// In ja, this message translates to:

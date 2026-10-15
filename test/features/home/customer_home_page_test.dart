@@ -26,7 +26,7 @@ void main() {
     plannedPickupTime: DateTime.now(),
     stopLat: 34.69,
     stopLng: 135.50,
-    availableQty: 4,
+    remainingQty: 4,
     truckId: 't1',
   );
   setUp(() {
@@ -191,7 +191,7 @@ void main() {
     plannedPickupTime: DateTime.now(),
     stopLat: 34.69,
     stopLng: 135.50,
-    availableQty: 3,
+    remainingQty: 3,
     truckId: truckId,
   );
   final truckRoute = TruckRoute(

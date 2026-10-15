@@ -120,7 +120,7 @@ class BatchCard extends ConsumerWidget {
                       const SizedBox(width: 8),
                     ],
                     Text(
-                      l10n.remainingBags(listing.availableQty),
+                      l10n.remainingBags(listing.remainingQty),
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -206,7 +206,7 @@ class BatchCard extends ConsumerWidget {
                 ),
               const SizedBox(height: 2),
               Text(
-                l10n.remainingBags(listing.availableQty),
+                l10n.remainingBags(listing.remainingQty),
                 style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
               ),
             ],

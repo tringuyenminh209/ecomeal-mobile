@@ -795,6 +795,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorCancelFailed => 'キャンセルに失敗しました。もう一度お試しください';
 
   @override
+  String reservedOrderLabel(String number) {
+    return '予約済み · 注文 $number';
+  }
+
+  @override
+  String get reservedPaid => 'お支払い済み';
+
+  @override
   String orderNumber(String number) {
     return '注文 $number';
   }

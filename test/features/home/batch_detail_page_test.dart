@@ -46,6 +46,7 @@ void main() {
     WidgetTester tester, {
     Locale locale = const Locale('ja'),
     String? stopLocationId,
+    ReservedBag? reserved,
   }) {
     tester.view.physicalSize = const Size(390, 1100);
     tester.view.devicePixelRatio = 1;
@@ -65,6 +66,7 @@ void main() {
             stopName: '大阪学生寮前',
             plannedPickupTime: DateTime.utc(2026, 10, 2, 11, 10), // = 20:10 JST (không phụ thuộc múi giờ máy chạy test)
             stopLocationId: stopLocationId,
+            reserved: reserved,
           ),
           locale: locale,
         ),
@@ -269,5 +271,51 @@ void main() {
     await pumpPage(tester);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('favoriteStarButton')), findsNothing);
+  });
+
+  testWidgets('2026-10-15: túi đã đặt (mở từ 予約履歴) → số đã trả, 予約済み + số đơn, không có nút 予約する', (tester) async {
+    await pumpPage(tester, reserved: (orderNumber: '#EM-2146', pricePaid: 3500));
+    await tester.pumpAndSettle();
+
+    expect(find.text('¥3500'), findsOneWidget);
+    expect(find.text(l10nJa.reservedPaid), findsOneWidget);
+    expect(find.text('¥320'), findsNothing); // giá đang giảm theo giờ không liên quan tới đơn đã trả
+    expect(find.text(l10nJa.reservedOrderLabel('#EM-2146')), findsOneWidget);
+    expect(find.byKey(const Key('reserveButton')), findsNothing);
+    expect(find.text('鶏肉（国産）'), findsOneWidget); // vẫn xem được nguyên liệu
+    verifyNever(() => gateway.fetchTodayReservationCount()); // không hỏi giới hạn ngày
+  });
+
+  testWidgets('2026-10-15: túi đã đặt mà đã hết giờ bán → vẫn xem được, không tự đóng', (tester) async {
+    batch = BatchDetail(batchId: 'b-1', unitPrice: 450, expiresAt: DateTime.now().subtract(const Duration(days: 3)),
+        allergens: const [], ingredients: const []);
+    when(() => gateway.fetchBatchDetail('b-1')).thenAnswer((_) async => batch);
+    // Mở từ 1 màn khác (như từ 予約履歴) — trang gốc thì vốn không pop được, test sẽ không bắt được lỗi
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        homeGatewayProvider.overrideWithValue(gateway),
+        favoriteStopsGatewayProvider.overrideWithValue(FakeFavoriteStopsGateway([])),
+      ],
+      child: testApp(Builder(
+        builder: (context) => TextButton(
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
+            builder: (_) => BatchDetailPage(
+              batchId: 'b-1',
+              routeStopId: 'rs-1',
+              stopName: '大阪学生寮前',
+              plannedPickupTime: DateTime.utc(2026, 10, 12, 9, 15),
+              reserved: (orderNumber: '#EM-2075', pricePaid: 420),
+            ),
+          )),
+          child: const Text('open'),
+        ),
+      )),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 2)); // đồng hồ của màn chi tiết đếm mỗi giây
+    await tester.pumpAndSettle();
+    expect(find.text(l10nJa.reservedOrderLabel('#EM-2075')), findsOneWidget);
+    expect(find.text(l10nJa.batchExpired), findsNothing);
   });
 }

@@ -5,6 +5,7 @@ import '../../l10n/l10n.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
+import '../home/batch_detail_page.dart';
 import 'active_order_page.dart';
 import 'order_gateway.dart';
 import 'order_helpers.dart';
@@ -258,13 +259,33 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
     final canReport = canReportIssue(status: order.status, hasIssue: order.issue != null, plannedPickupTime: order.plannedPickupTime);
     const secondary = TextStyle(fontSize: 11, color: AppColors.textSecondary);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
+    final batchId = order.surplusBatchId, routeStopId = order.pickupRouteStopId;
+    // Chạm thẻ (ngoài các nút) → chi tiết túi đã đặt (SCR-M04 chế độ 予約済み, chủ dự án quyết 2026-10-15)
+    return Material(
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        side: const BorderSide(color: AppColors.border),
         borderRadius: BorderRadius.circular(12),
       ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: Key('openOrderBag_${order.id}'),
+        onTap: batchId == null || routeStopId == null
+            ? null
+            : () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => BatchDetailPage(
+                      batchId: batchId,
+                      routeStopId: routeStopId,
+                      stopName: order.stopName,
+                      stopLocationId: order.stopLocationId,
+                      plannedPickupTime: order.plannedPickupTime,
+                      reserved: (orderNumber: orderDisplayNumber(order.id), pricePaid: order.pricePaid),
+                    ),
+                  ),
+                ),
+        child: Padding(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -375,6 +396,8 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
             ),
           ],
         ],
+      ),
+        ),
       ),
     );
   }
