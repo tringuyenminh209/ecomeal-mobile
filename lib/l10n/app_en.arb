@@ -914,6 +914,7 @@
   "adminMfaSetupDone": "Finish setup",
   "adminMfaInvalidCode": "Enter 6 digits",
   "adminMfaWrongCode": "The code is incorrect. Enter the latest code shown in your authenticator app.",
+  "adminMfaNetworkChanged": "Your network changed during the check. Use either Wi-Fi or mobile data, then try again",
   "adminMfaFailed": "Couldn't verify. Please try again later.",
   "adminTabHome": "Home",
   "adminTabOperations": "Operations",

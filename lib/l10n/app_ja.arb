@@ -1349,6 +1349,7 @@
   "adminMfaSetupDone": "設定を完了する",
   "adminMfaInvalidCode": "6桁の数字を入力してください",
   "adminMfaWrongCode": "コードが正しくありません。認証アプリに表示されている最新のコードを入力してください",
+  "adminMfaNetworkChanged": "通信の経路が途中で変わったため確認できませんでした。Wi-Fi かモバイル通信のどちらか一方にして、もう一度お試しください",
   "adminMfaFailed": "確認できませんでした。時間をおいて、もう一度お試しください",
   "adminTabHome": "ホーム",
   "adminTabOperations": "運行",

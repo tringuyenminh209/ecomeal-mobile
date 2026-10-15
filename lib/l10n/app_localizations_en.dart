@@ -3215,6 +3215,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The code is incorrect. Enter the latest code shown in your authenticator app.';
 
   @override
+  String get adminMfaNetworkChanged =>
+      'Your network changed during the check. Use either Wi-Fi or mobile data, then try again';
+
+  @override
   String get adminMfaFailed => 'Couldn\'t verify. Please try again later.';
 
   @override

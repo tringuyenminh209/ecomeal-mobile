@@ -3068,6 +3068,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adminMfaWrongCode => 'コードが正しくありません。認証アプリに表示されている最新のコードを入力してください';
 
   @override
+  String get adminMfaNetworkChanged =>
+      '通信の経路が途中で変わったため確認できませんでした。Wi-Fi かモバイル通信のどちらか一方にして、もう一度お試しください';
+
+  @override
   String get adminMfaFailed => '確認できませんでした。時間をおいて、もう一度お試しください';
 
   @override

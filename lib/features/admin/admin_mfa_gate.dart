@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/state_panel.dart';
 import '../auth/auth_controller.dart';
+import '../../core/mfa_http_client.dart';
 import 'admin_gateway.dart';
 
 // 6 chữ số (bỏ khoảng trắng / gạch nối) — cùng quy tắc Web normalizeTotpCode
@@ -28,6 +29,8 @@ String mfaErrorMessage(Object error, AppLocalizations l10n) {
   if (error is AuthException) {
     if (error.code == 'mfa_verification_failed' || error.code == 'mfa_challenge_expired') return l10n.adminMfaWrongCode;
     if (error.statusCode == '429') return l10n.errorRateLimited;
+    // Thử lại 3 lần vẫn khác IP (mạng đổi liên tục giữa Wi-Fi ↔ 4G) — không phải mã sai
+    if (isMfaIpMismatch(error)) return l10n.adminMfaNetworkChanged;
   }
   return l10n.adminMfaFailed;
 }

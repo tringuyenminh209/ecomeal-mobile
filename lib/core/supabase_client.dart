@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'mfa_http_client.dart';
 
 // 16_セキュリティ設計 §1/§3: session nằm trong Keychain/Keystore, không trong preferences.
 class SecureSessionStorage extends LocalStorage {
@@ -47,6 +48,8 @@ Future<void> initSupabase() async {
     // supabase_flutter 2.15 đổi tên tham số anonKey → publishableKey (anonKey đã deprecated). Giá trị vẫn là
     // key công khai in ra bởi `supabase start` (ANON_KEY hoặc PUBLISHABLE_KEY — cả 2 đều dùng được ở đây).
     publishableKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
+    // 2 bước xác thực của app 運営 phải đi cùng 1 IP (mfa_http_client.dart)
+    httpClient: MfaStickyHttpClient(),
     authOptions: const FlutterAuthClientOptions(
       localStorage: SecureSessionStorage(),
     ),

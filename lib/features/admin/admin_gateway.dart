@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/mfa_http_client.dart';
 import '../../core/supabase_client.dart';
 
 // App vận hành「EcoMeal Admin」(ADR-015). Mọi API của admin bị chặn ở server khi chưa qua 2 bước (0058: is_admin() cần
@@ -163,7 +164,7 @@ class SupabaseAdminGateway implements AdminGateway {
   // Thành công → session lên aal2 (Supabase tự làm mới token)
   @override
   Future<void> verify(String factorId, String code) =>
-      _client.auth.mfa.challengeAndVerify(factorId: factorId, code: code);
+      retryOnMfaIpMismatch(() => _client.auth.mfa.challengeAndVerify(factorId: factorId, code: code));
 
   @override
   Future<List<AdminRoute>> fetchTonightRoutes(String serviceDate) async {

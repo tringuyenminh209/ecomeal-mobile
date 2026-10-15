@@ -56,6 +56,8 @@ void main() {
     test('mfaErrorMessage: 違うコード／回数制限／その他', () {
       expect(mfaErrorMessage(const AuthException('x', code: 'mfa_verification_failed'), l10nJa), l10nJa.adminMfaWrongCode);
       expect(mfaErrorMessage(const AuthException('x', statusCode: '429'), l10nJa), l10nJa.errorRateLimited);
+      // 2026-10-15: challenge và verify khác IP (iPhone/iPad) — không phải mã sai
+      expect(mfaErrorMessage(const AuthException('x', code: 'mfa_ip_address_mismatch'), l10nJa), l10nJa.adminMfaNetworkChanged);
       expect(mfaErrorMessage(Exception('network'), l10nJa), l10nJa.adminMfaFailed);
     });
   });
