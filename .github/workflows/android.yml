@@ -1,0 +1,177 @@
+# Workflow của repo PUBLIC tringuyenminh209/ecomeal-mobile (và mono-repo pj)
+# Dùng runner ubuntu-latest (miễn phí, nhanh gấp 3-4 lần macOS runner)
+#   - push lên main: check (analyze + test) rồi build 4 APK (khách, tài xế, nhà hàng, vận hành) → artifact EcoMeal-apk.
+#   - bấm tay (workflow_dispatch): có thể chọn build 1 app cụ thể (ví dụ chỉ app khách) để xong trong 2 phút.
+name: Android build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'Chọn app cần build APK'
+        required: true
+        type: choice
+        default: 'all'
+        options:
+          - all
+          - customer
+          - driver
+          - store
+          - admin
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.32.5
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: |
+          flutter pub get
+          flutter gen-l10n
+          git diff --exit-code -- lib/l10n
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+  android:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.32.5
+          channel: stable
+          cache: true
+
+      - name: Java / Flutter versions
+        run: |
+          java -version
+          flutter --version
+
+      # env.json không nằm trong Git. Tạo từ GitHub Secrets.
+      # Nếu thiếu secret, script sẽ dùng giá trị mặc định an toàn để build vẫn thành công.
+      - name: Create env.json
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
+          GOOGLE_MAPS_IOS_API_KEY: ${{ secrets.GOOGLE_MAPS_IOS_API_KEY }}
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_ANDROID_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          FIREBASE_ANDROID_APP_ID_STORE: ${{ secrets.FIREBASE_ANDROID_APP_ID_STORE }}
+          FIREBASE_ANDROID_APP_ID_ADMIN: ${{ secrets.FIREBASE_ANDROID_APP_ID_ADMIN }}
+        run: |
+          jq -n --arg url "${SUPABASE_URL:-https://example.supabase.co}" \
+                --arg anon "${SUPABASE_ANON_KEY:-}" \
+                --arg mapsAndroid "${GOOGLE_MAPS_ANDROID_API_KEY:-}" \
+                --arg mapsIos "${GOOGLE_MAPS_IOS_API_KEY:-}" \
+                --arg stripe "${STRIPE_PUBLISHABLE_KEY:-}" \
+                --arg fbKey "${FIREBASE_API_KEY:-}" \
+                --arg fbProject "${FIREBASE_PROJECT_ID:-}" \
+                --arg fbSender "${FIREBASE_MESSAGING_SENDER_ID:-}" \
+                --arg fbAndroid "${FIREBASE_ANDROID_APP_ID:-}" \
+                --arg fbAndroidStore "${FIREBASE_ANDROID_APP_ID_STORE:-}" \
+                --arg fbAndroidAdmin "${FIREBASE_ANDROID_APP_ID_ADMIN:-}" \
+            '{
+              SUPABASE_URL: $url,
+              SUPABASE_ANON_KEY: $anon,
+              GOOGLE_MAPS_ANDROID_API_KEY: $mapsAndroid,
+              GOOGLE_MAPS_IOS_API_KEY: $mapsIos,
+              LINE_CHANNEL_ID: "2011847544",
+              LINE_OFFICIAL_ACCOUNT_ID: "@939hqcxi",
+              STRIPE_PUBLISHABLE_KEY: $stripe,
+              FIREBASE_API_KEY: $fbKey,
+              FIREBASE_PROJECT_ID: $fbProject,
+              FIREBASE_MESSAGING_SENDER_ID: $fbSender,
+              FIREBASE_ANDROID_APP_ID: $fbAndroid,
+              FIREBASE_ANDROID_APP_ID_STORE: $fbAndroidStore,
+              FIREBASE_ANDROID_APP_ID_ADMIN: $fbAndroidAdmin
+            }' > env.json
+
+          echo "=== Trạng thái cấu hình Secrets ==="
+          [ -n "${SUPABASE_ANON_KEY:-}" ] && echo "Supabase: có" || echo "Supabase: KHÔNG (dùng mock)"
+          [ -n "${GOOGLE_MAPS_ANDROID_API_KEY:-}" ] && echo "Google Maps Android: có" || echo "Google Maps Android: KHÔNG"
+          [ -n "${STRIPE_PUBLISHABLE_KEY:-}" ] && echo "Stripe: có" || echo "Stripe: KHÔNG"
+          [ -n "${FIREBASE_ANDROID_APP_ID:-}" ] && echo "Firebase Android: có" || echo "Firebase Android: KHÔNG"
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Prepare APK output directory
+        run: mkdir -p build/apk-output
+
+      # 1. App khách hàng「EcoMeal」(lib/main.dart, flavor customer)
+      - name: Build APK — App Khách hàng (Customer)
+        if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'customer'
+        run: |
+          flutter build apk --release --flavor customer -t lib/main.dart --dart-define-from-file=env.json
+          cp build/app/outputs/flutter-apk/app-customer-release.apk build/apk-output/EcoMeal.apk
+          ls -lh build/apk-output/EcoMeal.apk
+
+      # 2. App tài xế「EcoMeal Driver」(lib/main_driver.dart, flavor driver)
+      - name: Build APK — App Tài xế (Driver)
+        if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'driver'
+        run: |
+          flutter build apk --release --flavor driver -t lib/main_driver.dart --dart-define-from-file=env.json
+          cp build/app/outputs/flutter-apk/app-driver-release.apk build/apk-output/EcoMeal-Driver.apk
+          ls -lh build/apk-output/EcoMeal-Driver.apk
+
+      # 3. App nhà hàng「EcoMeal Store」(lib/main_store.dart, flavor store)
+      - name: Build APK — App Nhà hàng (Store)
+        if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'store'
+        run: |
+          flutter build apk --release --flavor store -t lib/main_store.dart --dart-define-from-file=env.json
+          cp build/app/outputs/flutter-apk/app-store-release.apk build/apk-output/EcoMeal-Store.apk
+          ls -lh build/apk-output/EcoMeal-Store.apk
+
+      # 4. App vận hành「EcoMeal Admin」(lib/main_admin.dart, flavor admin)
+      - name: Build APK — App Vận hành (Admin)
+        if: github.event_name == 'push' || inputs.app == 'all' || inputs.app == 'admin'
+        run: |
+          flutter build apk --release --flavor admin -t lib/main_admin.dart --dart-define-from-file=env.json
+          cp build/app/outputs/flutter-apk/app-admin-release.apk build/apk-output/EcoMeal-Admin.apk
+          ls -lh build/apk-output/EcoMeal-Admin.apk
+
+      - name: List built APKs
+        run: ls -lh build/apk-output/
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: EcoMeal-apk
+          path: build/apk-output/*.apk
+          retention-days: 7
+          if-no-files-found: error
