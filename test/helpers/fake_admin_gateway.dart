@@ -30,8 +30,15 @@ class FakeAdminGateway implements AdminGateway {
     if (code == validCode) state = const AdminMfaOk();
   }
 
+  // Lỗi khi tải tuyến (vd mất mạng lúc tải lại định kỳ)
+  Object? routesError;
+
   @override
-  Future<List<AdminRoute>> fetchTonightRoutes(String serviceDate) async => routes;
+  Future<List<AdminRoute>> fetchTonightRoutes(String serviceDate) async {
+    final error = routesError;
+    if (error != null) throw error;
+    return routes;
+  }
 
   @override
   Future<String> fetchMyName(String userId) async => 'EcoMeal 運営チーム';

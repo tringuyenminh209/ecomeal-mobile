@@ -2948,10 +2948,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noticeIssueResolvedBody => '対応内容は予約履歴でご確認ください。';
 
   @override
-  String get noticeRefundedTitle => '返金しました';
+  String get noticeRefundedTitle => 'ご予約は全額返金になります';
 
   @override
-  String get noticeRefundedBody => 'ご予約のフードバッグをご用意できなかったため、全額を返金しました。';
+  String get noticeRefundedBody =>
+      'ご予約のフードバッグをご用意できなかったため、お支払いの全額を返金します。カードへの反映時期はカード会社によって異なります。';
 
   @override
   String get storeSettingsTitle => '設定';
@@ -3536,7 +3537,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get adminOpsLive => 'ライブ';
+  String adminOpsStale(String time) {
+    return '更新できません · $time 時点';
+  }
+
+  @override
+  String adminOpsUpdatedAt(String time) {
+    return '$time 更新（20秒ごと）';
+  }
 
   @override
   String get adminOpsTrucks => '今夜の車両';

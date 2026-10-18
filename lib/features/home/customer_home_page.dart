@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -25,9 +26,7 @@ import 'truck_glide.dart';
 import 'truck_route_section.dart';
 import '../../widgets/skeleton.dart';
 
-final activeListingsProvider = FutureProvider.autoDispose<List<BatchListing>>((
-  ref,
-) {
+final activeListingsProvider = FutureProvider.autoDispose<List<BatchListing>>((ref) {
   return ref.watch(homeGatewayProvider).fetchActiveListings();
 });
 
@@ -42,7 +41,6 @@ final currentPositionProvider = FutureProvider.autoDispose<Position>((ref) {
   // Logic xin quyền + lấy toạ độ nằm ở core/location.dart (Chương 19) — GPS tài xế dùng chung.
   return getCurrentPositionWithPermission();
 });
-
 
 // SCR-M03 — khớp frame Figma 16:16388 (Default) / 125:294 (Empty) / 125:379 (Error): bản đồ toàn màn +
 // thẻ logo nổi góc trên, bottom sheet trắng bo 24 chứa thẻ xe và các thẻ lô cuộn ngang.
@@ -69,8 +67,11 @@ enum HomeSheetRequest { standard, map }
 
 final homeSheetRequestProvider = StateProvider.autoDispose<HomeSheetRequest?>((ref) => null);
 
-// Mức 中 = bố cục cũ (thẻ xe + thẻ ngang). 低 và 高 tính theo chiều cao màn hình (xem build).
-const _midSize = 0.46;
+// Mức 中 = thẻ xe + thẻ ngang. Chiều cao đo từ nội dung thật (tiêu đề + thẻ xe + hàng thẻ) để hàng thẻ không bị cắt dưới
+// thanh tab — 46% cố định không đủ khi có thẻ xe + câu hướng dẫn hoặc chữ hệ thống lớn (2026-10-18). Chưa đo được → 46%.
+const _defaultMidSize = 0.46;
+// Đệm của sheet ở mức 中: trên (12) + tay cầm (4) + khoảng (16) … khoảng dưới tiêu đề (16) … đáy (16)
+const _midChromeHeight = 12.0 + 4 + 16 + 16 + 16;
 // 低: tay cầm + tiêu đề + 1 dòng tóm tắt xe (nhân theo cỡ chữ hệ thống)
 const _peekHeight = 120.0;
 // 高: đáy sheet dừng dưới thẻ logo (12 lề + 46 thẻ + 12 khoảng trống), vẫn thấy một dải bản đồ
@@ -83,6 +84,10 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
   _SheetLevel _level = _SheetLevel.mid;
   // Mức 低 tính theo chiều cao màn hình trong build — giữ lại cho yêu cầu từ ngoài (HomeSheetRequest.map)
   double _peekSize = 0.12;
+  // Mức 中 hiện tại (phân số chiều cao) và các chiều cao đo được (px) để tính nó
+  double _midSize = _defaultMidSize;
+  double? _headerHeight;
+  double? _midContentHeight;
   // Sheet đang nằm đúng 1 mức dừng — rung nhẹ 1 lần khi vừa tới mức (không rung liên tục lúc kéo)
   bool _atStop = true;
 
@@ -133,6 +138,27 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
     _moveSheetTo(_midSize);
   }
 
+  // Kích thước báo từ _MeasureSize (sau khung hình) — chỉ dựng lại khi đổi thật
+  void _setMeasured({double? header, double? midContent}) {
+    if (!mounted) return;
+    final changed =
+        (header != null && (header - (_headerHeight ?? -1)).abs() > 1) ||
+        (midContent != null && (midContent - (_midContentHeight ?? -1)).abs() > 1);
+    if (!changed) return;
+    setState(() {
+      _headerHeight = header ?? _headerHeight;
+      _midContentHeight = midContent ?? _midContentHeight;
+    });
+  }
+
+  // 中 = tiêu đề + nội dung 中 + đệm; nằm giữa 低 và 高 (chừa dải bản đồ phía trên)
+  double _fitMidSize(double h, double low, double high) {
+    final header = _headerHeight;
+    final content = _midContentHeight;
+    if (header == null || content == null) return _defaultMidSize;
+    return ((_midChromeHeight + header + content) / h).clamp(low + 0.05, high - 0.06);
+  }
+
   void _moveSheetTo(double size) {
     if (!mounted || !_sheet.isAttached) return;
     if (Motion.reduced(context)) {
@@ -164,99 +190,105 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
         builder: (context, constraints) {
           final h = constraints.maxHeight;
           final low = (MediaQuery.textScalerOf(context).scale(_peekHeight) / h).clamp(0.12, 0.3);
-          final high = (1 - (topInset + _topBarHeight) / h).clamp(_midSize + 0.1, 0.9);
-          final stops = [low, _midSize, high];
+          final high = (1 - (topInset + _topBarHeight) / h).clamp(_defaultMidSize + 0.1, 0.9);
+          final mid = _fitMidSize(h, low, high);
+          if ((mid - _midSize).abs() > 0.005) {
+            final wasAtMid = _level == _SheetLevel.mid && _atStop;
+            _midSize = mid;
+            // Đang đứng ở 中 → trượt tới chiều cao mới (vd lần đầu đo được, có/mất thẻ xe)
+            if (wasAtMid) WidgetsBinding.instance.addPostFrameCallback((_) => _moveSheetTo(mid));
+          }
+          final stops = [low, mid, high];
           _peekSize = low;
           return Stack(
-        children: [
-          Positioned.fill(
-            child: trucksAsync.when(
-              loading: () => const ColoredBox(color: AppColors.chip),
-              error: (_, __) => const ColoredBox(color: AppColors.chip),
-              data: (trucks) => _Map(
-                trucks: trucks,
-                selectedTruckId: ref.watch(selectedTruckIdProvider),
-                onSelectTruck: (id) => ref.read(selectedTruckIdProvider.notifier).state = id,
-                myPosition: positionAsync.valueOrNull,
-                // Nút vị trí đứng ngay trên mép sheet; ở 高 sheet che gần hết bản đồ nên ẩn (Figma 881:2137)
-                locateBottom: (_level == _SheetLevel.peek ? low : _midSize) * h + 12,
-                showLocate: _level != _SheetLevel.full,
+            children: [
+              Positioned.fill(
+                child: trucksAsync.when(
+                  loading: () => const ColoredBox(color: AppColors.chip),
+                  error: (_, __) => const ColoredBox(color: AppColors.chip),
+                  data: (trucks) => _Map(
+                    trucks: trucks,
+                    selectedTruckId: ref.watch(selectedTruckIdProvider),
+                    onSelectTruck: (id) => ref.read(selectedTruckIdProvider.notifier).state = id,
+                    myPosition: positionAsync.valueOrNull,
+                    // Nút vị trí đứng ngay trên mép sheet; ở 高 sheet che gần hết bản đồ nên ẩn (Figma 881:2137)
+                    locateBottom: (_level == _SheetLevel.peek ? low : _midSize) * h + 12,
+                    showLocate: _level != _SheetLevel.full,
+                  ),
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            top: topInset + 12,
-            left: 16,
-            right: 16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Logo bên trái, chuông お知らせ bên phải (Figma SCR-M03 "Notification bell" → SCR-M20)
-                Row(
+              Positioned(
+                top: topInset + 12,
+                left: 16,
+                right: 16,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const _FloatingLogo(),
-                    const Spacer(),
-                    if (userId != null)
-                      InboxBellButton(
-                        userId: userId,
-                        floating: true,
-                        emptyBody: context.l10n.inboxEmptyBodyCustomer,
-                        // Lô mới ở điểm yêu thích → ở lại ホーム (đã đang ở đây); các loại khác là về đơn đã đặt
-                        onOpen: (n) {
-                          if (n.type != 'new_batch') widget.onOpenOrders?.call();
+                    // Logo bên trái, chuông お知らせ bên phải (Figma SCR-M03 "Notification bell" → SCR-M20)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _FloatingLogo(),
+                        const Spacer(),
+                        if (userId != null)
+                          InboxBellButton(
+                            userId: userId,
+                            floating: true,
+                            emptyBody: context.l10n.inboxEmptyBodyCustomer,
+                            // Lô mới ở điểm yêu thích → ở lại ホーム (đã đang ở đây); các loại khác là về đơn đã đặt
+                            onOpen: (n) {
+                              if (n.type != 'new_batch') widget.onOpenOrders?.call();
+                            },
+                          ),
+                      ],
+                    ),
+                    // Mất GPS chỉ làm danh sách mất thứ tự theo khoảng cách (vẫn sắp theo giờ hết hạn) —
+                    // không chặn cả sheet; báo ở banner nổi để người dùng thử lại (xem box-why bước 5).
+                    if (positionAsync.hasError) ...[
+                      const SizedBox(height: 8),
+                      ErrorBanner(
+                        message: '${context.l10n.errorLocationUnavailable}\n${context.l10n.errorLocationBody}',
+                        retryLabel: positionAsync.error == LocationPermission.deniedForever
+                            ? context.l10n.openLocationSettings
+                            : context.l10n.retry,
+                        onRetry: () async {
+                          if (positionAsync.error == LocationPermission.deniedForever) {
+                            await Geolocator.openAppSettings();
+                          }
+                          ref.invalidate(currentPositionProvider);
                         },
                       ),
+                    ],
                   ],
                 ),
-                // Mất GPS chỉ làm danh sách mất thứ tự theo khoảng cách (vẫn sắp theo giờ hết hạn) —
-                // không chặn cả sheet; báo ở banner nổi để người dùng thử lại (xem box-why bước 5).
-                if (positionAsync.hasError) ...[
-                  const SizedBox(height: 8),
-                  ErrorBanner(
-                    message:
-                        '${context.l10n.errorLocationUnavailable}\n${context.l10n.errorLocationBody}',
-                    retryLabel:
-                        positionAsync.error == LocationPermission.deniedForever
-                        ? context.l10n.openLocationSettings
-                        : context.l10n.retry,
-                    onRetry: () async {
-                      if (positionAsync.error ==
-                          LocationPermission.deniedForever) {
-                        await Geolocator.openAppSettings();
-                      }
-                      ref.invalidate(currentPositionProvider);
-                    },
-                  ),
-                ],
-              ],
-            ),
-          ),
-          // Thả tay → trượt tới mức gần nhất; vuốt nhanh → mức kế tiếp theo hướng vuốt (snap của Flutter)
-          NotificationListener<DraggableScrollableNotification>(
-            onNotification: (n) {
-              _onSheetMoved(n.extent, stops);
-              return false;
-            },
-            child: DraggableScrollableSheet(
-              controller: _sheet,
-              initialChildSize: _midSize,
-              minChildSize: low,
-              maxChildSize: high,
-              snap: true,
-              snapSizes: const [_midSize],
-              // Flutter không nhận 0 → 1ms khi người dùng tắt chuyển động
-              snapAnimationDuration: Motion.reduced(context) ? const Duration(milliseconds: 1) : Motion.small,
-              builder: (context, scrollController) => _HomeSheet(
-                scrollController: scrollController,
-                level: _level,
-                myPosition: positionAsync.valueOrNull,
-                onOpenMyPage: widget.onOpenMyPage,
               ),
-            ),
-          ),
-        ],
-      );
+              // Thả tay → trượt tới mức gần nhất; vuốt nhanh → mức kế tiếp theo hướng vuốt (snap của Flutter)
+              NotificationListener<DraggableScrollableNotification>(
+                onNotification: (n) {
+                  _onSheetMoved(n.extent, stops);
+                  return false;
+                },
+                child: DraggableScrollableSheet(
+                  controller: _sheet,
+                  initialChildSize: _midSize,
+                  minChildSize: low,
+                  maxChildSize: high,
+                  snap: true,
+                  snapSizes: [mid],
+                  // Flutter không nhận 0 → 1ms khi người dùng tắt chuyển động
+                  snapAnimationDuration: Motion.reduced(context) ? const Duration(milliseconds: 1) : Motion.small,
+                  builder: (context, scrollController) => _HomeSheet(
+                    scrollController: scrollController,
+                    level: _level,
+                    myPosition: positionAsync.valueOrNull,
+                    onOpenMyPage: widget.onOpenMyPage,
+                    onHeaderHeight: (v) => _setMeasured(header: v),
+                    onMidContentHeight: (v) => _setMeasured(midContent: v),
+                  ),
+                ),
+              ),
+            ],
+          );
         },
       ),
     );
@@ -273,13 +305,7 @@ class _FloatingLogo extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1F1B1B1B),
-            blurRadius: 16,
-            offset: Offset(0, 4),
-          ),
-        ],
+        boxShadow: const [BoxShadow(color: Color(0x1F1B1B1B), blurRadius: 16, offset: Offset(0, 4))],
       ),
       child: const EcoMealLogo(height: 30),
     );
@@ -292,8 +318,12 @@ class _HomeSheet extends ConsumerWidget {
     required this.level,
     required this.myPosition,
     required this.onOpenMyPage,
+    required this.onHeaderHeight,
+    required this.onMidContentHeight,
   });
   final ScrollController scrollController;
+  final ValueChanged<double> onHeaderHeight;
+  final ValueChanged<double> onMidContentHeight;
   // 低: chỉ tiêu đề + dòng tóm tắt xe · 中: thẻ xe + thẻ ngang · 高: danh sách dọc gần nhất trước
   final _SheetLevel level;
   final Position? myPosition;
@@ -313,13 +343,7 @@ class _HomeSheet extends ConsumerWidget {
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x241B1B1B),
-            blurRadius: 24,
-            offset: Offset(0, -4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Color(0x241B1B1B), blurRadius: 24, offset: Offset(0, -4))],
       ),
       // ListView nhận scrollController của sheet: kéo nội dung = kéo sheet lên/xuống.
       child: ListView(
@@ -330,10 +354,7 @@ class _HomeSheet extends ConsumerWidget {
             child: Container(
               width: 40,
               height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
+              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
             ),
           ),
           const SizedBox(height: 16),
@@ -346,108 +367,169 @@ class _HomeSheet extends ConsumerWidget {
               onClose: () => ref.read(selectedTruckIdProvider.notifier).state = null,
             )
           else ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  l10n.nearbyBatches,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                if (count != null && count > 0) ...[
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 3),
-                    child: Text(
-                      l10n.countItems(count),
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
+            _MeasureSize(
+              onChange: (size) => onHeaderHeight(size.height),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Tiêu đề + số lượng chiếm phần còn lại và xuống dòng khi chữ hệ thống lớn — trước đây Row cố định
+                    // tràn ngang (vạch vàng-đen) từ cỡ chữ 1.3 ở màn 390px (2026-10-18)
+                    Expanded(
+                      child: Wrap(
+                        spacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.end,
+                        children: [
+                          Text(l10n.nearbyBatches, style: Theme.of(context).textTheme.titleLarge),
+                          if (count != null && count > 0)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 3),
+                              child: Text(
+                                l10n.countItems(count),
+                                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-                const Spacer(),
-                StatusBadge(label: l10n.liveUpdating, tone: BadgeTone.soft),
-              ],
-            ),
-          ),
-          if (level == _SheetLevel.peek) ...[
-            const SizedBox(height: 8),
-            const _TruckPeekLine(),
-          ] else ...[
-          const SizedBox(height: 16),
-          ...listingsAsync.when(
-            loading: () => const [_SheetSkeleton()],
-            error: (_, __) => [
-              StatePanel.error(
-                title: l10n.errorLoadTitle,
-                message: l10n.errorLoadBody,
-                actionLabel: l10n.retry,
-                filledAction: false, // Figma: 再試行 là nút viền
-                onAction: () => ref.invalidate(activeListingsProvider),
+                    const SizedBox(width: 8),
+                    StatusBadge(label: l10n.liveUpdating, tone: BadgeTone.soft),
+                  ],
+                ),
               ),
-            ],
-            data: (listings) {
-              if (listings.isEmpty) {
-                // Đã liên kết LINE thì mời cài lại là sai (Figma 239:638, レビュー第66回): đổi câu + nút mở LINE.
-                // Chưa biết (đang tải/lỗi) thì giữ lời mời cũ — dẫn sang SCR-M07, nơi hiện trạng thái thật.
-                final isLineLinked = ref.watch(lineLinkedProvider).valueOrNull == true;
-                final canOpenLine = ref.watch(openLineOfficialAccountProvider) != null;
-                return [
-                  StatePanel(
-                    icon: Icons.notifications_none_rounded,
-                    title: l10n.homeEmptyTitle,
-                    message: isLineLinked ? l10n.homeEmptyBodyLinked : l10n.homeEmptyBody,
-                    actionLabel: isLineLinked ? (canOpenLine ? l10n.openLine : null) : l10n.setupLineNotify,
-                    onAction: isLineLinked ? () => openLineOfficialAccount(context, ref) : onOpenMyPage,
-                  ),
-                ];
-              }
-              final sorted = sortListingsByProximity(
-                listings,
-                myLat: myPosition?.latitude,
-                myLng: myPosition?.longitude,
-              );
-              if (level == _SheetLevel.full) {
-                return [
-                  for (final l in sorted)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                      child: BatchCard(
-                        listing: l,
-                        compact: true,
-                        width: double.infinity,
-                        walkMinutes: walkMinutes(l, myLat: myPosition?.latitude, myLng: myPosition?.longitude),
+            ),
+            // Đổi bố cục theo mức (低: 1 dòng xe · 中: thẻ xe + hàng ngang · 高: danh sách dọc) bằng mờ chéo ngắn — trước
+            // đây thay tức thì giữa lúc kéo nên ảnh/thẻ "nhảy" (2026-10-18). Tắt chuyển động → đổi ngay.
+            AnimatedSwitcher(
+              duration: Motion.of(context, Motion.small),
+              switchInCurve: Motion.enter,
+              switchOutCurve: Motion.exit,
+              layoutBuilder: (current, previous) =>
+                  Stack(alignment: Alignment.topCenter, children: [...previous, if (current != null) current]),
+              child: KeyedSubtree(
+                key: ValueKey(level),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (level == _SheetLevel.peek) ...[
+                      const SizedBox(height: 8),
+                      const _TruckPeekLine(),
+                    ] else ...[
+                      const SizedBox(height: 16),
+                      ...listingsAsync.when(
+                        loading: () => const [_SheetSkeleton()],
+                        error: (_, __) => [
+                          StatePanel.error(
+                            title: l10n.errorLoadTitle,
+                            message: l10n.errorLoadBody,
+                            actionLabel: l10n.retry,
+                            filledAction: false, // Figma: 再試行 là nút viền
+                            onAction: () => ref.invalidate(activeListingsProvider),
+                          ),
+                        ],
+                        data: (listings) {
+                          if (listings.isEmpty) {
+                            // Đã liên kết LINE thì mời cài lại là sai (Figma 239:638, レビュー第66回): đổi câu + nút mở LINE.
+                            // Chưa biết (đang tải/lỗi) thì giữ lời mời cũ — dẫn sang SCR-M07, nơi hiện trạng thái thật.
+                            final isLineLinked = ref.watch(lineLinkedProvider).valueOrNull == true;
+                            final canOpenLine = ref.watch(openLineOfficialAccountProvider) != null;
+                            return [
+                              StatePanel(
+                                icon: Icons.notifications_none_rounded,
+                                title: l10n.homeEmptyTitle,
+                                message: isLineLinked ? l10n.homeEmptyBodyLinked : l10n.homeEmptyBody,
+                                actionLabel: isLineLinked ? (canOpenLine ? l10n.openLine : null) : l10n.setupLineNotify,
+                                onAction: isLineLinked ? () => openLineOfficialAccount(context, ref) : onOpenMyPage,
+                              ),
+                            ];
+                          }
+                          final sorted = sortListingsByProximity(
+                            listings,
+                            myLat: myPosition?.latitude,
+                            myLng: myPosition?.longitude,
+                          );
+                          if (level == _SheetLevel.full) {
+                            return [
+                              for (final l in sorted)
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                                  child: BatchCard(
+                                    listing: l,
+                                    compact: true,
+                                    width: double.infinity,
+                                    walkMinutes: walkMinutes(
+                                      l,
+                                      myLat: myPosition?.latitude,
+                                      myLng: myPosition?.longitude,
+                                    ),
+                                  ),
+                                ),
+                            ];
+                          }
+                          return [
+                            // Đo phần riêng của 中 để mức 中 vừa khít (không cắt hàng thẻ dưới thanh tab)
+                            _MeasureSize(
+                              onChange: (size) => onMidContentHeight(size.height),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 20),
+                                    child: _TruckStatusCard(),
+                                  ),
+                                  SizedBox(
+                                    height: BatchCard.rowHeight(context),
+                                    child: ListView.separated(
+                                      scrollDirection: Axis.horizontal,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      itemCount: sorted.length,
+                                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                                      itemBuilder: (context, index) => BatchCard(listing: sorted[index]),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ];
+                        },
                       ),
-                    ),
-                ];
-              }
-              return [
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: _TruckStatusCard(),
+                    ],
+                  ],
                 ),
-                SizedBox(
-                  height: BatchCard.rowHeight(context),
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: sorted.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) =>
-                        BatchCard(listing: sorted[index]),
-                  ),
-                ),
-              ];
-            },
-          ),
-          ],
+              ),
+            ),
           ],
         ],
       ),
     );
+  }
+}
+
+// Báo kích thước con sau mỗi lần layout đổi (gọi sau khung hình — không setState giữa layout)
+class _MeasureSize extends SingleChildRenderObjectWidget {
+  const _MeasureSize({required this.onChange, required super.child});
+  final ValueChanged<Size> onChange;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderMeasureSize(onChange);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderMeasureSize renderObject) => renderObject.onChange = onChange;
+}
+
+class _RenderMeasureSize extends RenderProxyBox {
+  _RenderMeasureSize(this.onChange);
+  ValueChanged<Size> onChange;
+  Size? _last;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    if (size == _last) return;
+    _last = size;
+    final reported = size;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onChange(reported));
   }
 }
 
@@ -571,15 +653,11 @@ class _SheetSkeleton extends StatelessWidget {
     Widget block(double height, {double? width}) => SkeletonBox(height: height, width: width, radius: 16);
     return SkeletonPulse(
       child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          block(96),
-          const SizedBox(height: 16),
-          block(168, width: 300),
-        ],
-      ),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [block(96), const SizedBox(height: 16), block(168, width: 300)],
+        ),
       ),
     );
   }
@@ -684,9 +762,7 @@ class _MapState extends State<_Map> with SingleTickerProviderStateMixin {
   void _locate() {
     final position = widget.myPosition;
     if (position != null) {
-      _controller?.animateCamera(
-        CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)),
-      );
+      _controller?.animateCamera(CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)));
     }
   }
 
@@ -706,10 +782,7 @@ class _MapState extends State<_Map> with SingleTickerProviderStateMixin {
           alignment: const Alignment(0, -0.4),
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text(
-              context.l10n.mapSetupRequired,
-              textAlign: TextAlign.center,
-            ),
+            child: Text(context.l10n.mapSetupRequired, textAlign: TextAlign.center),
           ),
         ),
       );
@@ -722,18 +795,14 @@ class _MapState extends State<_Map> with SingleTickerProviderStateMixin {
             _controller = controller;
           },
           initialCameraPosition: CameraPosition(
-            target: position != null
-                ? LatLng(position.latitude, position.longitude)
-                : osakaCenter,
+            target: position != null ? LatLng(position.latitude, position.longitude) : osakaCenter,
             zoom: 14,
           ),
           myLocationEnabled: position != null,
           myLocationButtonEnabled: false,
           zoomControlsEnabled: false,
           mapToolbarEnabled: false,
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.sizeOf(context).height * 0.42,
-          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.sizeOf(context).height * 0.42),
           markers: {
             for (final (index, truck) in widget.trucks.indexed)
               if (truck.position case final p?)

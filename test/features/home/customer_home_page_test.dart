@@ -267,13 +267,29 @@ void main() {
     expect(find.byKey(const Key('truckStatusCard')), findsNothing);
   });
 
-  // Sheet 3 mức (Figma 881:1929 / 2041 / 2137): màn thử cao 844 → 中 = 0.46, 低 = 120/844, 高 = 0.9
+  // Sheet 3 mức (Figma 881:1929 / 2041 / 2137): màn thử cao 844 → 低 = 120/844, 高 = 0.9; 中 vừa khít nội dung
+  // (tiêu đề + thẻ xe + hàng thẻ ngang — 2026-10-18, trước là 0.46 cố định và hàng thẻ bị cắt dưới thanh tab)
   double sheetTop(WidgetTester tester) => tester.getTopLeft(find.byKey(const Key('homeSheet'))).dy;
+  double cardBottom(WidgetTester tester) => tester.getBottomLeft(find.byKey(const Key('listingCard_b1_rs1')).first).dy;
+
+  testWidgets('中: cả hàng thẻ ngang nằm trong sheet (không bị cắt), kể cả chữ hệ thống lớn', (tester) async {
+    when(() => gateway.fetchTodayTrucks()).thenAnswer((_) async => [truckRoute]);
+    for (final scale in [1.0, 1.3]) {
+      tester.platformDispatcher.textScaleFactorTestValue = scale;
+      await pump(tester);
+      expect(find.byKey(const Key('truckStatusCard')), findsOneWidget);
+      expect(cardBottom(tester), lessThanOrEqualTo(844), reason: 'textScale $scale');
+      // vẫn chừa bản đồ phía trên (không lên tới 高)
+      expect(sheetTop(tester), greaterThan(844 * (1 - 0.9) + 20), reason: 'textScale $scale');
+    }
+    tester.platformDispatcher.clearTextScaleFactorTestValue();
+  });
 
   testWidgets('kéo lên → 高: danh sách dọc, không còn thẻ xe; kéo xuống → về 中', (tester) async {
     when(() => gateway.fetchTodayTrucks()).thenAnswer((_) async => [truckRoute]);
     await pump(tester);
-    expect(sheetTop(tester), closeTo(844 * (1 - 0.46), 1));
+    final midTop = sheetTop(tester);
+    expect(cardBottom(tester), lessThanOrEqualTo(844));
     expect(find.byKey(const Key('truckStatusCard')), findsOneWidget);
 
     await tester.drag(find.text(l10nJa.nearbyBatches), const Offset(0, -500));
@@ -288,7 +304,7 @@ void main() {
 
     await tester.drag(find.text(l10nJa.nearbyBatches), const Offset(0, 300));
     await tester.pumpAndSettle();
-    expect(sheetTop(tester), closeTo(844 * (1 - 0.46), 1));
+    expect(sheetTop(tester), closeTo(midTop, 1));
     expect(find.byKey(const Key('truckStatusCard')), findsOneWidget);
   });
 
@@ -301,6 +317,7 @@ void main() {
     addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
     when(() => gateway.fetchTodayTrucks()).thenAnswer((_) async => [truckRoute]);
     await pump(tester);
+    final midTop = sheetTop(tester);
 
     await tester.drag(find.text(l10nJa.nearbyBatches), const Offset(0, 300));
     await tester.pumpAndSettle();
@@ -312,7 +329,7 @@ void main() {
 
     await tester.tap(peek);
     await tester.pumpAndSettle();
-    expect(sheetTop(tester), closeTo(844 * (1 - 0.46), 1));
+    expect(sheetTop(tester), closeTo(midTop, 1));
     expect(find.byKey(const Key('truckRoute_t1')), findsOneWidget);
   });
 }

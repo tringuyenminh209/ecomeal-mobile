@@ -3089,11 +3089,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Check your reservation history for details.';
 
   @override
-  String get noticeRefundedTitle => 'Your reservation was refunded';
+  String get noticeRefundedTitle => 'Your reservation will be fully refunded';
 
   @override
   String get noticeRefundedBody =>
-      'We couldn’t prepare your food bag, so we refunded the full amount.';
+      'We couldn’t prepare your food bag, so we will refund the full amount you paid. When it appears depends on your card company.';
 
   @override
   String get storeSettingsTitle => 'Settings';
@@ -3693,7 +3693,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get adminOpsLive => 'Live';
+  String adminOpsStale(String time) {
+    return 'Can’t refresh · as of $time';
+  }
+
+  @override
+  String adminOpsUpdatedAt(String time) {
+    return 'Updated $time (every 20 s)';
+  }
 
   @override
   String get adminOpsTrucks => 'Tonight’s trucks';

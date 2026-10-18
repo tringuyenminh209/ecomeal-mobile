@@ -5357,13 +5357,13 @@ abstract class AppLocalizations {
   /// No description provided for @noticeRefundedTitle.
   ///
   /// In ja, this message translates to:
-  /// **'返金しました'**
+  /// **'ご予約は全額返金になります'**
   String get noticeRefundedTitle;
 
   /// No description provided for @noticeRefundedBody.
   ///
   /// In ja, this message translates to:
-  /// **'ご予約のフードバッグをご用意できなかったため、全額を返金しました。'**
+  /// **'ご予約のフードバッグをご用意できなかったため、お支払いの全額を返金します。カードへの反映時期はカード会社によって異なります。'**
   String get noticeRefundedBody;
 
   /// No description provided for @storeSettingsTitle.
@@ -6428,11 +6428,17 @@ abstract class AppLocalizations {
   /// **'{date}・{count}台'**
   String adminOpsSubtitle(String date, int count);
 
-  /// No description provided for @adminOpsLive.
+  /// No description provided for @adminOpsStale.
   ///
   /// In ja, this message translates to:
-  /// **'ライブ'**
-  String get adminOpsLive;
+  /// **'更新できません · {time} 時点'**
+  String adminOpsStale(String time);
+
+  /// No description provided for @adminOpsUpdatedAt.
+  ///
+  /// In ja, this message translates to:
+  /// **'{time} 更新（20秒ごと）'**
+  String adminOpsUpdatedAt(String time);
 
   /// No description provided for @adminOpsTrucks.
   ///

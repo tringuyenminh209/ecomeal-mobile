@@ -12,7 +12,9 @@ import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import 'admin_gateway.dart';
 
-// Vị trí xe đổi mỗi 10 giây (GPS tài xế) — tải lại mỗi 20 giây khi màn đang mở (nhãn「ライブ」của Figma)
+// Vị trí xe đổi mỗi 5 giây (GPS tài xế) — tải lại mỗi 20 giây khi màn đang mở. Nhãn ghi giờ tải thành công gần nhất
+// 「HH:mm 更新（20秒ごと）」, tải lại lỗi thì 「更新できません · HH:mm 時点」 — trước đó luôn ghi 「ライブ」 dù dữ liệu cũ
+// (review Web Admin 2026-10-18 F01, cùng kiểu lỗi; Figma 563:1079)
 const adminOperationsRefresh = Duration(seconds: 20);
 
 // Bề rộng cột 運行モニタ bên phải ダッシュボード trên iPad (Figma 791:3126)
@@ -33,12 +35,19 @@ class AdminOperationsPage extends ConsumerStatefulWidget {
 
 class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
   Timer? _timer;
+  // Lúc nhận dữ liệu thành công gần nhất (giờ máy) — cho nhãn cập nhật
+  DateTime? _updatedAt;
   BitmapDescriptor? _truckIcon;
   final _date = todayInTokyo();
 
   @override
   void initState() {
     super.initState();
+    ref.listenManual(adminRoutesProvider(_date), (_, next) {
+      if (next.hasValue && !next.isLoading && !next.hasError) {
+        if (mounted) setState(() => _updatedAt = DateTime.now());
+      }
+    }, fireImmediately: true);
     if (widget.pollRoutes) {
       _timer = Timer.periodic(adminOperationsRefresh, (_) => ref.invalidate(adminRoutesProvider(_date)));
     }
@@ -62,6 +71,10 @@ class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
     final locale = Localizations.localeOf(context).languageCode;
     final routes = ref.watch(adminRoutesProvider(_date));
     final list = routes.valueOrNull ?? const <AdminRoute>[];
+    final updatedAt = _updatedAt == null ? null : DateFormat('HH:mm').format(toTokyo(_updatedAt!));
+    // Lần tải lại lỗi nhưng vẫn giữ danh sách cũ → báo dữ liệu đã cũ
+    final isStale = routes.hasError && routes.hasValue;
+    final statusColor = isStale ? AppColors.amberInk : eco.primary;
 
     final header = Row(
       children: [
@@ -77,12 +90,14 @@ class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
             ],
           ),
         ),
-        Icon(Icons.sensors_rounded, size: 16, color: eco.primary),
-        const SizedBox(width: 4),
-        Text(
-          l10n.adminOpsLive,
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.primary),
-        ),
+        if (updatedAt != null) ...[
+          Icon(isStale ? Icons.sync_problem_rounded : Icons.sensors_rounded, size: 16, color: statusColor),
+          const SizedBox(width: 4),
+          Text(
+            isStale ? l10n.adminOpsStale(updatedAt) : l10n.adminOpsUpdatedAt(updatedAt),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: statusColor),
+          ),
+        ],
       ],
     );
     final trucks = routes.when(

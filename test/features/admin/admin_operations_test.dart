@@ -47,4 +47,21 @@ void main() {
     expect(find.text(l10nJa.adminOpsNext(l10nJa.adminOpsNoDriver, '天王寺公園')), findsOneWidget);
     expect(find.text('20:18'), findsNWidgets(2));
   });
+
+  testWidgets('nhãn cập nhật: giờ tải thành công gần nhất; tải lại lỗi → 「更新できません · HH:mm 時点」 (không còn 「ライブ」)', (tester) async {
+    final admin = FakeAdminGateway(state: const AdminMfaOk())..routes = [_route('r1', [_stop('梅田駅前', departed: false)])];
+    await tester.pumpWidget(ProviderScope(
+      overrides: [adminGatewayProvider.overrideWithValue(admin)],
+      child: testApp(const Scaffold(body: AdminOperationsPage(pollRoutes: false))),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.textContaining(RegExp(r'^\d{2}:\d{2} 更新（20秒ごと）$')), findsOneWidget);
+    expect(find.text('ライブ'), findsNothing);
+
+    admin.routesError = Exception('offline');
+    final container = ProviderScope.containerOf(tester.element(find.byType(AdminOperationsPage)));
+    container.invalidate(adminRoutesProvider);
+    await tester.pumpAndSettle();
+    expect(find.textContaining(RegExp(r'^更新できません · \d{2}:\d{2} 時点$')), findsOneWidget);
+  });
 }
