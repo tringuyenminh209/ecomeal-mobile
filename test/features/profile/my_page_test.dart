@@ -75,7 +75,21 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('kéo mạnh xuống ở đầu trang → trang không trượt quá mép rồi bật lại (ClampingScrollPhysics)', (tester) async {
+  testWidgets('iPhone: vuốt lên nhanh → trang trôi tiếp rồi chậm dần kiểu iOS (không dừng gắt kiểu Android)', (tester) async {
+    when(() => profileGateway.isLineLinked()).thenAnswer((_) async => false);
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    await pumpPage(tester);
+    final list = find.byKey(const Key('myPageList'));
+    final physics = tester.widget<ListView>(list).physics;
+    expect(physics, isA<BouncingScrollPhysics>()); // quán tính + nảy ở mép dưới như các app iOS
+    // mép dưới: kéo quá mép được (nảy lại), mép trên: không (xem test kế tiếp)
+    final position = tester.state<ScrollableState>(find.descendant(of: list, matching: find.byType(Scrollable))).position;
+    expect(physics!.applyBoundaryConditions(position.copyWith(pixels: position.maxScrollExtent), position.maxScrollExtent + 40), 0);
+    expect(physics.applyBoundaryConditions(position.copyWith(pixels: 0), -40), -40);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('kéo mạnh xuống ở đầu trang → trang không trượt quá mép rồi bật lại (mép trên dừng lại)', (tester) async {
     when(() => profileGateway.isLineLinked()).thenAnswer((_) async => false);
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     await pumpPage(tester);

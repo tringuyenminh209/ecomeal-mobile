@@ -50,9 +50,10 @@ class MyPage extends ConsumerWidget {
           ),
           data: (profile) => ListView(
             key: const Key('myPageList'),
-            // Kéo mạnh xuống ở đầu trang: iOS mặc định cho trang trượt quá mép rồi bật lại (BouncingScrollPhysics) — trang này
-            // không có kéo để tải lại nên chỉ thấy "giật nảy" (chủ dự án báo 2026-10-12). Dừng ở mép như Android.
-            physics: const ClampingScrollPhysics(),
+            // Kéo mạnh xuống ở đầu trang: trang này không có kéo để tải lại nên nảy ở mép trên chỉ thấy "giật" (chủ dự án
+            // báo 2026-10-12) → mép trên dừng lại. Nhưng ClampingScrollPhysics cả trang làm vuốt trên iPhone "cứng" (quán tính
+            // kiểu Android, dừng sớm — báo 2026-10-19) → giữ quán tính + nảy mép dưới của iOS, chỉ chặn mép trên.
+            physics: const _TopClampedBouncingPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             children: [
               Text(l10n.myPageTab, style: Theme.of(context).textTheme.titleLarge),
@@ -102,6 +103,21 @@ class MyPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+// Cuộn kiểu iOS (quán tính, nảy ở mép dưới) nhưng mép trên dừng như ClampingScrollPhysics (cùng 2 điều kiện).
+class _TopClampedBouncingPhysics extends BouncingScrollPhysics {
+  const _TopClampedBouncingPhysics({super.parent});
+
+  @override
+  _TopClampedBouncingPhysics applyTo(ScrollPhysics? ancestor) => _TopClampedBouncingPhysics(parent: buildParent(ancestor));
+
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    if (value < position.pixels && position.pixels <= position.minScrollExtent) return value - position.pixels;
+    if (value < position.minScrollExtent && position.minScrollExtent < position.pixels) return value - position.minScrollExtent;
+    return super.applyBoundaryConditions(position, value);
   }
 }
 
