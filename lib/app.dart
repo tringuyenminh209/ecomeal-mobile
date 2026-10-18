@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/app_flavor.dart';
 import 'core/error_reporting.dart';
+import 'core/line_menu_link.dart';
 import 'core/push_notifications.dart';
 import 'core/stripe_payments.dart';
 import 'core/supabase_client.dart';
@@ -32,11 +33,19 @@ Future<void> runEcoMealApp(AppFlavor flavor) async {
   if (flavor == AppFlavor.customer) await initStripe();
   // Thông báo app (0048, 0059): app khách, nhà hàng, vận hành. Mỗi app 1 Firebase app ID; thiếu cấu hình thì bỏ qua
   if (flavor != AppFlavor.driver) await initPush(flavor);
+  // LINE Rich Menu (ô A–D) chỉ mở app khách. Link lúc mở app (khởi động lạnh) nằm ở route ban đầu; link khi app đang chạy
+  // tới qua didPushRouteInformation — observer phải đăng ký trước runApp (xem LineMenuLinks).
+  final lineMenuLinks = LineMenuLinks();
+  if (flavor == AppFlavor.customer) {
+    lineMenuLinks.receive(Uri.parse(PlatformDispatcher.instance.defaultRouteName));
+    WidgetsBinding.instance.addObserver(lineMenuLinks);
+  }
   await runWithErrorReporting(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         appFlavorProvider.overrideWithValue(flavor),
+        lineMenuLinksProvider.overrideWithValue(lineMenuLinks),
       ],
       child: const EcoMealApp(),
     ),
@@ -79,7 +88,13 @@ class EcoMealApp extends ConsumerWidget {
         messengerKey: _messengerKey,
         child: TapOutsideToUnfocus(child: child ?? const SizedBox.shrink()),
       ),
-      home: const RoleGate(),
+      // RoleGate là route "/" (khai trong routes, không dùng `home`: Flutter không cho `home` đi cùng onGenerateInitialRoutes).
+      routes: {Navigator.defaultRouteName: (_) => const RoleGate()},
+      // Route ban đầu có thể là link (/?to=browse — LINE Rich Menu, xem LineMenuLinks): Navigator không có route đó,
+      // luôn bắt đầu từ RoleGate; đích được CustomerShell mở sau khi đăng nhập.
+      onGenerateInitialRoutes: (_) => [
+        MaterialPageRoute<void>(settings: const RouteSettings(name: Navigator.defaultRouteName), builder: (_) => const RoleGate()),
+      ],
     );
   }
 }

@@ -38,6 +38,14 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="ecomeal" android:host="open"/>
             </intent-filter>
+            <!-- LINE Rich Menu ô A–D: trang /line/open/ của site mở ecomeal-customer://open?to=… Scheme theo flavor
+                 (build.gradle.kts lineMenuScheme) — ecomeal://open ở trên cả 4 app cùng đăng ký nên có thể mở nhầm app. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="${lineMenuScheme}" android:host="open"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

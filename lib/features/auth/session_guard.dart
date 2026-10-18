@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/line_menu_link.dart';
 import '../../l10n/l10n.dart';
 import 'auth_controller.dart';
 
@@ -51,6 +52,8 @@ class _SessionGuardState extends ConsumerState<SessionGuard> with WidgetsBinding
     ref.listen<AppAuthState>(authControllerProvider, (prev, next) {
       if (prev?.session == null || next.session != null) return;
       widget.navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      // Đích LINE Rich Menu chưa mở (bấm lúc chưa đăng nhập xong) không chuyển sang tài khoản đăng nhập sau
+      ref.read(lineMenuLinksProvider).clear();
       if (next.sessionExpired) {
         final messenger = widget.messengerKey.currentState;
         final l10nContext = widget.navigatorKey.currentContext;

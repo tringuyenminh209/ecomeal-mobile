@@ -52,24 +52,29 @@ android {
     // Key Google Maps Android giới hạn theo package — package của app tài xế phải được thêm vào giới hạn của key.
     flavorDimensions += "app"
     productFlavors {
+        // LINE Rich Menu (lib/core/line_menu_link.dart): mỗi app 1 scheme riêng — chỉ app khách nhận ecomeal-customer://
         create("customer") {
             dimension = "app"
+            manifestPlaceholders["lineMenuScheme"] = "ecomeal-customer"
             resValue("string", "app_name", "EcoMeal")
         }
         create("driver") {
             dimension = "app"
             applicationId = "com.ecomeal.ecomeal_driver"
+            manifestPlaceholders["lineMenuScheme"] = "ecomeal-driver"
             resValue("string", "app_name", "EcoMeal Driver")
         }
         // ADR-015: app cho nhà hàng / vận hành (lib/main_store.dart, lib/main_admin.dart)
         create("store") {
             dimension = "app"
             applicationId = "com.ecomeal.ecomeal_store"
+            manifestPlaceholders["lineMenuScheme"] = "ecomeal-store"
             resValue("string", "app_name", "EcoMeal Store")
         }
         create("admin") {
             dimension = "app"
             applicationId = "com.ecomeal.ecomeal_admin"
+            manifestPlaceholders["lineMenuScheme"] = "ecomeal-admin"
             resValue("string", "app_name", "EcoMeal Admin")
         }
     }

@@ -16,6 +16,9 @@ PBX=ios/Runner.xcodeproj/project.pbxproj
 sed -i '' -E "s/PRODUCT_BUNDLE_IDENTIFIER = com\.ecomeal\.ecomeal(Mobile|Driver|Store|Admin);/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE;/" "$PBX"
 sed -i '' -E "s/ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon(-Driver|-Store|-Admin)?;/ASSETCATALOG_COMPILER_APPICON_NAME = $ICON;/" "$PBX"
 /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $NAME" ios/Runner/Info.plist
+# LINE Rich Menu (lib/core/line_menu_link.dart): scheme ecomeal-customer chỉ để app khách nhận; app khác đổi sang scheme riêng
+sed -i '' -E "s#<string>ecomeal-(customer|driver|store|admin)</string>#<string>ecomeal-$1</string>#" ios/Runner/Info.plist
+test "$(grep -c "<string>ecomeal-$1</string>" ios/Runner/Info.plist)" -eq 1
 test "$(grep -c "PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE;" "$PBX")" -eq 3
 test "$(grep -c "ASSETCATALOG_COMPILER_APPICON_NAME = $ICON;" "$PBX")" -eq 3
 echo "iOS project → $NAME ($BUNDLE, $ICON)"

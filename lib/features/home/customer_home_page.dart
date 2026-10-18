@@ -63,6 +63,12 @@ class CustomerHomePage extends ConsumerStatefulWidget {
 // 3 mức dừng của sheet SCR-M03 (Figma 881:1929 低 / 881:2041 中 / 881:2137 高)
 enum _SheetLevel { peek, mid, full }
 
+// Mở ホーム từ ngoài với 1 mức sheet (LINE Rich Menu — CustomerShell): standard = 中 (ô A フードを探す: bản đồ + danh sách),
+// map = 低 (ô D 受取地点: bản đồ lớn để chọn điểm, kể cả khi không cho phép vị trí).
+enum HomeSheetRequest { standard, map }
+
+final homeSheetRequestProvider = StateProvider.autoDispose<HomeSheetRequest?>((ref) => null);
+
 // Mức 中 = bố cục cũ (thẻ xe + thẻ ngang). 低 và 高 tính theo chiều cao màn hình (xem build).
 const _midSize = 0.46;
 // 低: tay cầm + tiêu đề + 1 dòng tóm tắt xe (nhân theo cỡ chữ hệ thống)
@@ -75,6 +81,8 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
   Timer? _refreshTimer;
   final _sheet = DraggableScrollableController();
   _SheetLevel _level = _SheetLevel.mid;
+  // Mức 低 tính theo chiều cao màn hình trong build — giữ lại cho yêu cầu từ ngoài (HomeSheetRequest.map)
+  double _peekSize = 0.12;
   // Sheet đang nằm đúng 1 mức dừng — rung nhẹ 1 lần khi vừa tới mức (không rung liên tục lúc kéo)
   bool _atStop = true;
 
@@ -121,11 +129,16 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
 
   // Chọn xe (marker / dòng tóm tắt) → về 中 để thấy lộ trình xe đó
   void _showMid() {
-    if (!_sheet.isAttached || _level == _SheetLevel.mid) return;
+    if (_level == _SheetLevel.mid) return;
+    _moveSheetTo(_midSize);
+  }
+
+  void _moveSheetTo(double size) {
+    if (!mounted || !_sheet.isAttached) return;
     if (Motion.reduced(context)) {
-      _sheet.jumpTo(_midSize);
+      _sheet.jumpTo(size);
     } else {
-      _sheet.animateTo(_midSize, duration: Motion.small, curve: Motion.move);
+      _sheet.animateTo(size, duration: Motion.small, curve: Motion.move);
     }
   }
 
@@ -138,6 +151,13 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
     ref.listen<String?>(selectedTruckIdProvider, (_, id) {
       if (id != null) _showMid();
     });
+    ref.listen<HomeSheetRequest?>(homeSheetRequestProvider, (_, request) {
+      if (request == null) return;
+      ref.read(homeSheetRequestProvider.notifier).state = null; // bấm lại cùng ô vẫn chạy
+      final size = request == HomeSheetRequest.map ? _peekSize : _midSize;
+      // sheet vừa dựng (mở app từ link) thì controller gắn sau khung hình đầu
+      WidgetsBinding.instance.addPostFrameCallback((_) => _moveSheetTo(size));
+    });
 
     return Scaffold(
       body: LayoutBuilder(
@@ -146,6 +166,7 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
           final low = (MediaQuery.textScalerOf(context).scale(_peekHeight) / h).clamp(0.12, 0.3);
           final high = (1 - (topInset + _topBarHeight) / h).clamp(_midSize + 0.1, 0.9);
           final stops = [low, _midSize, high];
+          _peekSize = low;
           return Stack(
         children: [
           Positioned.fill(
