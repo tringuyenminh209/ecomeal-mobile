@@ -62,7 +62,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
   }
 
   DateTime get _sellByAt =>
-      sellByAtJst(now: DateTime.now(), tomorrow: _tomorrow, hour: _time.hour, minute: _time.minute);
+      sellByAtJst(now: storeClock(), tomorrow: _tomorrow, hour: _time.hour, minute: _time.minute);
   String get _timeLabel => '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}';
 
   Future<void> _pickPhoto() async {
@@ -124,7 +124,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
     final price = int.tryParse(_price.text);
     setState(() {
       _priceError = price == null || price < minUnitPrice ? l10n.storeErrPrice : null;
-      _sellByError = _sellByAt.isAfter(DateTime.now()) ? null : l10n.storeErrSellByPast;
+      _sellByError = _sellByAt.isAfter(storeClock()) ? null : l10n.storeErrSellByPast;
       _allergenError = _allergenIds.isEmpty && !_noAllergens ? l10n.storeErrAllergenRequired : null;
     });
     return _priceError == null && _sellByError == null && _allergenError == null;

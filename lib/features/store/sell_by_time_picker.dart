@@ -107,8 +107,8 @@ class _SellByTimePanelState extends State<_SellByTimePanel> {
       setState(() => _error = l10n.storeTimeInvalid);
       return;
     }
-    final at = sellByAtJst(now: DateTime.now(), tomorrow: widget.tomorrow, hour: t.hour, minute: t.minute);
-    if (!at.isAfter(DateTime.now())) {
+    final at = sellByAtJst(now: storeClock(), tomorrow: widget.tomorrow, hour: t.hour, minute: t.minute);
+    if (!at.isAfter(storeClock())) {
       setState(() => _error = l10n.storeErrSellByPast);
       return;
     }

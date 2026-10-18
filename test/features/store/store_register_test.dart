@@ -81,7 +81,11 @@ void main() {
       gateway = FakeStoreGateway(allergenTypes: _catalog);
       previewFails = false;
       registered = [];
+      // Giờ quán đăng món (15:00 JST hôm nay) — kết quả không phụ thuộc giờ chạy test (quán thử đóng cửa 21:30)
+      final jst = DateTime.now().toUtc().add(const Duration(hours: 9));
+      storeClock = () => DateTime.utc(jst.year, jst.month, jst.day, 6);
     });
+    tearDown(() => storeClock = DateTime.now);
 
 
     Future<void> pump(WidgetTester tester, {PhotoPicker? picker}) async {
@@ -247,7 +251,7 @@ void main() {
       expect(d.noAllergens, isFalse);
       expect(d.ingredients.single.name, '鶏肉');
       expect(d.photo?.extension, 'png');
-      expect(d.sellByAt.isAfter(DateTime.now()), isTrue);
+      expect(d.sellByAt.isAfter(storeClock()), isTrue);
       expect(registered, ['new-batch']);
       expect(tester.widget<TextField>(find.byKey(const Key('storePriceField'))).controller!.text, '');
     });
@@ -287,7 +291,7 @@ void main() {
       await openSheetAndConfirm(tester);
       expect(
         gateway.drafts.single.sellByAt,
-        sellByAtJst(now: DateTime.now(), tomorrow: true, hour: 21, minute: 30),
+        sellByAtJst(now: storeClock(), tomorrow: true, hour: 21, minute: 30),
       );
     });
 

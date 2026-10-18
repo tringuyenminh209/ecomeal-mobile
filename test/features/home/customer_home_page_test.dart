@@ -32,38 +32,23 @@ void main() {
   setUp(() {
     gateway = MockHomeGateway();
     unsubscribed = false;
-    when(
-      () => gateway.watchChanges(onChange: any(named: 'onChange')),
-    ).thenAnswer((invocation) {
+    when(() => gateway.watchChanges(onChange: any(named: 'onChange'))).thenAnswer((invocation) {
       onChange = invocation.namedArguments[#onChange] as VoidCallback;
       return () {
         unsubscribed = true;
       };
     });
-    when(
-      () => gateway.fetchActiveListings(),
-    ).thenAnswer((_) async => [listing]);
+    when(() => gateway.fetchActiveListings()).thenAnswer((_) async => [listing]);
     when(() => gateway.fetchTodayTrucks()).thenAnswer((_) async => []);
     when(
       () => gateway.calcCurrentPrice(
         unitPrice: any(named: 'unitPrice'),
         expiresAt: any(named: 'expiresAt'),
       ),
-    ).thenAnswer(
-      (_) async => const CurrentPriceResult(
-        currentPrice: 320,
-        tier: '50%',
-        minutesRemaining: 42,
-      ),
-    );
+    ).thenAnswer((_) async => const CurrentPriceResult(currentPrice: 320, tier: '50%', minutesRemaining: 42));
     when(() => gateway.fetchBatchDetail('b1')).thenAnswer(
-      (_) async => BatchDetail(
-        batchId: 'b1',
-        unitPrice: 450,
-        expiresAt: listing.expiresAt,
-        allergens: [],
-        ingredients: [],
-      ),
+      (_) async =>
+          BatchDetail(batchId: 'b1', unitPrice: 450, expiresAt: listing.expiresAt, allergens: [], ingredients: []),
     );
     when(() => gateway.fetchTodayReservationCount()).thenAnswer((_) async => 0);
   });
@@ -81,9 +66,7 @@ void main() {
       ProviderScope(
         overrides: [
           homeGatewayProvider.overrideWithValue(gateway),
-          currentPositionProvider.overrideWith(
-            (ref) => Future.error(locationError ?? Exception('GPS denied')),
-          ),
+          currentPositionProvider.overrideWith((ref) => Future.error(locationError ?? Exception('GPS denied'))),
           lineLinkedProvider.overrideWith((ref) async => lineLinked),
           openLineOfficialAccountProvider.overrideWithValue(openLine),
         ],
@@ -93,25 +76,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets(
-    'GPS denied keeps batches available; selected pair opens detail',
-    (tester) async {
-      await pump(tester);
-      expect(
-        find.text('位置情報を取得できませんでした\n端末の位置情報の設定とネットワーク接続を確認してください。'),
-        findsOneWidget,
-      );
-      expect(find.text('¥320'), findsOneWidget);
-      await tester.tap(find.byKey(const Key('listingCard_b1_rs1')));
-      await tester.pumpAndSettle();
-      final detail = tester.widget<BatchDetailPage>(
-        find.byType(BatchDetailPage),
-      );
-      expect(detail.batchId, 'b1');
-      expect(detail.routeStopId, 'rs1');
-      expect(detail.stopName, '大阪駅前');
-    },
-  );
+  testWidgets('GPS denied keeps batches available; selected pair opens detail', (tester) async {
+    await pump(tester);
+    expect(find.text('位置情報を取得できませんでした\n端末の位置情報の設定とネットワーク接続を確認してください。'), findsOneWidget);
+    expect(find.text('¥320'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('listingCard_b1_rs1')));
+    await tester.pumpAndSettle();
+    final detail = tester.widget<BatchDetailPage>(find.byType(BatchDetailPage));
+    expect(detail.batchId, 'b1');
+    expect(detail.routeStopId, 'rs1');
+    expect(detail.stopName, '大阪駅前');
+  });
   testWidgets('empty state uses real query result', (tester) async {
     when(() => gateway.fetchActiveListings()).thenAnswer((_) async => []);
     await pump(tester);
@@ -121,10 +96,14 @@ void main() {
   testWidgets('empty + đã liên kết LINE → không mời cài lại, nút LINEを開く mở Official Account', (tester) async {
     when(() => gateway.fetchActiveListings()).thenAnswer((_) async => []);
     var opened = 0;
-    await pump(tester, lineLinked: true, openLine: () async {
-      opened++;
-      return true;
-    });
+    await pump(
+      tester,
+      lineLinked: true,
+      openLine: () async {
+        opened++;
+        return true;
+      },
+    );
 
     expect(find.text(l10nJa.homeEmptyBodyLinked), findsOneWidget);
     expect(find.text(l10nJa.setupLineNotify), findsNothing);
@@ -136,44 +115,33 @@ void main() {
     when(() => gateway.fetchActiveListings()).thenThrow(Exception('offline'));
     await pump(tester);
     expect(find.text('データの取得に失敗しました。'), findsOneWidget);
-    when(
-      () => gateway.fetchActiveListings(),
-    ).thenAnswer((_) async => [listing]);
+    when(() => gateway.fetchActiveListings()).thenAnswer((_) async => [listing]);
     await tester.tap(find.widgetWithText(OutlinedButton, '再試行'));
     await tester.pumpAndSettle();
     expect(find.text('¥320'), findsOneWidget);
   });
-  testWidgets(
-    'Realtime invalidates data and subscription is removed on dispose',
-    (tester) async {
-      await pump(tester);
-      when(() => gateway.fetchActiveListings()).thenAnswer((_) async => []);
-      onChange();
-      await tester.pumpAndSettle();
-      expect(find.text('本日はまだ販売予定がありません'), findsOneWidget);
-      await tester.pumpWidget(const SizedBox());
-      await tester.pumpAndSettle();
-      expect(unsubscribed, true);
-    },
-  );
-  testWidgets(
-    'periodic refresh removes expired batches without a Realtime event',
-    (tester) async {
-      await pump(tester);
-      when(() => gateway.fetchActiveListings()).thenAnswer((_) async => []);
-      await tester.pump(const Duration(seconds: 31));
-      await tester.pumpAndSettle();
-      expect(find.text('本日はまだ販売予定がありません'), findsOneWidget);
-    },
-  );
-  testWidgets(
-    'permanently denied GPS offers Settings while batches remain available',
-    (tester) async {
-      await pump(tester, locationError: LocationPermission.deniedForever);
-      expect(find.text('位置情報の設定'), findsOneWidget);
-      expect(find.text('¥320'), findsOneWidget);
-    },
-  );
+  testWidgets('Realtime invalidates data and subscription is removed on dispose', (tester) async {
+    await pump(tester);
+    when(() => gateway.fetchActiveListings()).thenAnswer((_) async => []);
+    onChange();
+    await tester.pumpAndSettle();
+    expect(find.text('本日はまだ販売予定がありません'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
+    expect(unsubscribed, true);
+  });
+  testWidgets('periodic refresh removes expired batches without a Realtime event', (tester) async {
+    await pump(tester);
+    when(() => gateway.fetchActiveListings()).thenAnswer((_) async => []);
+    await tester.pump(const Duration(seconds: 31));
+    await tester.pumpAndSettle();
+    expect(find.text('本日はまだ販売予定がありません'), findsOneWidget);
+  });
+  testWidgets('permanently denied GPS offers Settings while batches remain available', (tester) async {
+    await pump(tester, locationError: LocationPermission.deniedForever);
+    expect(find.text('位置情報の設定'), findsOneWidget);
+    expect(find.text('¥320'), findsOneWidget);
+  });
 
   // ── Chọn xe (Figma 246:2016, レビュー第68回) ─────────────────────────────────────────────
   RouteStopInfo stop(String id, String name, int minutes, {bool departed = false}) => RouteStopInfo(
@@ -261,7 +229,9 @@ void main() {
 
   testWidgets('xe đã đi hết điểm dừng → không vẽ thẻ xe (không bịa trạng thái)', (tester) async {
     when(() => gateway.fetchTodayTrucks()).thenAnswer(
-      (_) async => [TruckRoute(truckId: 't1', position: null, stops: [stop('rs0', '梅田公園', -40, departed: true)])],
+      (_) async => [
+        TruckRoute(truckId: 't1', position: null, stops: [stop('rs0', '梅田公園', -40, departed: true)]),
+      ],
     );
     await pump(tester);
     expect(find.byKey(const Key('truckStatusCard')), findsNothing);
@@ -318,6 +288,8 @@ void main() {
     when(() => gateway.fetchTodayTrucks()).thenAnswer((_) async => [truckRoute]);
     await pump(tester);
     final midTop = sheetTop(tester);
+    // mở app: sheet tự lên mức 中 vừa đo — không rung (người dùng chưa chạm gì)
+    expect(haptics, isEmpty);
 
     await tester.drag(find.text(l10nJa.nearbyBatches), const Offset(0, 300));
     await tester.pumpAndSettle();
@@ -331,5 +303,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(sheetTop(tester), closeTo(midTop, 1));
     expect(find.byKey(const Key('truckRoute_t1')), findsOneWidget);
+  });
+
+  // 2026-10-18 lỗi thật trên iPhone: thả tay ở 中 thì sheet nảy lên xuống 1〜2 giây. snapSizes là list mới mỗi lần dựng →
+  // DraggableScrollableSheet coi như đổi mức dừng và cho trượt lại từ đầu; trang dựng lại liên tục (vị trí, dữ liệu, đồng hồ).
+  testWidgets('thả tay gần 中 trong lúc trang đang dựng lại liên tục → trượt thẳng về 中, không nảy ngược', (
+    tester,
+  ) async {
+    when(() => gateway.fetchTodayTrucks()).thenAnswer((_) async => [truckRoute]);
+    await pump(tester);
+    final midTop = sheetTop(tester);
+    final container = ProviderScope.containerOf(tester.element(find.byType(CustomerHomePage)));
+
+    await tester.drag(find.text(l10nJa.nearbyBatches), const Offset(0, -60));
+    final tops = <double>[];
+    for (var i = 0; i < 40; i++) {
+      container.invalidate(todayTrucksProvider); // dựng lại như khi dữ liệu / vị trí cập nhật
+      await tester.pump(const Duration(milliseconds: 16));
+      tops.add(sheetTop(tester));
+    }
+    await tester.pumpAndSettle();
+    expect(sheetTop(tester), closeTo(midTop, 1));
+    // khoảng cách tới 中 chỉ giảm dần (không đổi chiều)
+    for (var i = 1; i < tops.length; i++) {
+      expect(
+        (tops[i] - midTop).abs(),
+        lessThanOrEqualTo((tops[i - 1] - midTop).abs() + 0.5),
+        reason: 'frame $i: ${tops.take(i + 1).toList()}',
+      );
+    }
   });
 }

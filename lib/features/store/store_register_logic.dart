@@ -74,6 +74,10 @@ List<AllergenType> sortAllergens(List<AllergenType> types) {
 // Tên trên chip: bỏ phần chú thích trong ngoặc（落花生（ピーナッツ）→ 落花生）— sheet 28 品目 hiện tên đầy đủ
 String allergenChipLabel(String name) => name.split('（').first;
 
+// Đồng hồ của màn đăng món (SCR-S02) — test đặt giờ cố định: quán thử đóng cửa 21:30, chạy test sau 21:30 JST thì hạn bán
+// mặc định (hôm nay 21:30) đã qua và form báo lỗi → 5 test hỏng theo giờ chạy (phát hiện 2026-10-18 lúc 22 giờ).
+DateTime Function() storeClock = DateTime.now;
+
 // Hạn bán = ngày JST (hôm nay / ngày mai) + giờ:phút JST → thời điểm UTC
 DateTime sellByAtJst({required DateTime now, required bool tomorrow, required int hour, required int minute}) {
   final today = toTokyo(now);

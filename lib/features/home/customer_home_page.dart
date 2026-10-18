@@ -86,10 +86,15 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
   double _peekSize = 0.12;
   // Mức 中 hiện tại (phân số chiều cao) và các chiều cao đo được (px) để tính nó
   double _midSize = _defaultMidSize;
+  // CÙNG 1 list cho tới khi 中 đổi thật: DraggableScrollableSheet so snapSizes theo đối tượng — list mới ở mỗi lần dựng lại
+  // (vị trí, dữ liệu, đồng hồ cập nhật liên tục) làm nó cho sheet trượt lại từ đầu → nảy lên xuống sau khi thả tay (2026-10-18)
+  List<double> _snapSizes = const [_defaultMidSize];
   double? _headerHeight;
   double? _midContentHeight;
   // Sheet đang nằm đúng 1 mức dừng — rung nhẹ 1 lần khi vừa tới mức (không rung liên tục lúc kéo)
   bool _atStop = true;
+  // Sheet đang trượt vì 中 đổi chiều cao (không phải người dùng kéo) → tới nơi không rung
+  bool _silentMove = false;
 
   @override
   void initState() {
@@ -128,7 +133,8 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
         : _SheetLevel.mid;
     if (level != _level) setState(() => _level = level);
     final atStop = stops.any((s) => (extent - s).abs() < 0.002);
-    if (atStop && !_atStop) Haptics.selection();
+    if (atStop && !_atStop && !_silentMove) Haptics.selection();
+    if (atStop) _silentMove = false;
     _atStop = atStop;
   }
 
@@ -193,10 +199,15 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
           final high = (1 - (topInset + _topBarHeight) / h).clamp(_defaultMidSize + 0.1, 0.9);
           final mid = _fitMidSize(h, low, high);
           if ((mid - _midSize).abs() > 0.005) {
+            // 中 đổi thật (vd lần đầu đo được, có/mất thẻ xe) → list mới, và nếu đang đứng yên ở 中 thì trượt tới chiều cao mới.
+            // Chỉ chạy khi giá trị đổi (hiếm) — không phải mỗi lần dựng lại.
             final wasAtMid = _level == _SheetLevel.mid && _atStop;
             _midSize = mid;
-            // Đang đứng ở 中 → trượt tới chiều cao mới (vd lần đầu đo được, có/mất thẻ xe)
-            if (wasAtMid) WidgetsBinding.instance.addPostFrameCallback((_) => _moveSheetTo(mid));
+            _snapSizes = [mid];
+            if (wasAtMid) {
+              _silentMove = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) => _moveSheetTo(mid));
+            }
           }
           final stops = [low, mid, high];
           _peekSize = low;
@@ -270,11 +281,11 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
                 },
                 child: DraggableScrollableSheet(
                   controller: _sheet,
-                  initialChildSize: _midSize,
+                  initialChildSize: _defaultMidSize, // chỉ dùng ở lần dựng đầu — để hằng số, không đổi theo 中
                   minChildSize: low,
                   maxChildSize: high,
                   snap: true,
-                  snapSizes: [mid],
+                  snapSizes: _snapSizes,
                   // Flutter không nhận 0 → 1ms khi người dùng tắt chuyển động
                   snapAnimationDuration: Motion.reduced(context) ? const Duration(milliseconds: 1) : Motion.small,
                   builder: (context, scrollController) => _HomeSheet(
