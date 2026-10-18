@@ -91,3 +91,10 @@ android {
 flutter {
     source = "../.."
 }
+
+// LINE SDK 5.11.1 (flutter_line_sdk) kéo kotlin-android-extensions-runtime 1.7.20 (đã khai tử); Stripe… dùng
+// kotlin-parcelize-runtime chứa cùng các lớp kotlinx.android.parcel.* → :app:checkCustomerReleaseDuplicateClasses lỗi
+// (CI Android 2026-10-16). parcelize-runtime là bản thay thế chính thức nên bỏ bản cũ.
+configurations.all {
+    exclude(group = "org.jetbrains.kotlin", module = "kotlin-android-extensions-runtime")
+}
