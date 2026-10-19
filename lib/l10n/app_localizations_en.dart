@@ -2159,6 +2159,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couponsNone => 'No coupons available';
 
   @override
+  String get couponNoneHint => 'Refer a friend to get a ¥100 coupon';
+
+  @override
   String get couponsAutoNote =>
       'Coupons are applied automatically on the reservation screen (one per reservation). Cancel within the free period and the coupon comes back.';
 

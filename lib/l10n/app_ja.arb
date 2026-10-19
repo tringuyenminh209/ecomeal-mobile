@@ -983,6 +983,7 @@
   "couponReasonCampaign": "キャンペーンクーポン",
   "couponsUsableHeading": "使えるクーポン",
   "couponsNone": "使えるクーポンはありません",
+  "couponNoneHint": "友だちを紹介すると¥100クーポンがもらえます",
   "couponsAutoNote": "クーポンは予約内容の確認画面で自動的に使われます（1回の予約に1枚）。無料キャンセルの期間内にキャンセルすると戻ります。",
   "errorCouponUnavailable": "このクーポンは使えなくなりました。内容を確認して、もう一度お試しください",
   "receiptCouponLine": "クーポン値引き",

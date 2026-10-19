@@ -12,6 +12,7 @@ import 'package:ecomeal_mobile/features/payment/payment_api.dart' show PaymentAp
 import 'package:ecomeal_mobile/features/payment/payment_gateway.dart';
 import 'package:ecomeal_mobile/widgets/customer_shell.dart';
 import 'package:ecomeal_mobile/features/coupons/coupons.dart';
+import 'package:ecomeal_mobile/features/coupons/coupons_page.dart' show CouponsPage;
 import '../../helpers/fake_coupons.dart';
 import '../../helpers/fake_payment_gateway.dart';
 import '../../helpers/test_app.dart';
@@ -321,6 +322,30 @@ void main() {
 
     expect(payButton(tester).onPressed, isNull);
     expect(find.byKey(const Key('retryPriceButton')), findsOneWidget);
+  });
+
+  // Coupon hướng B (Figma 975:1819): không có coupon dùng được → vẫn hiện khung, chạm → SCR-M19; quay lại thì đọc lại coupon
+  testWidgets('không có coupon → 「使えるクーポンはありません」, chạm → クーポン・友だち紹介; nhận coupon rồi quay lại → coupon hiện ra', (tester) async {
+    await pumpPage(tester);
+    expect(find.text('使えるクーポンはありません'), findsOneWidget);
+    expect(find.text('友だちを紹介すると¥100クーポンがもらえます'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('noCouponRow')));
+    await tester.pumpAndSettle();
+    expect(find.byType(CouponsPage), findsOneWidget);
+
+    couponsGateway.coupons.add(FakeCouponsGateway.coupon('c-1'));
+    Navigator.of(tester.element(find.byType(CouponsPage))).pop();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('noCouponRow')), findsNothing);
+    expect(find.byKey(const Key('useCouponSwitch')), findsOneWidget);
+  });
+
+  testWidgets('coupon không đọc được → không hiện khung coupon (không cản đặt hàng)', (tester) async {
+    couponsGateway.fetchError = Exception('network');
+    await pumpPage(tester);
+    expect(find.byKey(const Key('noCouponRow')), findsNothing);
+    expect(find.text('クーポン'), findsNothing);
   });
 
   testWidgets('0056 (Figma 470:1318): có coupon → bật sẵn, 小計/クーポン/合計 ¥550 → trả kèm couponId; tắt → ¥650, không coupon', (tester) async {

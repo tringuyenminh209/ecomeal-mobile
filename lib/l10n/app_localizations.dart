@@ -3800,6 +3800,12 @@ abstract class AppLocalizations {
   /// **'使えるクーポンはありません'**
   String get couponsNone;
 
+  /// No description provided for @couponNoneHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'友だちを紹介すると¥100クーポンがもらえます'**
+  String get couponNoneHint;
+
   /// No description provided for @couponsAutoNote.
   ///
   /// In ja, this message translates to:

@@ -23,7 +23,7 @@ import 'payment_result_view.dart';
 import '../../core/haptics.dart';
 import '../../widgets/batch_photo.dart';
 import '../coupons/coupons.dart';
-import '../coupons/coupons_page.dart' show CouponTile;
+import '../coupons/coupons_page.dart' show CouponTile, CouponsPage;
 import '../auth/auth_controller.dart';
 
 // SCR-M05 — 06_画面設計 §SCR-M05. Figma「M05 予約確認・決済」211:608: 16:16527 (支払い方法なし) / 378:82
@@ -253,7 +253,8 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
     final card = methodsAsync.whenOrNull(data: _selectedCard);
     final basePrice = priceAsync.valueOrNull?.currentPrice;
     // 0056: coupon có lợi nhất (nếu có). Số tiền hiển thị = giá − coupon; server tính lại khi tạo đơn
-    final coupon = bestCoupon(ref.watch(usableCouponsProvider).valueOrNull ?? const []);
+    final couponsAsync = ref.watch(usableCouponsProvider);
+    final coupon = bestCoupon(couponsAsync.valueOrNull ?? const []);
     final discount = basePrice != null && coupon != null && _useCoupon ? couponDiscount(coupon.amount, basePrice) : 0;
     final price = basePrice == null ? null : basePrice - discount;
     final l10n = context.l10n;
@@ -314,6 +315,19 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                       value: _useCoupon,
                       onChanged: (v) => setState(() => _useCoupon = v),
                     ),
+                  ),
+                ] else if (couponsAsync.hasValue && !couponsAsync.hasError) ...[
+                  // Đọc xong mà không có coupon dùng được: vẫn hiện khung để khách biết có coupon và cách nhận (Figma 975:1819).
+                  // Đang tải / lỗi: không hiện gì như trước — không cản việc đặt hàng.
+                  const SizedBox(height: 20),
+                  Text(l10n.couponSectionLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  _NoCouponRow(
+                    onTap: () async {
+                      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CouponsPage()));
+                      // Có thể vừa nhập mã giới thiệu ở SCR-M19 → nhận coupon mới
+                      ref.invalidate(usableCouponsProvider);
+                    },
                   ),
                 ],
                 const SizedBox(height: 20),
@@ -461,6 +475,46 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// 「使えるクーポンはありません」+ cách nhận (giới thiệu bạn bè); chạm → SCR-M19. Cùng hình với CouponTile, icon mờ.
+class _NoCouponRow extends StatelessWidget {
+  const _NoCouponRow({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Material(
+      color: AppColors.amberSoft,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        key: const Key('noCouponRow'),
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Icon(Icons.confirmation_number_outlined, size: 22, color: AppColors.amberInk.withValues(alpha: 0.45)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.couponsNone, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(l10n.couponNoneHint, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
       ),
     );
   }

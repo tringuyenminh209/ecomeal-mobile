@@ -618,6 +618,7 @@
   "couponReasonCampaign": "Campaign coupon",
   "couponsUsableHeading": "Available coupons",
   "couponsNone": "No coupons available",
+  "couponNoneHint": "Refer a friend to get a ¥100 coupon",
   "couponsAutoNote": "Coupons are applied automatically on the reservation screen (one per reservation). Cancel within the free period and the coupon comes back.",
   "errorCouponUnavailable": "This coupon can't be used anymore. Please check and try again",
   "receiptCouponLine": "Coupon discount",

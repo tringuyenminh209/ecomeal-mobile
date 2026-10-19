@@ -9,12 +9,17 @@ class FakeCouponsGateway implements CouponsGateway {
   MyReferral referral;
   final applied = <String>[];
   Object? applyError;
+  Object? fetchError; // != null: fetchUsableCoupons ném lỗi này
 
   static Coupon coupon(String id, {int amount = 100, String reason = 'referral_welcome', int days = 30}) =>
       Coupon(id: id, amount: amount, reason: reason, expiresAt: DateTime.now().add(Duration(days: days)));
 
   @override
-  Future<List<Coupon>> fetchUsableCoupons() async => List.of(coupons);
+  Future<List<Coupon>> fetchUsableCoupons() async {
+    final error = fetchError;
+    if (error != null) throw error;
+    return List.of(coupons);
+  }
 
   @override
   Future<MyReferral> fetchMyReferral() async => referral;

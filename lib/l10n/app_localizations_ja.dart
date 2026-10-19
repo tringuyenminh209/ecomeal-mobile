@@ -2053,6 +2053,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get couponsNone => '使えるクーポンはありません';
 
   @override
+  String get couponNoneHint => '友だちを紹介すると¥100クーポンがもらえます';
+
+  @override
   String get couponsAutoNote =>
       'クーポンは予約内容の確認画面で自動的に使われます（1回の予約に1枚）。無料キャンセルの期間内にキャンセルすると戻ります。';
 
