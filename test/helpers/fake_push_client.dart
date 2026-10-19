@@ -10,7 +10,9 @@ class FakePushClient implements PushClient {
   int requests = 0;
   final refresh = StreamController<String>.broadcast();
   final foreground = StreamController<({String title, String body})>.broadcast();
-  final opened = StreamController<void>.broadcast();
+  final opened = StreamController<OpenedPush>.broadcast();
+  // app được mở từ trạng thái đã tắt bằng cách chạm thông báo này (null: mở thường)
+  OpenedPush? initial;
 
   @override
   String get platform => 'android';
@@ -29,7 +31,7 @@ class FakePushClient implements PushClient {
   @override
   Stream<({String title, String body})> get onForegroundMessage => foreground.stream;
   @override
-  Stream<void> get onOpened => opened.stream;
+  Stream<OpenedPush> get onOpened => opened.stream;
   @override
-  Future<bool> openedFromTerminated() async => false;
+  Future<OpenedPush?> openedFromTerminated() async => initial;
 }

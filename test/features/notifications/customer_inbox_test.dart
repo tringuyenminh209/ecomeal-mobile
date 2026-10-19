@@ -30,7 +30,7 @@ void main() {
     final inbox = FakeInboxGateway(items: [_n('n1', 'truck_approaching', stop: '大阪学生寮前'), _n('n2', 'refunded', read: true)]);
     InboxNotification? opened;
     await tester.pumpWidget(
-      _app(Scaffold(body: InboxBellButton(userId: 'u-1', floating: true, onOpen: (n) => opened = n)), inbox),
+      _app(Scaffold(body: InboxBellButton(userId: 'u-1', floating: true, onOpen: (n) => () => opened = n)), inbox),
     );
     await tester.pumpAndSettle();
     expect(tester.widget<Badge>(find.byType(Badge)).isLabelVisible, isTrue);
@@ -47,10 +47,31 @@ void main() {
     expect(tester.widget<Badge>(find.byType(Badge)).isLabelVisible, isFalse, reason: 'mở danh sách là đã đọc');
   });
 
+  testWidgets('audit S05/A06: loại không có màn để mở → dòng chỉ để đọc (chạm không đóng trang)', (tester) async {
+    final inbox = FakeInboxGateway(items: [_n('n1', 'refunded'), _n('n2', 'brand_new_type')]);
+    final opened = <String>[];
+    await tester.pumpWidget(
+      _app(
+        NotificationInboxPage(
+          userId: 'u-1',
+          onOpen: (n) => n.type == 'refunded' ? () => opened.add(n.type) : null,
+        ),
+        inbox,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.byType(InkWell), matching: find.byKey(const Key('inbox-n2'))), findsNothing);
+    await tester.tap(find.byKey(const Key('inbox-n2')));
+    await tester.pumpAndSettle();
+    expect(find.byType(NotificationInboxPage), findsOneWidget);
+    expect(opened, isEmpty);
+    expect(find.descendant(of: find.byType(InkWell), matching: find.byKey(const Key('inbox-n1'))), findsOneWidget);
+  });
+
   testWidgets('SCR-M20 trống: câu dành cho người dùng (không phải câu của app nhà hàng)', (tester) async {
     await tester.pumpWidget(
       _app(
-        NotificationInboxPage(userId: 'u-1', emptyBody: l10nJa.inboxEmptyBodyCustomer, onOpen: (_) {}),
+        NotificationInboxPage(userId: 'u-1', emptyBody: l10nJa.inboxEmptyBodyCustomer, onOpen: (_) => null),
         FakeInboxGateway(),
       ),
     );

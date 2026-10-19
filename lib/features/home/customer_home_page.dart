@@ -47,12 +47,12 @@ final currentPositionProvider = FutureProvider.autoDispose<Position>((ref) {
 class CustomerHomePage extends ConsumerStatefulWidget {
   // onOpenMyPage: nút "LINE通知を設定する" ở trạng thái Empty mở tab マイページ (SCR-M07). Trang này
   // không tự biết tab — CustomerShell (Chương 17, giữ cả Bottom Navigation) truyền vào; null thì không vẽ nút.
-  const CustomerHomePage({super.key, this.onOpenMyPage, this.onOpenOrders, this.userId});
+  const CustomerHomePage({super.key, this.onOpenMyPage, this.onOpenNotice, this.userId});
   final VoidCallback? onOpenMyPage;
   // Người đang đăng nhập — có thì hiện chuông お知らせ (SCR-M20)
   final String? userId;
-  // Chạm 1 thông báo ở SCR-M20 (hoàn tiền, xe sắp tới, trả lời báo cáo) → tab 予約
-  final VoidCallback? onOpenOrders;
+  // Chạm 1 thông báo ở SCR-M20 → shell mở đích theo loại (openCustomerNotice)
+  final void Function(String type)? onOpenNotice;
 
   @override
   ConsumerState<CustomerHomePage> createState() => _CustomerHomePageState();
@@ -246,10 +246,9 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
                             userId: userId,
                             floating: true,
                             emptyBody: context.l10n.inboxEmptyBodyCustomer,
-                            // Lô mới ở điểm yêu thích → ở lại ホーム (đã đang ở đây); các loại khác là về đơn đã đặt
-                            onOpen: (n) {
-                              if (n.type != 'new_batch') widget.onOpenOrders?.call();
-                            },
+                            onOpen: widget.onOpenNotice == null
+                                ? null
+                                : (n) => () => widget.onOpenNotice!(n.type),
                           ),
                       ],
                     ),

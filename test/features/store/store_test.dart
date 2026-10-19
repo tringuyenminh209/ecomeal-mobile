@@ -10,7 +10,10 @@ import 'package:ecomeal_mobile/features/store/store_register_logic.dart' show st
 import 'package:ecomeal_mobile/widgets/status_badge.dart';
 import 'package:ecomeal_mobile/widgets/store_shell.dart';
 import 'package:ecomeal_mobile/features/notifications/notification_inbox.dart';
+import 'package:ecomeal_mobile/core/push_notifications.dart';
+import 'package:ecomeal_mobile/features/store/store_ratings_page.dart';
 import '../../helpers/fake_inbox_gateway.dart';
+import '../../helpers/fake_push_client.dart';
 import '../../helpers/fake_store_gateway.dart';
 import '../../helpers/test_app.dart';
 
@@ -264,6 +267,82 @@ void main() {
       await tester.pump(storeBatchRefreshInterval);
       await tester.pumpAndSettle();
       expect(badge(l10nJa.storeBatchStatusEnded), findsOneWidget);
+    });
+  });
+
+  // Audit S05: chạm thông báo (お知らせ hoặc điện thoại) mở đúng màn — trước đây chỉ mở お知らせ / dòng không bấm được
+  group('S07 thông báo → màn', () {
+    test('bảng đích theo loại; loại app chưa biết → null (chỉ đọc)', () {
+      expect(storeNoticeFor('reservation_received'), StoreNotice.batch);
+      expect(storeNoticeFor('batch_collected'), StoreNotice.batch);
+      expect(storeNoticeFor('batch_photo_removed'), StoreNotice.home);
+      expect(storeNoticeFor('restaurant_reviewed'), StoreNotice.home);
+      expect(storeNoticeFor('settlement_confirmed'), StoreNotice.settlement);
+      expect(storeNoticeFor('settlement_paid'), StoreNotice.settlement);
+      expect(storeNoticeFor('rating_received'), StoreNotice.ratings);
+      expect(storeNoticeFor('brand_new_type'), isNull);
+    });
+
+    Widget storeApp(FakeStoreGateway gateway, {FakePushClient? push, FakeInboxGateway? inbox}) => ProviderScope(
+      overrides: [
+        storeGatewayProvider.overrideWithValue(gateway),
+        notificationInboxGatewayProvider.overrideWithValue(inbox ?? FakeInboxGateway()),
+        appVersionProvider.overrideWith((ref) async => '1.0.0'),
+        pushClientProvider.overrideWithValue(push ?? FakePushClient(PushPermission.denied)),
+      ],
+      child: testApp(StoreApp(restaurant: restaurant(), userId: 'u-1')),
+    );
+
+    int tab(WidgetTester tester) =>
+        ProviderScope.containerOf(tester.element(find.byType(StoreShell))).read(storeTabProvider);
+
+    testWidgets('push 予約 / 回収 có ID lô → chi tiết lô; không có ID (thông báo cũ) → ở ホーム', (tester) async {
+      final push = FakePushClient(PushPermission.denied);
+      await tester.pumpWidget(storeApp(FakeStoreGateway(restaurant: restaurant(), batches: [batch()]), push: push));
+      await tester.pumpAndSettle();
+
+      push.opened.add(openedPushFrom({'type': 'reservation_received', 'surplus_batch_id': 'b-1'}));
+      await tester.pumpAndSettle();
+      expect(find.byType(StoreBatchDetailPage), findsOneWidget);
+
+      push.opened.add(openedPushFrom({'type': 'batch_collected'}));
+      await tester.pumpAndSettle();
+      expect(find.byType(StoreBatchDetailPage), findsNothing, reason: 'màn cũ đóng lại; không có ID thì dừng ở ホーム');
+      expect(tab(tester), StoreTab.home);
+    });
+
+    testWidgets('app mở từ thông báo quyết toán → tab 精算; loại app chưa biết → お知らせ như trước', (tester) async {
+      final push = FakePushClient(PushPermission.denied)..initial = openedPushFrom({'type': 'settlement_paid'});
+      await tester.pumpWidget(storeApp(FakeStoreGateway(restaurant: restaurant()), push: push));
+      await tester.pumpAndSettle();
+      expect(tab(tester), StoreTab.settlement);
+
+      push.opened.add(openedPushFrom({'type': 'brand_new_type'}));
+      await tester.pumpAndSettle();
+      expect(find.byType(NotificationInboxPage), findsOneWidget);
+    });
+
+    testWidgets('chuông ở ホーム: chạm 評価 → お客様の評価; chạm 写真 → đóng お知らせ, ở ホーム', (tester) async {
+      InboxNotification n(String id, String type) =>
+          InboxNotification(id: id, type: type, stopName: null, isRead: false, createdAt: DateTime.now());
+      final inbox = FakeInboxGateway(items: [n('n1', 'rating_received'), n('n2', 'batch_photo_removed')]);
+      await tester.pumpWidget(storeApp(FakeStoreGateway(restaurant: restaurant()), inbox: inbox));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('inboxBell')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('inbox-n1')));
+      await tester.pumpAndSettle();
+      expect(find.byType(StoreRatingsPage), findsOneWidget);
+
+      Navigator.of(tester.element(find.byType(StoreRatingsPage))).pop();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('inboxBell')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('inbox-n2')));
+      await tester.pumpAndSettle();
+      expect(find.byType(NotificationInboxPage), findsNothing);
+      expect(tab(tester), StoreTab.home);
     });
   });
 }

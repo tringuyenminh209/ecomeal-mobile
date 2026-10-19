@@ -15,7 +15,7 @@ class FakeInboxGateway implements NotificationInboxGateway {
     markedAll++;
     items = [
       for (final n in items)
-        InboxNotification(id: n.id, type: n.type, stopName: n.stopName, isRead: true, createdAt: n.createdAt),
+        InboxNotification(id: n.id, type: n.type, stopName: n.stopName, payload: n.payload, isRead: true, createdAt: n.createdAt),
     ];
   }
 }

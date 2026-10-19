@@ -35,6 +35,13 @@ Future<void> initPush(AppFlavor flavor) async {
 
 enum PushPermission { notDetermined, granted, denied }
 
+// Thông báo người dùng vừa chạm: loại + data của FCM (send-push gửi `type`, có lô thì thêm `surplus_batch_id`).
+// Giữ lại để app mở đúng màn (audit C05/S05/A06) — trước đây lớp bọc chỉ báo "có chạm" nên app mở cùng một chỗ.
+typedef OpenedPush = ({String type, Map<String, dynamic> data});
+
+OpenedPush openedPushFrom(Map<String, dynamic> data) =>
+    (type: data['type'] is String ? data['type'] as String : '', data: data);
+
 // Bọc firebase_messaging — widget test thay bằng bản giả (không có Firebase trong test).
 abstract class PushClient {
   String get platform; // 'android' | 'ios' — cột push_tokens.platform
@@ -43,8 +50,8 @@ abstract class PushClient {
   Future<String?> token();
   Stream<String> get onTokenRefresh;
   Stream<({String title, String body})> get onForegroundMessage; // app đang mở: hệ điều hành không tự hiện
-  Stream<void> get onOpened; // người dùng chạm vào thông báo
-  Future<bool> openedFromTerminated(); // app được mở từ trạng thái đã tắt bằng cách chạm thông báo
+  Stream<OpenedPush> get onOpened; // người dùng chạm vào thông báo
+  Future<OpenedPush?> openedFromTerminated(); // app được mở từ trạng thái đã tắt bằng cách chạm thông báo (null: mở thường)
 }
 
 class FirebasePushClient implements PushClient {
@@ -77,10 +84,13 @@ class FirebasePushClient implements PushClient {
       .map((m) => (title: m.notification!.title ?? '', body: m.notification!.body ?? ''));
 
   @override
-  Stream<void> get onOpened => FirebaseMessaging.onMessageOpenedApp.map((_) {});
+  Stream<OpenedPush> get onOpened => FirebaseMessaging.onMessageOpenedApp.map((m) => openedPushFrom(m.data));
 
   @override
-  Future<bool> openedFromTerminated() async => await _messaging.getInitialMessage() != null;
+  Future<OpenedPush?> openedFromTerminated() async {
+    final m = await _messaging.getInitialMessage();
+    return m == null ? null : openedPushFrom(m.data);
+  }
 }
 
 // null = chưa cấu hình Firebase → không có thông báo app (UI ẩn thẻ).

@@ -28,6 +28,16 @@ final adminSelectionProvider = StateProvider.autoDispose<AdminSelection?>((ref) 
 const _listPaneWidth = 420.0;
 const _riseDistance = 16.0;
 
+// Đọc lại số đếm + mọi danh sách của tab 対応 (kéo để tải lại, nút thử lại, mở từ thông báo)
+void refreshAdminTasks(WidgetRef ref) {
+  ref.invalidate(adminBadgesProvider);
+  ref.invalidate(adminIssuesProvider);
+  ref.invalidate(adminRestaurantsProvider);
+  ref.invalidate(adminLicensesProvider);
+  ref.invalidate(adminInquiriesProvider);
+  ref.invalidate(adminDriverReportsProvider);
+}
+
 // Tab 対応（SCR-A04 一覧 565:1160 — chọn mục 問題報告 / 審査 / 免許 / 問合せ; A03 563:1166; A06 565:1368）
 class AdminTasksPage extends ConsumerWidget {
   const AdminTasksPage({super.key, required this.task, required this.onSelect});
@@ -194,26 +204,13 @@ class _AsyncList<T> extends ConsumerWidget {
               title: l10n.storeLoadErrorTitle,
               message: l10n.storeLoadErrorBody,
               actionLabel: l10n.storeReload,
-              onAction: () {
-                ref.invalidate(adminIssuesProvider);
-                ref.invalidate(adminRestaurantsProvider);
-                ref.invalidate(adminLicensesProvider);
-                ref.invalidate(adminInquiriesProvider);
-                ref.invalidate(adminDriverReportsProvider);
-              },
+              onAction: () => refreshAdminTasks(ref),
             ),
           ),
           data: (all) {
             final items = filter == null ? all : all.where(filter!).toList();
             return RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(adminBadgesProvider);
-                ref.invalidate(adminIssuesProvider);
-                ref.invalidate(adminRestaurantsProvider);
-                ref.invalidate(adminLicensesProvider);
-                ref.invalidate(adminInquiriesProvider);
-                ref.invalidate(adminDriverReportsProvider);
-              },
+              onRefresh: () async => refreshAdminTasks(ref),
               child: items.isEmpty
                   ? ListView(
                       children: [

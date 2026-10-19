@@ -5,6 +5,7 @@ import '../features/notifications/push_registration.dart';
 import '../features/store/store_batch_detail_page.dart';
 import '../features/store/store_gateway.dart';
 import '../features/store/store_home_page.dart';
+import '../features/store/store_ratings_page.dart';
 import '../features/store/store_register_done_page.dart';
 import '../features/store/store_register_page.dart';
 import '../features/store/store_settings_page.dart';
@@ -24,8 +25,60 @@ abstract final class StoreTab {
 // tài khoản sau bắt đầu ở ホーム.
 final storeTabProvider = StateProvider.autoDispose<int>((ref) => StoreTab.home);
 
+// Đích khi chạm thông báo của quán — cùng một bảng cho お知らせ (SCR-S07 558:501) và thông báo của điện thoại (audit S05).
+enum StoreNotice { batch, home, settlement, ratings }
+
+StoreNotice? storeNoticeFor(String type) => switch (type) {
+  'reservation_received' || 'batch_collected' => StoreNotice.batch,
+  // lý do gỡ ảnh hiện ở ホーム (câu thông báo:「理由はホームでご確認ください」)
+  'batch_photo_removed' || 'restaurant_reviewed' => StoreNotice.home,
+  'settlement_confirmed' || 'settlement_paid' => StoreNotice.settlement,
+  'rating_received' => StoreNotice.ratings,
+  _ => null, // loại app chưa biết → dòng chỉ để đọc
+};
+
+// [payload]: お知らせ = payload của thông báo, điện thoại = data của FCM — cả hai có `surplus_batch_id` (0066 / 0077).
+// Dữ liệu chi tiết lô đọc lại theo quán đang đăng nhập (RPC tự kiểm quyền); lô không còn → màn「この出品は見つかりませんでした」.
+VoidCallback? storeNoticeAction(
+  NavigatorState navigator,
+  WidgetRef ref,
+  String restaurantId,
+  String type,
+  Map<String, dynamic>? payload,
+) {
+  final target = storeNoticeFor(type);
+  if (target == null) return null;
+  return () {
+    navigator.popUntil((route) => route.isFirst);
+    final tab = ref.read(storeTabProvider.notifier);
+    switch (target) {
+      case StoreNotice.batch:
+        ref.invalidate(storeTodayBatchesProvider(restaurantId));
+        tab.state = StoreTab.home;
+        final batchId = payload?['surplus_batch_id'];
+        // thông báo cũ (trước 0077) không có ID → dừng ở ホーム, nơi có danh sách lô hôm nay
+        if (batchId is String) {
+          navigator.push(
+            MaterialPageRoute<void>(
+              builder: (_) => StoreBatchDetailPage(restaurantId: restaurantId, batchId: batchId),
+            ),
+          );
+        }
+      case StoreNotice.home:
+        ref.invalidate(storeTodayBatchesProvider(restaurantId));
+        ref.invalidate(photoRemovalsProvider(restaurantId));
+        tab.state = StoreTab.home;
+      case StoreNotice.settlement:
+        ref.invalidate(storeSettlementsProvider(restaurantId));
+        tab.state = StoreTab.settlement;
+      case StoreNotice.ratings:
+        navigator.push(MaterialPageRoute<void>(builder: (_) => StoreRatingsPage(restaurantId: restaurantId)));
+    }
+  };
+}
+
 // Shell + thông báo app (0059: token đăng ký với p_app = 'store'). Thông báo của quán là về lô / quyết toán / đánh giá:
-// đang mở app → tải lại ホーム và chấm chưa đọc; chạm thông báo → mở お知らせ (SCR-S07).
+// đang mở app → tải lại ホーム và chấm chưa đọc; chạm thông báo → mở đúng màn theo loại (storeNoticeAction).
 class StoreApp extends StatelessWidget {
   const StoreApp({super.key, required this.restaurant, required this.userId});
   final StoreRestaurant restaurant;
@@ -38,8 +91,23 @@ class StoreApp extends StatelessWidget {
         ref.invalidate(storeTodayBatchesProvider(restaurant.id));
         ref.invalidate(inboxUnreadProvider(userId));
       },
-      onOpened: (context, ref) =>
-          Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => NotificationInboxPage(userId: userId))),
+      onOpened: (context, ref, push) {
+        final navigator = Navigator.of(context);
+        final open = storeNoticeAction(navigator, ref, restaurant.id, push.type, push.data);
+        if (open != null) {
+          open();
+        } else {
+          // loại app chưa biết (server mới hơn app) → mở お知らせ như trước
+          navigator.push(
+            MaterialPageRoute<void>(
+              builder: (_) => NotificationInboxPage(
+                userId: userId,
+                onOpen: (n) => storeNoticeAction(navigator, ref, restaurant.id, n.type, n.payload),
+              ),
+            ),
+          );
+        }
+      },
       child: StoreShell(restaurant: restaurant, userId: userId),
     );
   }
@@ -108,7 +176,12 @@ class StoreShell extends ConsumerWidget {
     final pages = IndexedStack(
       index: index,
       children: [
-        StoreHomePage(restaurant: restaurant, userId: userId, onRegister: () => goTo(StoreTab.register)),
+        StoreHomePage(
+          restaurant: restaurant,
+          userId: userId,
+          onRegister: () => goTo(StoreTab.register),
+          onOpenNotice: (n) => storeNoticeAction(Navigator.of(context), ref, id, n.type, n.payload),
+        ),
         StoreRegisterPage(restaurant: restaurant, onRegistered: onRegistered),
         StoreSettlementPage(restaurant: restaurant),
         StoreSettingsPage(restaurant: restaurant, userId: userId),

@@ -24,8 +24,17 @@ final adminTabProvider = StateProvider.autoDispose<int>((ref) => AdminTab.home);
 // Mục đang mở trong tab 対応 (thẻ việc ở ダッシュボード chọn sẵn)
 final adminTaskProvider = StateProvider.autoDispose<AdminTask>((ref) => AdminTask.issues);
 
+// Mở tab 対応 ở đúng nhóm (thẻ việc ở ダッシュボード, お知らせ, thông báo của điện thoại): đọc lại danh sách để thấy việc vừa
+// tới; iPad bỏ chọn việc cũ (có thể thuộc nhóm khác) → cột phải chờ chọn.
+void openAdminTask(WidgetRef ref, AdminTask task) {
+  refreshAdminTasks(ref);
+  ref.read(adminSelectionProvider.notifier).state = null;
+  ref.read(adminTaskProvider.notifier).state = task;
+  ref.read(adminTabProvider.notifier).state = AdminTab.tasks;
+}
+
 // Shell + thông báo app (token đăng ký với p_app = 'admin' — server chỉ nhận khi đã aal2). Thông báo của admin là việc cần
-// xử lý: đang mở app → tải lại số đếm; chạm → mở お知らせ.
+// xử lý: đang mở app → tải lại số đếm; chạm → tab 対応 đúng nhóm (adminTaskFor).
 class AdminApp extends StatelessWidget {
   const AdminApp({super.key, required this.userId, required this.email});
   final String userId;
@@ -38,8 +47,17 @@ class AdminApp extends StatelessWidget {
         ref.invalidate(adminBadgesProvider);
         ref.invalidate(inboxUnreadProvider(userId));
       },
-      onOpened: (context, ref) =>
-          Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => NotificationInboxPage(userId: userId))),
+      onOpened: (context, ref, push) {
+        final navigator = Navigator.of(context)..popUntil((route) => route.isFirst);
+        final task = adminTaskFor(push.type);
+        if (task != null) return openAdminTask(ref, task);
+        // loại app chưa biết (server mới hơn app) → mở お知らせ như trước
+        navigator.push(
+          MaterialPageRoute<void>(
+            builder: (_) => NotificationInboxPage(userId: userId, onOpen: adminInboxOpener((t) => openAdminTask(ref, t))),
+          ),
+        );
+      },
       child: AdminShell(userId: userId, email: email),
     );
   }
@@ -69,10 +87,7 @@ class AdminShell extends ConsumerWidget {
     final wide = isWideLayout(context);
     final dashboard = AdminDashboardPage(
       userId: userId,
-      onOpenTask: (task) {
-        ref.read(adminTaskProvider.notifier).state = task;
-        goTo(AdminTab.tasks);
-      },
+      onOpenTask: (task) => openAdminTask(ref, task),
     );
     final pages = IndexedStack(
       index: index,

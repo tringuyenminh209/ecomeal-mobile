@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/line_menu_link.dart';
+import '../core/push_notifications.dart' show OpenedPush;
 import '../features/home/customer_home_page.dart';
 import '../features/notifications/notification_inbox.dart';
 import '../features/orders/active_order_page.dart';
@@ -23,16 +24,29 @@ abstract final class CustomerTab {
 // tài khoản đăng nhập sau luôn bắt đầu ở ホーム, không kế thừa tab của người trước.
 final customerTabProvider = StateProvider.autoDispose<int>((ref) => CustomerTab.home);
 
-// Thông báo của app khách đều về đơn đã đặt (hoàn tiền, xe tới, trả lời báo cáo, lô mới): đang mở app → tải lại đơn;
-// chạm thông báo → mở tab 予約 (PushRegistrar).
+// Thông báo đến lúc đang mở app (hoàn tiền, xe tới, trả lời báo cáo, lô mới) → tải lại đơn (PushRegistrar).
 void refreshOrdersAfterPush(BuildContext context, WidgetRef ref) {
   ref.invalidate(myOrdersProvider);
   ref.invalidate(inboxUnreadProvider); // thông báo mới cũng vào お知らせ (SCR-M20) → chấm ở chuông
 }
 
-void openOrdersFromPush(BuildContext context, WidgetRef ref) {
+// Đích khi chạm 1 thông báo — cùng một chỗ cho お知らせ (SCR-M20) và thông báo của điện thoại (audit C05):
+// lô mới ở điểm yêu thích → ホーム, sheet ở mức 中 để thấy danh sách món; còn lại là về đơn đã đặt → 予約.
+void openCustomerNotice(WidgetRef ref, String type) {
+  if (type == 'new_batch') {
+    ref.invalidate(activeListingsProvider);
+    ref.read(homeSheetRequestProvider.notifier).state = HomeSheetRequest.standard;
+    ref.read(customerTabProvider.notifier).state = CustomerTab.home;
+    return;
+  }
   ref.invalidate(myOrdersProvider);
   ref.read(customerTabProvider.notifier).state = CustomerTab.orders;
+}
+
+// Chạm thông báo của điện thoại: màn đang mở phía trên shell (chi tiết lô, hồ sơ…) đóng lại để thấy đích
+void openCustomerPush(BuildContext context, WidgetRef ref, OpenedPush push) {
+  Navigator.of(context).popUntil((route) => route.isFirst);
+  openCustomerNotice(ref, push.type);
 }
 
 // Mobile/Bottom Navigation của Figma (88:245) = PillTabBar (viên thuốc trượt, Figma 「動きの提案（Liquid 風）」 M00).
@@ -123,10 +137,7 @@ class _CustomerShellState extends ConsumerState<CustomerShell> {
             CustomerHomePage(
               userId: userId,
               onOpenMyPage: () => goTo(CustomerTab.myPage),
-              onOpenOrders: () {
-                ref.invalidate(myOrdersProvider);
-                goTo(CustomerTab.orders);
-              },
+              onOpenNotice: (type) => openCustomerNotice(ref, type),
             ),
             OrderHistoryPage(onBrowse: () => goTo(CustomerTab.home)),
             // SCR-M07 (Chương 18) — có cả nút ログアウト.

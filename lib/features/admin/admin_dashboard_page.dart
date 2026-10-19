@@ -15,6 +15,23 @@ import 'admin_gateway.dart';
 // Mục của tab 対応 (SCR-A04 565:1160: 問題報告 / 運行の連絡 (SCR-D06, 0067) / 審査 / 免許 / 問合せ)
 enum AdminTask { issues, driverReports, restaurants, licenses, inquiries }
 
+// Thông báo của vận hành → nhóm việc ở tab 対応 (A01 お知らせ 955:4176, audit A06). Mở nhóm chứ không mở 1 việc: thông báo
+// gửi cho mọi admin, việc có thể đã được người khác xử lý — nhóm cho thấy đúng những việc còn lại. null = loại app chưa biết.
+AdminTask? adminTaskFor(String type) => switch (type) {
+  'issue_reported' => AdminTask.issues,
+  'driver_reported' => AdminTask.driverReports,
+  'restaurant_applied' => AdminTask.restaurants,
+  'license_submitted' => AdminTask.licenses,
+  'inquiry_received' => AdminTask.inquiries,
+  _ => null,
+};
+
+// Dòng ở お知らせ: có nhóm thì chạm → [open] nhóm đó; không thì chỉ để đọc
+InboxOpener adminInboxOpener(void Function(AdminTask task) open) => (n) {
+  final task = adminTaskFor(n.type);
+  return task == null ? null : () => open(task);
+};
+
 // SCR-A01 ダッシュボード（562:1045 / Loading 562:1197）. [onOpenTask]: thẻ việc → tab 対応 đúng mục.
 class AdminDashboardPage extends ConsumerWidget {
   const AdminDashboardPage({super.key, required this.userId, required this.onOpenTask});
@@ -60,7 +77,7 @@ class AdminDashboardPage extends ConsumerWidget {
                     ],
                   ),
                 ),
-                InboxBellButton(userId: userId),
+                InboxBellButton(userId: userId, onOpen: adminInboxOpener(onOpenTask)),
               ],
             ),
             const SizedBox(height: 16),

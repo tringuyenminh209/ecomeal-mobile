@@ -37,10 +37,18 @@ BadgeTone storeBatchStatusTone(StoreBatchStatus s) => switch (s) {
 
 // SCR-S01 ホーム（今日）— Figma 553:120 / Loading 553:231 / Empty 553:291 / Error 553:379
 class StoreHomePage extends ConsumerWidget {
-  const StoreHomePage({super.key, required this.restaurant, required this.userId, required this.onRegister});
+  const StoreHomePage({
+    super.key,
+    required this.restaurant,
+    required this.userId,
+    required this.onRegister,
+    this.onOpenNotice,
+  });
   final StoreRestaurant restaurant;
   final String userId;
   final VoidCallback onRegister;
+  // Chạm 1 dòng ở お知らせ (SCR-S07) → shell mở màn theo loại (storeNoticeAction)
+  final InboxOpener? onOpenNotice;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -70,7 +78,7 @@ class StoreHomePage extends ConsumerWidget {
             ],
           ),
         ),
-        InboxBellButton(userId: userId),
+        InboxBellButton(userId: userId, onOpen: onOpenNotice),
       ],
     );
     final main = <Widget>[

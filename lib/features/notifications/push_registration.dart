@@ -81,15 +81,17 @@ Future<void> unregisterPush(WidgetRef ref) async {
 }
 
 typedef PushCallback = void Function(BuildContext context, WidgetRef ref);
+typedef PushOpenCallback = void Function(BuildContext context, WidgetRef ref, OpenedPush push);
 
 // Bọc shell của app có thông báo (khách: CustomerShell, nhà hàng: StoreShell): khi đã được phép thì đăng ký token (mỗi lần mở
 // app + khi Firebase đổi token), hiện thông báo lúc app đang mở bằng SnackBar rồi gọi [onMessage] (tải lại dữ liệu liên quan),
-// chạm vào thông báo thì gọi [onOpened] (mỗi app tự quyết mở màn nào).
+// chạm vào thông báo thì gọi [onOpened] kèm loại + data (mỗi app mở màn theo loại, giống khi chạm ở お知らせ).
+// Widget này chỉ có sau khi đăng nhập xong (nằm trong shell) → app mở từ thông báo cũng chỉ chuyển màn sau bước đăng nhập.
 class PushRegistrar extends ConsumerStatefulWidget {
   const PushRegistrar({super.key, required this.child, required this.onMessage, required this.onOpened});
   final Widget child;
   final PushCallback onMessage;
-  final PushCallback onOpened;
+  final PushOpenCallback onOpened;
 
   @override
   ConsumerState<PushRegistrar> createState() => _PushRegistrarState();
@@ -121,12 +123,13 @@ class _PushRegistrarState extends ConsumerState<PushRegistrar> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${m.title}\n${m.body}')));
         widget.onMessage(context, ref);
       }))
-      ..add(client.onOpened.listen((_) => _opened()));
-    if (await client.openedFromTerminated()) _opened();
+      ..add(client.onOpened.listen(_opened));
+    final initial = await client.openedFromTerminated();
+    if (initial != null) _opened(initial);
   }
 
-  void _opened() {
-    if (mounted) widget.onOpened(context, ref);
+  void _opened(OpenedPush push) {
+    if (mounted) widget.onOpened(context, ref, push);
   }
 
   @override

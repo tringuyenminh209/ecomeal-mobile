@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ecomeal_mobile/core/push_notifications.dart';
+import 'package:ecomeal_mobile/features/home/customer_home_page.dart' show HomeSheetRequest, homeSheetRequestProvider;
 import 'package:ecomeal_mobile/features/notifications/push_registration.dart';
 import 'package:ecomeal_mobile/widgets/customer_shell.dart';
 import '../../helpers/fake_push_client.dart';
@@ -73,7 +74,7 @@ void main() {
       child: testApp(Scaffold(
         body: PushRegistrar(
           onMessage: refreshOrdersAfterPush,
-          onOpened: openOrdersFromPush,
+          onOpened: openCustomerPush,
           child: Consumer(builder: (context, ref, _) => Text('tab ${ref.watch(customerTabProvider)}')),
         ),
       )),
@@ -90,16 +91,73 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100)); // SnackBar hiện lên
     expect(find.text('返金しました\n全額を返金しました。'), findsOneWidget);
 
-    client.opened.add(null);
+    client.opened.add(openedPushFrom({'type': 'refunded'}));
     await tester.pump();
     expect(find.text('tab ${CustomerTab.orders}'), findsOneWidget);
+  });
+
+  // audit C05: chạm thông báo của điện thoại đi giống chạm ở お知らせ (openCustomerNotice)
+  Widget shellProbe(FakePushClient client) => ProviderScope(
+    overrides: [pushClientProvider.overrideWithValue(client), pushTokenGatewayProvider.overrideWithValue(gateway)],
+    child: testApp(
+      PushRegistrar(
+        onMessage: refreshOrdersAfterPush,
+        onOpened: openCustomerPush,
+        child: Consumer(
+          builder: (context, ref, _) => Column(
+            children: [
+              Text('tab ${ref.watch(customerTabProvider)}'),
+              Text('sheet ${ref.watch(homeSheetRequestProvider)}'),
+              TextButton(
+                onPressed: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('detail page')))),
+                child: const Text('open detail'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+
+  testWidgets('C05: push lô mới → đóng màn đang mở, về ホーム với sheet 中; push hoàn tiền → 予約', (tester) async {
+    final client = FakePushClient(PushPermission.granted);
+    await tester.pumpWidget(shellProbe(client));
+    await tester.pumpAndSettle();
+
+    client.opened.add(openedPushFrom({'type': 'refunded'}));
+    await tester.pumpAndSettle();
+    expect(find.text('tab ${CustomerTab.orders}'), findsOneWidget);
+
+    await tester.tap(find.text('open detail'));
+    await tester.pumpAndSettle();
+    client.opened.add(openedPushFrom({'type': 'new_batch'}));
+    await tester.pumpAndSettle();
+    expect(find.text('detail page'), findsNothing, reason: 'màn phía trên shell đóng lại để thấy đích');
+    expect(find.text('tab ${CustomerTab.home}'), findsOneWidget);
+    expect(find.text('sheet ${HomeSheetRequest.standard}'), findsOneWidget);
+  });
+
+  testWidgets('C05: app mở từ trạng thái đã tắt bằng push lô mới → ホーム (trước đây mọi loại đều mở 予約)', (tester) async {
+    final client = FakePushClient(PushPermission.granted)..initial = openedPushFrom({'type': 'new_batch'});
+    await tester.pumpWidget(shellProbe(client));
+    await tester.pumpAndSettle();
+    expect(find.text('tab ${CustomerTab.home}'), findsOneWidget);
+    expect(find.text('sheet ${HomeSheetRequest.standard}'), findsOneWidget);
+  });
+
+  test('openedPushFrom: data thiếu / sai kiểu type → chuỗi rỗng (mở chỗ mặc định, không văng lỗi)', () {
+    expect(openedPushFrom({}).type, '');
+    expect(openedPushFrom({'type': 3}).type, '');
+    expect(openedPushFrom({'type': 'reservation_received', 'surplus_batch_id': 'b'}).data['surplus_batch_id'], 'b');
   });
 
   testWidgets('PushRegistrar: chưa được phép → không lưu token', (tester) async {
     final client = FakePushClient(PushPermission.notDetermined);
     await tester.pumpWidget(ProviderScope(
       overrides: [pushClientProvider.overrideWithValue(client), pushTokenGatewayProvider.overrideWithValue(gateway)],
-      child: testApp(const PushRegistrar(onMessage: refreshOrdersAfterPush, onOpened: openOrdersFromPush, child: SizedBox())),
+      child: testApp(const PushRegistrar(onMessage: refreshOrdersAfterPush, onOpened: openCustomerPush, child: SizedBox())),
     ));
     await tester.pumpAndSettle();
     expect(gateway.registered, isEmpty);

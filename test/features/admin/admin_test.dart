@@ -15,14 +15,23 @@ import 'package:ecomeal_mobile/widgets/admin_shell.dart';
 import 'package:ecomeal_mobile/features/admin/admin_tasks_gateway.dart';
 import '../../helpers/fake_admin_gateway.dart';
 import '../../helpers/fake_admin_tasks_gateway.dart';
+import 'package:ecomeal_mobile/core/push_notifications.dart';
 import '../../helpers/fake_inbox_gateway.dart';
+import '../../helpers/fake_push_client.dart';
 import '../../helpers/test_app.dart';
 
-Widget _app(Widget home, {FakeAdminGateway? admin, FakePreferencesGateway? prefs}) => ProviderScope(
+Widget _app(
+  Widget home, {
+  FakeAdminGateway? admin,
+  FakePreferencesGateway? prefs,
+  FakeInboxGateway? inbox,
+  FakePushClient? push,
+}) => ProviderScope(
       overrides: [
         adminGatewayProvider.overrideWithValue(admin ?? FakeAdminGateway()),
         adminTasksGatewayProvider.overrideWithValue(FakeAdminTasksGateway()),
-        notificationInboxGatewayProvider.overrideWithValue(FakeInboxGateway()),
+        notificationInboxGatewayProvider.overrideWithValue(inbox ?? FakeInboxGateway()),
+        if (push != null) pushClientProvider.overrideWithValue(push),
         notificationPreferencesGatewayProvider.overrideWithValue(prefs ?? FakePreferencesGateway(const [])),
         appVersionProvider.overrideWith((ref) async => '1.0.0'),
         pushStatusProvider.overrideWith((ref) async => PushStatus.on),
@@ -159,6 +168,46 @@ void main() {
       final container = ProviderScope.containerOf(tester.element(find.byType(AdminShell)));
       expect(container.read(adminTabProvider), AdminTab.tasks);
       expect(container.read(adminTaskProvider), AdminTask.licenses);
+    });
+
+    // Audit A06: thông báo → tab 対応 đúng nhóm (trước đây chỉ mở お知らせ, dòng không bấm được)
+    test('adminTaskFor: 5 loại → nhóm; loại khác → null', () {
+      expect(adminTaskFor('issue_reported'), AdminTask.issues);
+      expect(adminTaskFor('driver_reported'), AdminTask.driverReports);
+      expect(adminTaskFor('restaurant_applied'), AdminTask.restaurants);
+      expect(adminTaskFor('license_submitted'), AdminTask.licenses);
+      expect(adminTaskFor('inquiry_received'), AdminTask.inquiries);
+      expect(adminTaskFor('refunded'), isNull);
+    });
+
+    testWidgets('push 問い合わせ → 対応タブ・問い合わせ; app mở từ push ドライバー連絡 → nhóm 運行の連絡', (tester) async {
+      final push = FakePushClient(PushPermission.denied)..initial = openedPushFrom({'type': 'driver_reported'});
+      await tester.pumpWidget(_app(const AdminApp(userId: 'u-1', email: 'admin@ecomeal.jp'), admin: admin, push: push));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(tester.element(find.byType(AdminShell)));
+      expect(container.read(adminTabProvider), AdminTab.tasks);
+      expect(container.read(adminTaskProvider), AdminTask.driverReports);
+
+      push.opened.add(openedPushFrom({'type': 'inquiry_received'}));
+      await tester.pumpAndSettle();
+      expect(container.read(adminTaskProvider), AdminTask.inquiries);
+      expect(find.byType(NotificationInboxPage), findsNothing);
+    });
+
+    testWidgets('chuông: chạm 飲食店の申請 → 対応タブ・審査', (tester) async {
+      final inbox = FakeInboxGateway(items: [
+        InboxNotification(id: 'n1', type: 'restaurant_applied', stopName: null, isRead: false, createdAt: DateTime.now()),
+      ]);
+      await tester.pumpWidget(_app(const AdminShell(userId: 'u-1', email: 'admin@ecomeal.jp'), admin: admin, inbox: inbox));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('inboxBell')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('inbox-n1')));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(tester.element(find.byType(AdminShell)));
+      expect(find.byType(NotificationInboxPage), findsNothing);
+      expect(container.read(adminTabProvider), AdminTab.tasks);
+      expect(container.read(adminTaskProvider), AdminTask.restaurants);
     });
   });
 

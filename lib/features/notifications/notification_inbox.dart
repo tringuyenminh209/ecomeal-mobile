@@ -194,12 +194,16 @@ String inboxTimeLabel(DateTime at, DateTime now, AppLocalizations l10n, String l
   return DateFormat.MMMd(locale).format(DateTime.parse(day));
 }
 
+// Việc khi chạm 1 thông báo — mỗi app tự định theo loại (SCR-M20 / S07 / A01 お知らせ). null = loại không có màn để mở
+// (vd loại server mới thêm mà app chưa biết) → dòng chỉ để đọc.
+typedef InboxOpener = VoidCallback? Function(InboxNotification notification);
+
 // SCR-S07 お知らせ（558:501 / Empty 558:581）. Mở trang = đã xem: đánh dấu đã đọc sau khi hiện (lần này vẫn tô nền mục chưa đọc).
-// [onOpen] (app khách SCR-M20): chạm 1 thông báo → đóng trang rồi mở màn liên quan. Không có → mục chỉ để đọc (S07).
+// [onOpen]: chạm 1 thông báo có đích → đóng trang rồi mở màn liên quan (audit S05/A06: trước đây app quán/vận hành không truyền).
 class NotificationInboxPage extends ConsumerStatefulWidget {
   const NotificationInboxPage({super.key, required this.userId, this.onOpen, this.emptyBody});
   final String userId;
-  final void Function(InboxNotification notification)? onOpen;
+  final InboxOpener? onOpen;
   final String? emptyBody;
 
   @override
@@ -261,7 +265,7 @@ class _NotificationInboxPageState extends ConsumerState<NotificationInboxPage> {
               itemBuilder: (context, i) {
                 final n = page.items[i];
                 final c = inboxContent(n.type, l10n, payload: n.payload, stopName: n.stopName);
-                final onOpen = widget.onOpen;
+                final open = widget.onOpen?.call(n);
                 final item = Container(
                   key: Key('inbox-${n.id}'),
                   color: n.isRead ? null : eco.primarySoft,
@@ -296,11 +300,11 @@ class _NotificationInboxPageState extends ConsumerState<NotificationInboxPage> {
                     ],
                   ),
                 );
-                if (onOpen == null) return item;
+                if (open == null) return item;
                 return InkWell(
                   onTap: () {
                     Navigator.of(context).pop();
-                    onOpen(n);
+                    open();
                   },
                   child: item,
                 );
@@ -319,7 +323,7 @@ class InboxBellButton extends ConsumerWidget {
   const InboxBellButton({super.key, required this.userId, this.floating = false, this.onOpen, this.emptyBody});
   final String userId;
   final bool floating;
-  final void Function(InboxNotification notification)? onOpen;
+  final InboxOpener? onOpen;
   final String? emptyBody;
 
   @override
