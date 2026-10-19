@@ -208,6 +208,7 @@ class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
             markerId: MarkerId('truck-${r.id}'),
             position: LatLng(r.lat!, r.lng!),
             icon: _truckIcon ?? BitmapDescriptor.defaultMarker,
+            alpha: gpsAgeLabel(r.locatedAt, DateTime.now(), l10n).stale ? 0.45 : 1,
             infoWindow: InfoWindow(title: r.plateNumber, snippet: r.driverName),
           ),
       for (final r in routes)
@@ -272,6 +273,18 @@ class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
   }
 }
 
+// Tài xế gửi vị trí 5 giây/lần (GpsReporter) → 2 phút không có vị trí mới = đã ngừng gửi (mất mạng, tắt app, hết pin…)
+const gpsStaleAfter = Duration(minutes: 2);
+
+// Dòng "vị trí lúc nào" của 1 xe (audit A04, Figma 972:21643). stale = vị trí cũ hơn gpsStaleAfter.
+({String text, bool stale}) gpsAgeLabel(DateTime? locatedAt, DateTime now, AppLocalizations l10n) {
+  if (locatedAt == null) return (text: l10n.adminGpsNone, stale: false);
+  final age = now.difference(locatedAt);
+  final minutes = age.inMinutes;
+  if (age > gpsStaleAfter) return (text: l10n.adminGpsStale(minutes), stale: true);
+  return (text: minutes < 1 ? l10n.adminGpsJustNow : l10n.adminGpsMinutes(minutes), stale: false);
+}
+
 class _RouteTile extends StatelessWidget {
   const _RouteTile({required this.route});
   final AdminRoute route;
@@ -282,6 +295,8 @@ class _RouteTile extends StatelessWidget {
     final eco = context.eco;
     final r = route;
     final next = r.nextStop;
+    // Trang tải lại mỗi 20 giây → dòng này tính lại theo giờ mới
+    final gps = gpsAgeLabel(r.locatedAt, DateTime.now(), l10n);
     final (label, tone) = switch (r.status) {
       AdminRouteStatus.running => (l10n.adminOpsRunning, BadgeTone.soft),
       AdminRouteStatus.waiting => (l10n.adminOpsWaiting, BadgeTone.neutral),
@@ -321,6 +336,15 @@ class _RouteTile extends StatelessWidget {
                     l10n.adminOpsReserved(r.reservedCount!),
                     style: TextStyle(fontSize: 11, color: eco.textSecondary),
                   ),
+                Text(
+                  gps.text,
+                  key: Key('adminGps-${r.id}'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: gps.stale ? FontWeight.w700 : FontWeight.w400,
+                    color: gps.stale ? eco.amber : eco.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),

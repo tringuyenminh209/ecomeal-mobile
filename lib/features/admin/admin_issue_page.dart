@@ -13,6 +13,7 @@ import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import '../orders/order_helpers.dart';
 import 'admin_gateway.dart';
 import '../../widgets/error_banner.dart';
+import 'admin_drafts.dart';
 import 'admin_tasks_gateway.dart';
 
 // Giới hạn của order_issues.resolution (0050: 1〜500 ký tự)
@@ -37,8 +38,13 @@ class AdminIssuePage extends ConsumerStatefulWidget {
 }
 
 class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
-  late final _amount = TextEditingController(text: '${widget.issue.refundable}');
-  final _answer = TextEditingController();
+  // Nháp đã viết dở lần trước (mở việc khác / xoay iPad) — audit A02. Xác nhận A01 (_confirmed) không giữ: mở lại thì xác
+  // nhận lại số tiền trước khi gửi.
+  late final _draftKey = 'issue:${widget.issue.id}';
+  late final _drafts = ref.read(adminDraftsProvider);
+  late final _draft = _drafts[_draftKey] as IssueDraft?;
+  late final _amount = TextEditingController(text: _draft?.amount ?? '${widget.issue.refundable}');
+  late final _answer = TextEditingController(text: _draft?.answer ?? '');
   final _scroll = ScrollController();
   bool _sending = false;
   bool _failed = false;
@@ -56,7 +62,11 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
   void initState() {
     super.initState();
     _amount.addListener(() => setState(() {})); // nhãn nút đổi theo số tiền
+    _amount.addListener(_keepDraft);
+    _answer.addListener(_keepDraft);
   }
+
+  void _keepDraft() => _drafts[_draftKey] = (amount: _amount.text, answer: _answer.text);
 
   @override
   void dispose() {
@@ -98,6 +108,7 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
     });
     try {
       await ref.read(adminTasksGatewayProvider).resolveIssue(issue.id, refund: refund, resolution: answer);
+      _drafts.remove(_draftKey);
       ref.invalidate(adminIssuesProvider);
       ref.invalidate(adminBadgesProvider);
       if (!mounted) return;
@@ -107,6 +118,7 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
       if (!mounted) return;
       if (rpcErrorCode(e) == 'E-ISSUE-409') {
         // Người khác đã xử lý (Web / admin khác): không gửi lại được — báo và tải lại danh sách
+        _drafts.remove(_draftKey);
         ref.invalidate(adminIssuesProvider);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.adminIssueErrAlready)));
         _close();

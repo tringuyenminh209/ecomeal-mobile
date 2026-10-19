@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
@@ -55,6 +56,20 @@ void main() {
     verify(() => gateway.submitLicense(bytes: Uint8List.fromList([1, 2, 3]), extension: 'jpg', previousPath: null)).called(1);
     expect(find.text('提出しました。運営の確認をお待ちください。'), findsOneWidget);
     expect(find.text('確認待ち'), findsOneWidget); // 再取得して状態が変わる
+  });
+
+  // Audit S04 (cùng loại): bị chặn quyền camera trước đây báo 「提出できませんでした。通信状態…」
+  testWidgets('カメラが許可されていない → 許可されていません + 設定を開く（通信エラーとは言わない）', (tester) async {
+    when(() => gateway.fetchLicense()).thenAnswer((_) async => const DriverLicense(status: LicenseStatus.none));
+    await tester.pumpWidget(_cards(gateway, picker: (_) async => throw PlatformException(code: 'camera_access_denied')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('licenseUploadButton')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('licenseSourceCamera')));
+    await tester.pumpAndSettle();
+    expect(find.text('カメラ（写真）へのアクセスが許可されていません'), findsOneWidget);
+    expect(find.text('設定を開く'), findsOneWidget);
+    expect(find.textContaining('提出できませんでした'), findsNothing);
   });
 
   testWidgets('差し戻し: 理由を表示し、再提出では前の画像のパスを渡す（古い画像の掃除用）', (tester) async {

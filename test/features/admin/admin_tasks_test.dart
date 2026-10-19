@@ -120,6 +120,27 @@ void main() {
   });
 
   group('SCR-A04 問題報告の対応', () {
+    // Audit A02: màn chi tiết bị bỏ khỏi cây (mở việc khác, xoay iPad) rồi dựng lại → số tiền + câu trả lời vẫn còn
+    testWidgets('書きかけの返金額・回答は、画面を作り直しても残る', (tester) async {
+      final show = ValueNotifier(true);
+      await tester.pumpWidget(_app(
+        ValueListenableBuilder<bool>(
+          valueListenable: show,
+          builder: (_, on, __) => on ? AdminIssuePage(issue: _issue()) : const SizedBox(),
+        ),
+        FakeAdminTasksGateway(),
+      ));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('adminIssueAmount')), '300');
+      await tester.enterText(find.byKey(const Key('adminIssueAnswer')), '一部返金します');
+      show.value = false;
+      await tester.pumpAndSettle();
+      show.value = true;
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(find.byKey(const Key('adminIssueAmount'))).controller!.text, '300');
+      expect(tester.widget<TextField>(find.byKey(const Key('adminIssueAnswer'))).controller!.text, '一部返金します');
+    });
+
     testWidgets('¥0 にするとボタンが「対応済みにする」、案内も返金なしに', (tester) async {
       await tester.pumpWidget(_app(AdminIssuePage(issue: _issue()), FakeAdminTasksGateway()));
       await tester.pumpAndSettle();

@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:image_picker/image_picker.dart' show ImageSource;
+import '../../core/photo_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/confirm_dialog.dart';
@@ -137,9 +137,18 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     final Uint8List? picked;
     try {
       picked = await ref.read(avatarImagePickerProvider)(source);
-    } on PlatformException catch (err) {
-      // image_picker: người dùng đã từ chối quyền camera / ảnh → chỉ đường sang Cài đặt của OS.
-      if (err.code == 'camera_access_denied' || err.code == 'photo_access_denied') await _showAccessDenied();
+    } catch (err) {
+      // Bị từ chối quyền camera / ảnh → chỉ đường sang Cài đặt của OS; lỗi đọc ảnh khác → báo 「写真を読み込めませんでした」
+      // (trước đây im lặng — photoPickProblemOf dùng chung với app quán, audit S04)
+      if (photoPickProblemOf(err) == PhotoPickProblem.failed) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${context.l10n.photoReadFailed}\n${context.l10n.photoReadFailedBody}')),
+          );
+        }
+      } else {
+        await _showAccessDenied();
+      }
       return;
     }
     if (picked == null || !mounted) return; // huỷ chọn

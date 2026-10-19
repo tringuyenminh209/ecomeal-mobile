@@ -8,6 +8,7 @@ import 'package:ecomeal_mobile/features/admin/admin_inquiry_page.dart';
 import 'package:ecomeal_mobile/features/admin/admin_license_page.dart';
 import 'package:ecomeal_mobile/features/admin/admin_operations_page.dart';
 import 'package:ecomeal_mobile/features/admin/admin_restaurant_page.dart';
+import 'package:ecomeal_mobile/features/admin/admin_drafts.dart';
 import 'package:ecomeal_mobile/features/admin/admin_tasks_gateway.dart';
 import 'package:ecomeal_mobile/features/admin/admin_tasks_page.dart';
 import 'package:ecomeal_mobile/features/notifications/notification_inbox.dart';
@@ -110,6 +111,39 @@ void main() {
     expect(tasks.actions, ['approve:r-1']);
     expect(find.byType(AdminRestaurantPage), findsNothing);
     expect(find.byType(AdminTasksPage), findsOneWidget); // pop で一覧ごと閉じない
+  });
+
+  // Audit A02 (ghi chú Figma 972:22609): viết dở ở việc A → mở việc B → quay lại A thì chữ vẫn còn; lưu xong thì nháp mất
+  testWidgets('iPad 問い合わせ: 書きかけのメモは別の件を開いて戻っても残る、保存したら消える', (tester) async {
+    _ipad(tester);
+    final a = _inquiry();
+    final b = AdminInquiry(
+      id: 'q-2', type: 'customer', name: '鈴木 花子', companyName: null, email: 'suzuki@example.jp', phone: null,
+      message: 'アプリについて', status: 'new', adminNote: null, createdAt: DateTime.now(),
+    );
+    final tasks = FakeAdminTasksGateway(inquiries: [a, b]);
+    await tester.pumpWidget(_app(const AdminShell(userId: 'u-1', email: 'admin@ecomeal.jp'), tasks));
+    await tester.pumpAndSettle();
+    _container(tester).read(adminTaskProvider.notifier).state = AdminTask.inquiries;
+    _container(tester).read(adminTabProvider.notifier).state = AdminTab.tasks;
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('adminInq-q-1')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('adminInqNote')), '10/14 に電話する');
+    await tester.tap(find.byKey(const Key('adminInqStatus-in_progress')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('adminInq-q-2')));
+    await tester.pumpAndSettle();
+    expect(find.text('10/14 に電話する'), findsNothing); // B は B の内容
+    await tester.tap(find.byKey(const Key('adminInq-q-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('10/14 に電話する'), findsOneWidget);
+    expect(tester.widget<ChoiceChip>(find.byKey(const Key('adminInqStatus-in_progress'))).selected, isTrue);
+
+    await tester.tap(find.byKey(const Key('adminInqSave')));
+    await tester.pumpAndSettle();
+    expect(_container(tester).read(adminDraftsProvider), isEmpty);
   });
 
   testWidgets('iPad 却下: 理由はダイアログ。送信に失敗したら画面内で知らせ、同じ理由でそのまま再送', (tester) async {

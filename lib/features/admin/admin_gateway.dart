@@ -100,6 +100,7 @@ class AdminRoute {
     required this.reservedCount,
     required this.lat,
     required this.lng,
+    this.locatedAt,
   });
   final String id;
   final String plateNumber;
@@ -108,6 +109,7 @@ class AdminRoute {
   final int? reservedCount; // null: chưa đọc được (API-027 lỗi) — chỉ ẩn con số này
   final double? lat; // vị trí GPS mới nhất (null: chưa gửi)
   final double? lng;
+  final DateTime? locatedAt; // lúc vị trí đó được gửi (recorded_at) — "21:05 更新" là giờ tải, không phải giờ của vị trí (A04)
 
   // Cùng quy tắc với Web routeStatus.ts: hết điểm đã rời → 完了; có điểm đã rời → 走行中; chưa rời điểm nào → 待機
   AdminRouteStatus get status {
@@ -171,29 +173,26 @@ class SupabaseAdminGateway implements AdminGateway {
     final routes = await _client
         .from('routes')
         .select(
-          'id, truck_id, trucks(plate_number, users(name)), '
+          'id, truck_id, trucks(plate_number, users(name), truck_locations(lat, lng, recorded_at)), '
           'route_stops(sequence, planned_time, actual_departure_at, stop_locations(name, lat, lng))',
         )
-        .eq('service_date', serviceDate);
+        .eq('service_date', serviceDate)
+        // Vị trí mới nhất của TỪNG xe trong cùng 1 query: limit của bảng nhúng tính theo từng dòng cha (không kéo cả lịch
+        // sử GPS — bài học 第51回). Trước đây mỗi xe 1 query (1+N, cùng lỗi với Home khách — audit U02/A04)
+        .order('recorded_at', referencedTable: 'trucks.truck_locations', ascending: false)
+        .limit(1, referencedTable: 'trucks.truck_locations');
     // Số đơn đặt: admin không đọc trực tiếp orders → RPC đếm (API-027). Lỗi thì chỉ ẩn con số
     Map<String, int>? counts;
     try {
       final rows = await _client.rpc('get_route_reservation_counts', params: {'p_service_date': serviceDate}) as List;
       counts = {for (final r in rows.cast<Map<String, dynamic>>()) r['route_id'] as String: r['reserved_count'] as int};
     } catch (_) {}
-    return [for (final r in routes) await _route(r, counts)];
+    return [for (final r in routes) _route(r, counts)];
   }
 
-  Future<AdminRoute> _route(Map<String, dynamic> r, Map<String, int>? counts) async {
-    // Vị trí mới nhất của TỪNG xe bằng limit 1 (không kéo cả lịch sử GPS — bài học 第51回)
-    final loc = await _client
-        .from('truck_locations')
-        .select('lat, lng')
-        .eq('truck_id', r['truck_id'] as String)
-        .order('recorded_at', ascending: false)
-        .limit(1)
-        .maybeSingle();
+  AdminRoute _route(Map<String, dynamic> r, Map<String, int>? counts) {
     final truck = r['trucks'] as Map<String, dynamic>;
+    final loc = (truck['truck_locations'] as List?)?.cast<Map<String, dynamic>>().firstOrNull;
     final stops = (r['route_stops'] as List).cast<Map<String, dynamic>>()
       ..sort((a, b) => (a['sequence'] as int).compareTo(b['sequence'] as int));
     return AdminRoute(
@@ -213,6 +212,7 @@ class SupabaseAdminGateway implements AdminGateway {
       reservedCount: counts?[r['id'] as String],
       lat: (loc?['lat'] as num?)?.toDouble(),
       lng: (loc?['lng'] as num?)?.toDouble(),
+      locatedAt: loc == null ? null : DateTime.parse(loc['recorded_at'] as String),
     );
   }
 

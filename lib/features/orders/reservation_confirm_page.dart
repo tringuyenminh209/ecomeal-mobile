@@ -261,6 +261,8 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
     // Chưa có giá hoặc chưa có thẻ thì KHÔNG cho trả — người dùng không được đồng ý trả một số tiền mà màn hình
     // chưa hiển thị. create_order vẫn tự tính lại giá ở server.
     final canPay = price != null && card != null;
+    // Chưa có thẻ: nút dưới cùng là bước tiếp theo — mở màn thêm thẻ (audit C04, Figma 972:1785). Chưa biết giá thì vẫn khoá.
+    final needsCard = card == null && methodsAsync.hasValue;
     final reviewError = _reviewError;
     final errorAction = reviewError == null ? null : reviewErrorAction(reviewError);
 
@@ -444,13 +446,14 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                     onPressed: switch (errorAction) {
                       ReviewErrorAction.seeReservations => _goToOrders,
                       ReviewErrorAction.browse => _goToBrowse,
+                      _ when needsCard => price == null ? null : _addFirstCard,
                       _ => canPay ? () => _pay(card, price, discount > 0 ? coupon?.id : null) : null,
                     },
                     child: Text(switch (errorAction) {
                       ReviewErrorAction.seeReservations => l10n.actionSeeReservations,
                       ReviewErrorAction.browse => l10n.actionFindOtherBags,
                       ReviewErrorAction.retry => l10n.tryAgain,
-                      null => card == null && methodsAsync.hasValue ? l10n.addPaymentMethodButton : l10n.payButton(priceText),
+                      null => needsCard ? l10n.addPaymentMethodButton : l10n.payButton(priceText),
                     }),
                   ),
                 ],

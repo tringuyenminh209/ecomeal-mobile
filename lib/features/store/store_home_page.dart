@@ -20,7 +20,6 @@ import 'store_ratings_page.dart';
 // Mốc 概算登録 trong ngày (02 §3.1.1「15〜16時頃」) — chỉ là mốc hướng dẫn: server không chặn đăng ký sau 16:00.
 const storeRegisterDeadlineHour = 16;
 
-
 // Hạn bán / giờ lấy hàng của lô theo trạng thái (dùng chung cho thẻ ở S01 và đầu trang S03)
 String storeBatchStatusLabel(StoreBatchStatus s, AppLocalizations l10n) => switch (s) {
   StoreBatchStatus.estimated => l10n.storeBatchStatusEstimated,
@@ -390,7 +389,18 @@ class _RevenueCards extends ConsumerWidget {
     final l10n = context.l10n;
     final eco = context.eco;
     final locale = Localizations.localeOf(context).languageCode;
-    final revenue = ref.watch(storeMonthRevenueProvider(restaurantId)).valueOrNull;
+    final revenueAsync = ref.watch(storeMonthRevenueProvider(restaurantId));
+    // Lỗi (không phải đang tải lại): giữ khung, nói rõ + chạm để đọc lại chỉ thẻ này (audit S07, Figma 972:21260).
+    // Trước đây lỗi và đang tải cùng hiện "—" — quán không biết số liệu chưa có hay hỏng.
+    if (revenueAsync.hasError && !revenueAsync.isLoading) {
+      return StoreRetryCard(
+        key: const Key('storeRevenueError'),
+        label: l10n.storeMonthStatsLabel,
+        title: l10n.storeLoadErrorTitle,
+        onRetry: () => ref.invalidate(storeMonthRevenueProvider(restaurantId)),
+      );
+    }
+    final revenue = revenueAsync.valueOrNull;
     final today = todayInTokyo();
     final from = DateFormat.MMMd(locale).format(DateTime.parse('${today.substring(0, 8)}01'));
 
@@ -448,7 +458,17 @@ class _RatingsRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final eco = context.eco;
-    final ratings = ref.watch(storeRatingsProvider(restaurantId)).valueOrNull;
+    final ratingsAsync = ref.watch(storeRatingsProvider(restaurantId));
+    // Lỗi: trước đây thẻ biến mất hẳn (audit S07) — giờ giữ thẻ + chạm để đọc lại
+    if (ratingsAsync.hasError && !ratingsAsync.isLoading) {
+      return StoreRetryCard(
+        key: const Key('storeRatingsError'),
+        title: l10n.storeRatingsLoadFailed,
+        leading: Icon(Icons.star_rounded, color: eco.amber.withValues(alpha: 0.35), size: 28),
+        onRetry: () => ref.invalidate(storeRatingsProvider(restaurantId)),
+      );
+    }
+    final ratings = ratingsAsync.valueOrNull;
     if (ratings == null) return const SizedBox.shrink();
     final average = ratings.average;
     return InkWell(
@@ -483,6 +503,56 @@ class _RatingsRow extends ConsumerWidget {
             ),
             Icon(Icons.chevron_right, color: eco.textSecondary),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Thẻ số liệu không đọc được (Home và 入金 của quán, audit S07): khung giữ nguyên, 「読み込めませんでした」 + 「タップして
+// もう一度読み込む」; chạm cả thẻ = đọc lại đúng phần đó. Không điền 0 hay số cũ.
+class StoreRetryCard extends StatelessWidget {
+  const StoreRetryCard({super.key, this.label, required this.title, this.leading, required this.onRetry});
+  final String? label;
+  final String title;
+  final Widget? leading;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.eco;
+    return Semantics(
+      button: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onRetry,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: eco.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: eco.border),
+          ),
+          child: Row(
+            children: [
+              if (leading != null) ...[leading!, const SizedBox(width: 12)],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (label != null) Text(label!, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
+                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(
+                      context.l10n.storeTapToReload,
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.primary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

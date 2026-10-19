@@ -188,6 +188,17 @@ void main() {
     expect(find.byKey(const Key('openSettingsButton')), findsOneWidget);
   });
 
+  // Audit S04 (cùng loại): lỗi đọc ảnh trước đây im lặng
+  testWidgets('đọc ảnh lỗi (không phải quyền) → 「写真を読み込めませんでした」, không tải lên', (tester) async {
+    await pumpPage(tester, picker: (_) async => throw Exception('io'));
+    await tester.tap(find.byKey(const Key('profilePhotoAvatar')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('photoLibraryOption')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('写真を読み込めませんでした'), findsOneWidget);
+    verifyNever(() => gateway.uploadAvatar(any(), previousPath: any(named: 'previousPath')));
+  });
+
   testWidgets('写真を削除 → removeAvatar → về chữ cái đầu + SnackBar', (tester) async {
     when(() => gateway.removeAvatar('u-1/old.jpg')).thenAnswer((_) async {});
     await pumpPage(tester, avatarPath: 'u-1/old.jpg');

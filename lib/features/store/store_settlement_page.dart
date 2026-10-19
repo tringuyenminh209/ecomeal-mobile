@@ -36,7 +36,10 @@ class StoreSettlementPage extends ConsumerWidget {
     final eco = context.eco;
     final locale = Localizations.localeOf(context).languageCode;
     final id = restaurant.id;
-    final revenue = ref.watch(storeMonthRevenueProvider(id)).valueOrNull;
+    final revenueAsync = ref.watch(storeMonthRevenueProvider(id));
+    final revenue = revenueAsync.valueOrNull;
+    // Không đọc được số tháng này: nói rõ + chạm thẻ để đọc lại (audit S07) — trước đây chỉ 「見込み —」
+    final revenueFailed = revenueAsync.hasError && !revenueAsync.isLoading;
     final settlements = ref.watch(storeSettlementsProvider(id));
     final month = DateFormat.MMM(locale).format(DateTime.parse(todayInTokyo()));
     final wide = isWideLayout(context);
@@ -56,45 +59,59 @@ class StoreSettlementPage extends ConsumerWidget {
             Text(l10n.storeSettlementTitle, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
             Text(l10n.storeSettlementSubtitle, style: TextStyle(fontSize: 13, color: eco.textSecondary)),
             const SizedBox(height: 16),
-            Container(
-              key: const Key('storeSettlementCurrent'),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: eco.primary, borderRadius: BorderRadius.circular(20)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        l10n.storeSettlementCurrent(month),
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999)),
-                        child: Text(
-                          l10n.storeSettlementCutoff,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: eco.primary),
+            GestureDetector(
+              onTap: revenueFailed ? () => ref.invalidate(storeMonthRevenueProvider(id)) : null,
+              child: Container(
+                key: const Key('storeSettlementCurrent'),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(color: eco.primary, borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          l10n.storeSettlementCurrent(month),
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    l10n.storeSettlementEstimate(revenue == null ? '—' : formatYen(revenue.payout)),
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white),
-                  ),
-                  if (revenue != null)
-                    Text(
-                      l10n.storeSettlementCurrentSub(
-                        formatYen(revenue.revenue),
-                        revenue.orders,
-                        formatSharePct(revenue.sharePct),
-                      ),
-                      style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9)),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999)),
+                          child: Text(
+                            l10n.storeSettlementCutoff,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: eco.primary),
+                          ),
+                        ),
+                      ],
                     ),
-                ],
+                    const SizedBox(height: 10),
+                    if (revenueFailed) ...[
+                      Text(
+                        l10n.storeLoadErrorTitle,
+                        key: const Key('storeSettlementCurrentError'),
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                      Text(
+                        l10n.storeTapToReload,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ] else
+                      Text(
+                        l10n.storeSettlementEstimate(revenue == null ? '—' : formatYen(revenue.payout)),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    if (revenue != null)
+                      Text(
+                        l10n.storeSettlementCurrentSub(
+                          formatYen(revenue.revenue),
+                          revenue.orders,
+                          formatSharePct(revenue.sharePct),
+                        ),
+                        style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9)),
+                      ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),

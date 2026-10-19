@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/motion.dart';
 import '../../core/photo_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/yen.dart';
@@ -26,9 +28,78 @@ class StoreRegisterPage extends ConsumerStatefulWidget {
   ConsumerState<StoreRegisterPage> createState() => _StoreRegisterPageState();
 }
 
+// Hộp đỏ dưới ảnh khi chọn ảnh lỗi (Figma 972:21374): bị chặn quyền → 「設定を開く」 + cách chọn còn lại; không đọc được → chỉ câu.
+// Form ~1.500pt: dựng sẵn mọi ô (ListView mặc định chỉ dựng phần gần màn hình) để cuộn được tới ô lỗi ở xa
+const _formCacheExtent = 2000.0;
+
+class _PhotoProblemBox extends StatelessWidget {
+  const _PhotoProblemBox({required this.problem, required this.onPick});
+  final PhotoPickProblem problem;
+  final void Function(ImageSource source) onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final eco = context.eco;
+    final (title, body, other) = switch (problem) {
+      PhotoPickProblem.cameraDenied => (
+        l10n.storePhotoCameraDenied,
+        l10n.storePhotoCameraDeniedBody,
+        ImageSource.gallery,
+      ),
+      PhotoPickProblem.libraryDenied => (
+        l10n.storePhotoLibraryDenied,
+        l10n.storePhotoLibraryDeniedBody,
+        ImageSource.camera,
+      ),
+      PhotoPickProblem.failed => (l10n.photoReadFailed, l10n.photoReadFailedBody, null),
+    };
+    return Container(
+      key: const Key('storePhotoProblem'),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+      decoration: BoxDecoration(
+        color: eco.error.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: eco.error),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: eco.error),
+          ),
+          const SizedBox(height: 4),
+          Text(body, style: const TextStyle(fontSize: 12, height: 1.5)),
+          if (other != null)
+            Wrap(
+              spacing: 8,
+              children: [
+                TextButton(
+                  key: const Key('storePhotoOpenSettings'),
+                  onPressed: Geolocator.openAppSettings, // trang Cài đặt của app (quyền camera/ảnh nằm ở đó)
+                  child: Text(l10n.openSettings),
+                ),
+                TextButton(
+                  key: const Key('storePhotoOtherSource'),
+                  onPressed: () => onPick(other),
+                  child: Text(other == ImageSource.gallery ? l10n.storePhotoLibrary : l10n.storePhotoCamera),
+                ),
+              ],
+            )
+          else
+            const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
 class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
   final _price = TextEditingController();
   PickedPhoto? _photo;
+  // Lần chọn ảnh gần nhất thất bại vì đâu (audit S04) — null: không lỗi / đã huỷ
+  PhotoPickProblem? _photoProblem;
   int _qty = 1;
   bool _tomorrow = false;
   late ({int hour, int minute}) _time = defaultSellByTime(widget.restaurant.closingTime);
@@ -40,13 +111,20 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
   bool _submitting = false;
   // 0076 (audit S01): khoá của lần 出品 này — giữ nguyên khi gửi lại sau lỗi, đổi khi đăng xong (_reset)
   String _requestId = const Uuid().v4();
-  String? _error;
   String? _priceError;
   String? _sellByError;
+  // Neo để cuộn tới ô lỗi đầu tiên khi bấm 「内容を確認する」 (audit S06): giá → hạn bán → dị ứng (thứ tự trên form)
+  final _priceAnchor = GlobalKey();
+  final _sellByAnchor = GlobalKey();
+  final _allergenAnchor = GlobalKey();
+  final _priceFocus = FocusNode();
+  // Lô vừa đăng xong trong sheet xác nhận — trang reset + báo onRegistered sau khi sheet đóng
+  String? _registeredId;
 
   @override
   void dispose() {
     _price.dispose();
+    _priceFocus.dispose();
     super.dispose();
   }
 
@@ -61,12 +139,11 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
       _allergenIds.clear();
       _noAllergens = false;
       _ingredients.clear();
-      _error = _priceError = _sellByError = _allergenError = null;
+      _priceError = _sellByError = _allergenError = null;
     });
   }
 
-  DateTime get _sellByAt =>
-      sellByAtJst(now: storeClock(), tomorrow: _tomorrow, hour: _time.hour, minute: _time.minute);
+  DateTime get _sellByAt => sellByAtJst(now: storeClock(), tomorrow: _tomorrow, hour: _time.hour, minute: _time.minute);
   String get _timeLabel => '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}';
 
   Future<void> _pickPhoto() async {
@@ -104,8 +181,18 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
       ),
     );
     if (source == null) return;
-    final picked = await ref.read(photoPickerProvider)(source);
-    if (picked != null && mounted) setState(() => _photo = picked);
+    await _pickFrom(source);
+  }
+
+  // Lỗi khi chọn/đọc ảnh: báo dưới ảnh kèm đường sửa (Cài đặt / cách chọn khác); nháp form giữ nguyên (audit S04)
+  Future<void> _pickFrom(ImageSource source) async {
+    setState(() => _photoProblem = null);
+    try {
+      final picked = await ref.read(photoPickerProvider)(source);
+      if (picked != null && mounted) setState(() => _photo = picked);
+    } catch (error) {
+      if (mounted) setState(() => _photoProblem = photoPickProblemOf(error));
+    }
   }
 
   Future<void> _pickTime() async {
@@ -131,15 +218,38 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
       _sellByError = _sellByAt.isAfter(storeClock()) ? null : l10n.storeErrSellByPast;
       _allergenError = _allergenIds.isEmpty && !_noAllergens ? l10n.storeErrAllergenRequired : null;
     });
-    return _priceError == null && _sellByError == null && _allergenError == null;
+    final first = _priceError != null
+        ? _priceAnchor
+        : _sellByError != null
+        ? _sellByAnchor
+        : _allergenError != null
+        ? _allergenAnchor
+        : null;
+    if (first == null) return true;
+    // Lỗi có thể nằm ngoài vùng đang nhìn (form dài, iPad cột phải) → đưa ô lỗi đầu tiên vào giữa tầm nhìn; ô giá thì
+    // đặt luôn con trỏ (trình đọc màn hình cũng tới đó)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = first.currentContext;
+      if (!mounted || target == null) return;
+      Scrollable.ensureVisible(target, alignment: 0.2, duration: Motion.of(context, Motion.small), curve: Motion.enter);
+      if (first == _priceAnchor) _priceFocus.requestFocus();
+    });
+    return false;
   }
+
+  int get _errorCount => [_priceError, _sellByError, _allergenError].where((e) => e != null).length;
 
   Future<void> _review(List<AllergenType> catalog) async {
     if (!_validate()) return;
-    final confirmed = await showModalBottomSheet<bool>(
+    _registeredId = null;
+    final registered = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
+      // Đang gửi thì không cho vuốt/chạm ngoài để đóng — kết quả phải hiện trong sheet (Figma 618:2261)
+      isDismissible: false,
+      enableDrag: false,
       builder: (_) => _ConfirmSheet(
+        onSubmit: _submit,
         restaurantId: widget.restaurant.id,
         sellByAt: _sellByAt,
         qty: _qty,
@@ -155,15 +265,18 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
         ingredients: _ingredients,
       ),
     );
-    if (confirmed == true) await _submit();
+    final id = _registeredId;
+    if (registered == true && id != null && mounted) {
+      _reset();
+      widget.onRegistered(id);
+    }
   }
 
-  Future<void> _submit() async {
+  // Gửi từ sheet xác nhận: trả câu lỗi để sheet hiện ngay trong sheet (sheet không đóng, form giữ nguyên — audit S06,
+  // Figma 618:2343 / 953:5970); null = đã đăng (id ở _registeredId)
+  Future<String?> _submit() async {
     final l10n = context.l10n;
-    setState(() {
-      _submitting = true;
-      _error = null;
-    });
+    setState(() => _submitting = true);
     try {
       final id = await ref
           .read(storeGatewayProvider)
@@ -180,12 +293,11 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
               requestId: _requestId,
             ),
           );
-      if (!mounted) return;
-      _reset();
-      widget.onRegistered(id);
+      _registeredId = id;
+      return null;
     } catch (e) {
-      // Lỗi: giữ nguyên mọi ô đã nhập để sửa / gửi lại
-      if (mounted) setState(() => _error = registerBatchErrorMessage(e, l10n));
+      // Lỗi: giữ nguyên mọi ô đã nhập để sửa / gửi lại (cùng khoá _requestId — 0076)
+      return registerBatchErrorMessage(e, l10n);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -230,13 +342,13 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
       Text(l10n.storeRegisterTitle, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
       Text(l10n.storeRegisterSubtitle, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
       const SizedBox(height: 16),
-      if (_error != null) ...[
-        ErrorBanner(key: const Key('storeRegisterError'), message: _error!),
-        const SizedBox(height: 16),
-      ],
       _PhotoField(photo: _photo, onTap: _pickPhoto),
       const SizedBox(height: 8),
       Text(l10n.storePhotoHint, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
+      if (_photoProblem case final problem?) ...[
+        const SizedBox(height: 10),
+        _PhotoProblemBox(problem: problem, onPick: _pickFrom),
+      ],
     ];
     final reviewButton = FilledButton(
       key: const Key('storeReviewButton'),
@@ -246,14 +358,33 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
           : Text(l10n.storeReviewButton),
     );
+    final errorCount = _errorCount;
+    // Tóm tắt ngay trên nút (Figma 972:21512): bấm nút ở cuối form vẫn biết có lỗi ở đâu đó phía trên
+    final reviewArea = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (errorCount > 0) ...[
+          Text(
+            l10n.storeErrSummary(errorCount),
+            key: const Key('storeErrorSummary'),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: eco.error),
+          ),
+          const SizedBox(height: 8),
+        ],
+        reviewButton,
+      ],
+    );
     final fields = <Widget>[
       label(l10n.storeQtyLabel, required: true),
       _Stepper(value: _qty, onChanged: (v) => setState(() => _qty = v)),
       const SizedBox(height: 20),
-      label(l10n.storePriceLabel, required: true),
+      KeyedSubtree(key: _priceAnchor, child: label(l10n.storePriceLabel, required: true)),
       TextField(
         key: const Key('storePriceField'),
         controller: _price,
+        focusNode: _priceFocus,
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
         decoration: InputDecoration(prefixText: '¥ ', errorText: _priceError),
@@ -264,7 +395,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
       const SizedBox(height: 6),
       Text(l10n.storePriceHint, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
       const SizedBox(height: 20),
-      label(l10n.storeSellByLabel, required: true),
+      KeyedSubtree(key: _sellByAnchor, child: label(l10n.storeSellByLabel, required: true)),
       SegmentedButton<bool>(
         key: const Key('storeSellByDay'),
         showSelectedIcon: false,
@@ -299,7 +430,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
         ),
       ),
       const SizedBox(height: 20),
-      label(l10n.storeAllergenLabel),
+      KeyedSubtree(key: _allergenAnchor, child: label(l10n.storeAllergenLabel)),
       if (sorted == null)
         catalog.hasError
             ? ErrorBanner(
@@ -416,12 +547,13 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
                   width: 420,
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(24, 16, 12, 24),
-                    children: [...head, const SizedBox(height: 20), reviewButton],
+                    children: [...head, const SizedBox(height: 20), reviewArea],
                   ),
                 ),
                 Expanded(
                   child: ListView(
                     key: const Key('storeRegisterForm'),
+                    cacheExtent: _formCacheExtent,
                     padding: const EdgeInsets.fromLTRB(12, 16, 24, 24),
                     children: fields,
                   ),
@@ -438,13 +570,14 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
           absorbing: _submitting,
           child: ListView(
             key: const Key('storeRegisterForm'),
+            cacheExtent: _formCacheExtent,
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             children: [...head, const SizedBox(height: 20), ...fields],
           ),
         ),
       ),
       bottomNavigationBar: SafeArea(
-        child: Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 12), child: reviewButton),
+        child: Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 12), child: reviewArea),
       ),
     );
   }
@@ -769,11 +902,13 @@ class _IngredientDialogState extends State<_IngredientDialog> {
 // app không tự tính giá, BR-008). Tách thành provider để test thay được.
 final storePricePreviewProvider = FutureProvider.autoDispose.family<int, ({int unitPrice, DateTime sellByAt})>(
   (ref, k) async =>
-      (await ref.watch(homeGatewayProvider).calcCurrentPrice(unitPrice: k.unitPrice, expiresAt: k.sellByAt)).currentPrice,
+      (await ref.watch(homeGatewayProvider).calcCurrentPrice(unitPrice: k.unitPrice, expiresAt: k.sellByAt))
+          .currentPrice,
 );
 
-class _ConfirmSheet extends ConsumerWidget {
+class _ConfirmSheet extends StatefulWidget {
   const _ConfirmSheet({
+    required this.onSubmit,
     required this.restaurantId,
     required this.sellByAt,
     required this.qty,
@@ -789,11 +924,44 @@ class _ConfirmSheet extends ConsumerWidget {
   final String sellBy;
   final List<String> allergens;
   final List<BatchIngredient> ingredients;
+  final Future<String?> Function() onSubmit;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<_ConfirmSheet> createState() => _ConfirmSheetState();
+}
+
+class _ConfirmSheetState extends State<_ConfirmSheet> {
+  bool _sending = false;
+  String? _error;
+
+  Future<void> _send() async {
+    setState(() {
+      _sending = true;
+      _error = null;
+    });
+    final error = await widget.onSubmit();
+    if (!mounted) return;
+    if (error == null) {
+      Navigator.pop(context, true);
+    } else {
+      setState(() {
+        _sending = false;
+        _error = error;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final eco = context.eco;
+    final (qty, price, sellBy, allergens, ingredients) = (
+      widget.qty,
+      widget.price,
+      widget.sellBy,
+      widget.allergens,
+      widget.ingredients,
+    );
     String ingredientLabel(BatchIngredient i) => i.origin.isEmpty ? i.name : '${i.name}（${i.origin}）';
     final ingredientsText = ingredients.isEmpty
         ? l10n.storeConfirmNone
@@ -807,57 +975,70 @@ class _ConfirmSheet extends ConsumerWidget {
       (l10n.storeConfirmAllergens, allergens.isEmpty ? l10n.storeConfirmNone : allergens.join('・')),
       (l10n.storeConfirmIngredients, ingredientsText),
     ];
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(l10n.storeConfirmTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            for (final (k, v) in rows)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+    // Nút Back của Android cũng không đóng sheet khi đang gửi
+    return PopScope(
+      canPop: !_sending,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l10n.storeConfirmTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 12),
+              for (final (k, v) in rows)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(k, style: TextStyle(fontSize: 13, color: eco.textSecondary)),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          v,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 8),
+              _PreviewBlock(restaurantId: widget.restaurantId, qty: qty, price: price, sellByAt: widget.sellByAt),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: eco.primarySoft, borderRadius: BorderRadius.circular(12)),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(k, style: TextStyle(fontSize: 13, color: eco.textSecondary)),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        v,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                      ),
-                    ),
+                    Icon(Icons.info_outline, size: 18, color: eco.primary),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(l10n.storeConfirmNote, style: const TextStyle(fontSize: 13, height: 1.5))),
                   ],
                 ),
               ),
-            const SizedBox(height: 8),
-            _PreviewBlock(restaurantId: restaurantId, qty: qty, price: price, sellByAt: sellByAt),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: eco.primarySoft, borderRadius: BorderRadius.circular(12)),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.info_outline, size: 18, color: eco.primary),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(l10n.storeConfirmNote, style: const TextStyle(fontSize: 13, height: 1.5))),
-                ],
+              const SizedBox(height: 16),
+              if (_error != null) ...[
+                ErrorBanner(key: const Key('storeRegisterError'), message: _error!),
+                const SizedBox(height: 12),
+              ],
+              FilledButton(
+                key: const Key('storeConfirmSubmit'),
+                onPressed: _sending ? null : _send,
+                child: _sending
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Text(l10n.storeConfirmSubmit),
               ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              key: const Key('storeConfirmSubmit'),
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l10n.storeConfirmSubmit),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.storeConfirmBack)),
-          ],
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: _sending ? null : () => Navigator.pop(context, false),
+                child: Text(l10n.storeConfirmBack),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -921,7 +1102,10 @@ class _PreviewBlock extends ConsumerWidget {
         children: [
           Text(l10n.storeConfirmPreviewTitle, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
           const SizedBox(height: 6),
-          Text(l10n.partnerStore, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.primary)),
+          Text(
+            l10n.partnerStore,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.primary),
+          ),
           Text(l10n.mysteryBag, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           if (preview.isLoading)
@@ -941,7 +1125,9 @@ class _PreviewBlock extends ConsumerWidget {
                 children: [
                   Expanded(child: Text(l10n.storeConfirmEstimate, style: const TextStyle(fontSize: 13))),
                   Text(
-                    l10n.storeConfirmEstimateValue(formatYen(estimatedStoreShare(qty: qty, price: now, sharePct: share))),
+                    l10n.storeConfirmEstimateValue(
+                      formatYen(estimatedStoreShare(qty: qty, price: now, sharePct: share)),
+                    ),
                     key: const Key('storeConfirmEstimate'),
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: eco.primary),
                   ),

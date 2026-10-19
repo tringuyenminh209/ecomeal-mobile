@@ -25,6 +25,8 @@ class FakeStoreGateway implements StoreGateway {
   List<StoreInquiry> inquiries;
   Object? inquiryError; // != null: submitInquiry ném lỗi này
   final sentInquiries = <String>[];
+  bool revenueError = false; // true: fetchRevenue ném lỗi (audit S07)
+  bool ratingsError = false;
 
   @override
   Future<List<StoreSettlement>> fetchSettlements(String restaurantId) async => settlements;
@@ -63,10 +65,10 @@ class FakeStoreGateway implements StoreGateway {
       batches.where((b) => b.id == batchId).firstOrNull;
   @override
   Future<StoreRevenue> fetchRevenue(String restaurantId, {required String from, required String to}) async =>
-      const StoreRevenue(orders: 86, revenue: 53320, payout: 10664, sharePct: 20);
+      revenueError ? throw Exception('network') : const StoreRevenue(orders: 86, revenue: 53320, payout: 10664, sharePct: 20);
   @override
   Future<StoreRatings> fetchRatings(String restaurantId, {int days = 30}) async =>
-      const StoreRatings(count: 28, average: 4.3, distribution: {1: 1, 2: 1, 3: 3, 4: 7, 5: 16}, recentComments: []);
+      ratingsError ? throw Exception('network') : const StoreRatings(count: 28, average: 4.3, distribution: {1: 1, 2: 1, 3: 3, 4: 7, 5: 16}, recentComments: []);
   @override
   Future<List<PhotoRemoval>> fetchPhotoRemovals(String restaurantId) async => removals;
   @override

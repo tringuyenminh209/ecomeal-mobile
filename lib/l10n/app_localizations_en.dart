@@ -2402,6 +2402,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeMonthPayout => 'Payout this month';
 
   @override
+  String get storeMonthStatsLabel => 'Sales and payout this month';
+
+  @override
+  String get storeTapToReload => 'Tap to try again';
+
+  @override
+  String get storeRatingsLoadFailed => 'Couldn\'t load customer ratings';
+
+  @override
   String storeSharePct(String pct) {
     return 'Share $pct%';
   }
@@ -2549,6 +2558,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storePhotoRemove => 'Remove photo';
+
+  @override
+  String storeErrSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields',
+      one: '1 field',
+    );
+    return 'Please check $_temp0';
+  }
+
+  @override
+  String get storePhotoCameraDenied => 'Camera not available';
+
+  @override
+  String get storePhotoCameraDeniedBody =>
+      'Allow camera access in Settings, or choose a photo instead. What you entered is kept.';
+
+  @override
+  String get storePhotoLibraryDenied => 'Photos not available';
+
+  @override
+  String get storePhotoLibraryDeniedBody =>
+      'Allow photo access in Settings, or take a photo instead. What you entered is kept.';
+
+  @override
+  String get photoReadFailed => 'Couldn\'t load the photo';
+
+  @override
+  String get photoReadFailedBody =>
+      'Try again or choose another photo. What you entered is kept.';
 
   @override
   String get storeQtyLabel => 'Expected quantity';
@@ -3776,6 +3817,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String adminOpsNext(String driver, String stop) {
     return '$driver ・ next: $stop';
   }
+
+  @override
+  String get adminGpsJustNow => 'Location under 1 min ago';
+
+  @override
+  String adminGpsMinutes(int minutes) {
+    return 'Location $minutes min ago';
+  }
+
+  @override
+  String adminGpsStale(int minutes) {
+    return 'Location $minutes min ago · not updating';
+  }
+
+  @override
+  String get adminGpsNone => 'No location yet';
 
   @override
   String get adminOpsEta => 'ETA';

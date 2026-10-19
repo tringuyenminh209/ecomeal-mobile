@@ -159,6 +159,20 @@ void main() {
       expect(opened, [_confirmed.id]);
     });
 
+    // Audit S07: 「今月の見込み」を読み込めない → 「読み込めませんでした」、カードをタップで読み直す
+    testWidgets('今月の見込みを読み込めない → 読み込めませんでした、タップで読み直す', (tester) async {
+      final store = FakeStoreGateway(settlements: [_confirmed])..revenueError = true;
+      await tester.pumpWidget(_app(Scaffold(body: StoreSettlementPage(restaurant: _restaurant())), store: store));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('storeSettlementCurrentError')), findsOneWidget);
+      expect(find.text(l10nJa.storeSettlementEstimate('—')), findsNothing);
+
+      store.revenueError = false;
+      await tester.tap(find.byKey(const Key('storeSettlementCurrent')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.storeSettlementEstimate('¥10,664')), findsOneWidget);
+    });
+
     testWidgets('精算書なし → 空の状態', (tester) async {
       await tester.pumpWidget(_app(Scaffold(body: StoreSettlementPage(restaurant: _restaurant()))));
       await tester.pumpAndSettle();

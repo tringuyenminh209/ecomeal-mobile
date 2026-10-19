@@ -504,7 +504,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get addPaymentMethodHint => '支払い方法を追加すると、予約を確定できます。';
 
   @override
-  String get addPaymentMethodButton => '支払い方法を追加してください';
+  String get addPaymentMethodButton => '支払い方法を追加する';
 
   @override
   String payNotice(String amount) {
@@ -2287,6 +2287,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeMonthPayout => '今月のお店の取り分';
 
   @override
+  String get storeMonthStatsLabel => '今月の売上・お店の取り分';
+
+  @override
+  String get storeTapToReload => 'タップしてもう一度読み込む';
+
+  @override
+  String get storeRatingsLoadFailed => 'お客様の評価を読み込めませんでした';
+
+  @override
   String storeSharePct(String pct) {
     return '取り分 $pct%';
   }
@@ -2429,6 +2438,31 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storePhotoRemove => '写真を外す';
+
+  @override
+  String storeErrSummary(int count) {
+    return '入力内容を確認してください（$countか所）';
+  }
+
+  @override
+  String get storePhotoCameraDenied => 'カメラを使えません';
+
+  @override
+  String get storePhotoCameraDeniedBody =>
+      '「設定」でカメラへのアクセスを許可するか、写真を選んでください。入力した内容はそのままです。';
+
+  @override
+  String get storePhotoLibraryDenied => '写真を使えません';
+
+  @override
+  String get storePhotoLibraryDeniedBody =>
+      '「設定」で写真へのアクセスを許可するか、カメラで撮ってください。入力した内容はそのままです。';
+
+  @override
+  String get photoReadFailed => '写真を読み込めませんでした';
+
+  @override
+  String get photoReadFailedBody => 'もう一度試すか、別の写真を選んでください。入力した内容はそのままです。';
 
   @override
   String get storeQtyLabel => '用意できそうな数';
@@ -3617,6 +3651,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String adminOpsNext(String driver, String stop) {
     return '$driver・次: $stop';
   }
+
+  @override
+  String get adminGpsJustNow => '位置 1分以内';
+
+  @override
+  String adminGpsMinutes(int minutes) {
+    return '位置 $minutes分前';
+  }
+
+  @override
+  String adminGpsStale(int minutes) {
+    return '位置 $minutes分前・更新が止まっています';
+  }
+
+  @override
+  String get adminGpsNone => '位置はまだ届いていません';
 
   @override
   String get adminOpsEta => '到着予定';

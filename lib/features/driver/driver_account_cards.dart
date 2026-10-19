@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:image_picker/image_picker.dart';
 import '../../core/jst_date.dart';
 import '../../core/photo_picker.dart';
@@ -96,8 +97,15 @@ class _DriverLicenseCardState extends ConsumerState<DriverLicenseCard> {
           );
       ref.invalidate(driverLicenseProvider);
       messenger.showSnackBar(SnackBar(content: Text(l10n.licenseUploadSuccess)));
-    } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.licenseUploadError)));
+    } catch (error) {
+      // Bị chặn quyền camera/ảnh: nói đúng nguyên nhân + mở Cài đặt (trước đây báo lỗi mạng, audit S04 cùng loại)
+      final denied = photoPickProblemOf(error) != PhotoPickProblem.failed;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(denied ? l10n.photoAccessDeniedTitle : l10n.licenseUploadError),
+          action: denied ? SnackBarAction(label: l10n.openSettings, onPressed: Geolocator.openAppSettings) : null,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _uploading = false);
     }

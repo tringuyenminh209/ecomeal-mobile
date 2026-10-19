@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart' show ImageSource;
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import 'package:ecomeal_mobile/core/photo_picker.dart';
 import 'package:ecomeal_mobile/features/store/store_gateway.dart';
@@ -90,9 +92,9 @@ void main() {
     tearDown(() => storeClock = DateTime.now);
 
 
-    Future<void> pump(WidgetTester tester, {PhotoPicker? picker}) async {
+    Future<void> pump(WidgetTester tester, {PhotoPicker? picker, Size size = const Size(1170, 7200)}) async {
       // フォーム全体が一度に描画される高さ（ListView は画面外の項目を作らない）
-      tester.view.physicalSize = const Size(1170, 7200);
+      tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(ProviderScope(
@@ -218,6 +220,48 @@ void main() {
       expect(find.textContaining(l10nJa.storeAllergenSelected(2)), findsOneWidget);
     });
 
+    // Audit S04 (Figma 972:21374): chọn ảnh lỗi → báo dưới ảnh + đường sửa, nhập liệu giữ nguyên
+    testWidgets('S04: カメラが許可されていない → 「カメラを使えません」+ 設定を開く・写真から選ぶ、入力はそのまま', (tester) async {
+      final sources = <ImageSource>[];
+      await pump(tester, picker: (source) async {
+        sources.add(source);
+        if (source == ImageSource.camera) throw PlatformException(code: 'camera_access_denied');
+        return PickedPhoto(bytes: _png1x1, extension: 'png');
+      });
+      await tester.enterText(find.byKey(const Key('storePriceField')), '780');
+      await tester.tap(find.byKey(const Key('storePhotoField')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('storePhotoCamera')));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nJa.storePhotoCameraDenied), findsOneWidget);
+      expect(find.byKey(const Key('storePhotoOpenSettings')), findsOneWidget);
+      expect(find.text('780'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('storePhotoOtherSource')));
+      await tester.pumpAndSettle();
+      expect(sources, [ImageSource.camera, ImageSource.gallery]);
+      expect(find.byKey(const Key('storePhotoProblem')), findsNothing);
+    });
+
+    testWidgets('S04: 写真を読み込めない → 「写真を読み込めませんでした」（設定ボタンなし）; キャンセルは何も出さない', (tester) async {
+      var fail = true;
+      await pump(tester, picker: (_) async => fail ? throw Exception('io') : null);
+      await tester.tap(find.byKey(const Key('storePhotoField')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('storePhotoLibrary')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.photoReadFailed), findsOneWidget);
+      expect(find.byKey(const Key('storePhotoOpenSettings')), findsNothing);
+
+      fail = false; // lần sau: người dùng huỷ chọn
+      await tester.tap(find.byKey(const Key('storePhotoField')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('storePhotoLibrary')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('storePhotoProblem')), findsNothing);
+    });
+
     testWidgets('登録: 数・単価・アレルゲン・原材料・写真を送り、完了で onRegistered、フォームはリセット', (tester) async {
       await pump(tester, picker: (_) async => PickedPhoto(bytes: _png1x1, extension: 'png'));
       await tester.tap(find.byKey(const Key('storePhotoField')));
@@ -264,13 +308,51 @@ void main() {
       await tester.enterText(find.byKey(const Key('storePriceField')), '500');
       await tapNoAllergens(tester);
       await openSheetAndConfirm(tester);
-      expect(find.text(l10nJa.storeErrTruckDeparted), findsOneWidget);
+      // Audit S06: lỗi hiện TRONG sheet xác nhận, sheet không đóng (Figma 618:2343)
+      expect(find.descendant(of: find.byType(BottomSheet), matching: find.text(l10nJa.storeErrTruckDeparted)), findsOneWidget);
+      expect(find.text(l10nJa.storeConfirmTitle), findsOneWidget);
       expect(tester.widget<TextField>(find.byKey(const Key('storePriceField'))).controller!.text, '500');
       expect(registered, isEmpty);
     });
 
+    // Audit S06 (Figma 972:21512): bấm nút ở cuối form có lỗi → cuộn về ô lỗi đầu tiên + tóm tắt trên nút
+    testWidgets('S06: フォームの下で「内容を確認する」→ 最初のエラー（単価）まで戻り、ボタンの上に「確認してください（2か所）」', (tester) async {
+      await pump(tester, size: const Size(1170, 1500)); // 画面が低い（キーボード表示中など）→ 単価が画面の外に出る
+      await tester.drag(find.byKey(const Key('storeRegisterForm')), const Offset(0, -3000));
+      await tester.pumpAndSettle();
+      // 単価は画面の外（ListView は作ってあるが offstage）
+      expect(find.byKey(const Key('storePriceField')), findsNothing);
+      expect(find.byKey(const Key('storePriceField'), skipOffstage: false), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('storeReviewButton')));
+      await tester.pumpAndSettle();
+      final view = tester.view.physicalSize / tester.view.devicePixelRatio;
+      final price = tester.getRect(find.byKey(const Key('storePriceField')));
+      expect(price.top >= 0 && price.bottom <= view.height, isTrue, reason: 'storePriceField = $price');
+      expect(find.text(l10nJa.storeErrSummary(2)), findsOneWidget); // 単価 + アレルゲン
+      expect(find.text(l10nJa.storeConfirmTitle), findsNothing);
+    });
+
     // Audit S01 (2026-10-19, 0076): gửi lại sau lỗi dùng CÙNG khoá → server trả lô đã tạo thay vì tạo lô thứ 2;
     // đăng xong thì form mới có khoá mới (lần đăng mới có chủ ý vẫn ra lô riêng)
+    testWidgets('S06: 単価は正しくアレルゲンが未選択 → 画面の下のアレルゲンまで進む（1か所）', (tester) async {
+      await pump(tester, size: const Size(1170, 1500));
+      await tester.ensureVisible(find.byKey(const Key('storePriceField'), skipOffstage: false));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('storePriceField')), '500');
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.drag(find.byKey(const Key('storeRegisterForm')), const Offset(0, 3000)); // いちばん上へ
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('storeNoAllergens')), findsNothing); // まだ画面の外
+
+      await tester.tap(find.byKey(const Key('storeReviewButton')));
+      await tester.pumpAndSettle();
+      final view = tester.view.physicalSize / tester.view.devicePixelRatio;
+      final error = tester.getRect(find.byKey(const Key('storeAllergenError')));
+      expect(error.top >= 0 && error.bottom <= view.height, isTrue, reason: 'storeAllergenError = $error');
+      expect(find.text(l10nJa.storeErrSummary(1)), findsOneWidget);
+    });
+
     testWidgets('通信エラーの後の再送は同じ client_request_id、登録できたら次の出品は新しいキー', (tester) async {
       gateway.registerError = Exception('network');
       await pump(tester);
@@ -281,7 +363,9 @@ void main() {
       expect(find.text(l10nJa.storeErrResultUnknown), findsOneWidget);
       expect(find.text(l10nJa.storeErrRegisterFailed), findsNothing);
       gateway.registerError = null;
-      await openSheetAndConfirm(tester);
+      // Gửi lại ngay trong sheet (sheet vẫn mở — audit S06)
+      await tester.tap(find.byKey(const Key('storeConfirmSubmit')));
+      await tester.pumpAndSettle();
       expect(registered, ['new-batch']);
       expect(gateway.drafts, hasLength(2));
       expect(gateway.drafts[1].requestId, gateway.drafts[0].requestId);

@@ -93,16 +93,16 @@ void main() {
     expect(payButton(tester).onPressed, isNotNull);
   });
 
-  testWidgets('支払い方法なし (16:16527): nút bị khoá; thêm thẻ xong → chọn luôn thẻ đó', (tester) async {
+  testWidgets('支払い方法なし (C04, 972:1785): nút dưới cùng mở màn thêm thẻ; thêm xong → chọn luôn thẻ đó', (tester) async {
     paymentGateway.methods = [];
     await pumpPage(tester);
 
     expect(find.text('支払い方法（必須）'), findsOneWidget);
     expect(find.text('支払い方法を追加すると、予約を確定できます。'), findsOneWidget);
-    expect(find.text('支払い方法を追加してください'), findsOneWidget);
-    expect(payButton(tester).onPressed, isNull);
+    expect(find.text('支払い方法を追加する'), findsOneWidget);
+    expect(payButton(tester).onPressed, isNotNull);
 
-    await tester.tap(find.byKey(const Key('addPaymentMethodRow')));
+    await tester.tap(find.byKey(const Key('confirmReservationButton')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('cardNumberField')), '4242424242424242');
     await tester.enterText(find.byKey(const Key('cardHolderField')), 'MIKA HARUKA');

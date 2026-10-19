@@ -6,6 +6,7 @@ import '../../widgets/status_badge.dart';
 import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import 'admin_gateway.dart';
 import '../../widgets/error_banner.dart';
+import 'admin_drafts.dart';
 import 'admin_tasks_gateway.dart';
 
 // Giới hạn ghi chú nội bộ (0035: admin_note ≤ 2000 ký tự; server: E-INQ-002)
@@ -45,10 +46,22 @@ class AdminInquiryPage extends ConsumerStatefulWidget {
 }
 
 class _AdminInquiryPageState extends ConsumerState<AdminInquiryPage> {
-  late String _status = widget.inquiry.status;
-  late final _note = TextEditingController(text: widget.inquiry.adminNote);
+  // Nháp đã viết dở lần trước (mở việc khác / xoay iPad) — không có thì lấy giá trị đã lưu (audit A02)
+  late final _draftKey = 'inquiry:${widget.inquiry.id}';
+  late final _drafts = ref.read(adminDraftsProvider);
+  late final _draft = _drafts[_draftKey] as InquiryDraft?;
+  late String _status = _draft?.status ?? widget.inquiry.status;
+  late final _note = TextEditingController(text: _draft?.note ?? widget.inquiry.adminNote);
   bool _busy = false;
   bool _failed = false;
+
+  void _keepDraft() => _drafts[_draftKey] = (status: _status, note: _note.text);
+
+  @override
+  void initState() {
+    super.initState();
+    _note.addListener(_keepDraft);
+  }
 
   @override
   void dispose() {
@@ -69,6 +82,7 @@ class _AdminInquiryPageState extends ConsumerState<AdminInquiryPage> {
       await ref
           .read(adminTasksGatewayProvider)
           .updateInquiry(widget.inquiry.id, status: _status, note: note.isEmpty ? null : note);
+      _drafts.remove(_draftKey);
       ref.invalidate(adminInquiriesProvider);
       ref.invalidate(adminBadgesProvider);
       messenger.showSnackBar(SnackBar(content: Text(l10n.adminInqSaved)));
@@ -137,7 +151,10 @@ class _AdminInquiryPageState extends ConsumerState<AdminInquiryPage> {
                     key: Key('adminInqStatus-$s'),
                     label: Text(inquiryStatusLabel(s, l10n)),
                     selected: _status == s,
-                    onSelected: (_) => setState(() => _status = s),
+                    onSelected: (_) {
+                      setState(() => _status = s);
+                      _keepDraft();
+                    },
                   ),
               ],
             ),

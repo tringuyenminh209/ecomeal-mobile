@@ -59,7 +59,8 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+              // Trên/dưới 8 + vùng bấm 6 của chip = 14 như trước — hàng chip không cao thêm (audit C06)
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               // Nền Primary của chip đang chọn là 1 viên thuốc trượt giữa các chip (Figma 「動きの提案」 M00 フィルター)
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -67,6 +68,7 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
                   selected: _filters.indexOf(_filter),
                   color: AppColors.primary,
                   spacing: 8,
+                  pillInset: _chipTapPadding,
                   children: [
                     for (final (f, label) in [(OrderFilter.all, l10n.filterAll), (OrderFilter.active, l10n.filterActive), (OrderFilter.completed, l10n.filterCompleted)])
                       _FilterChip(
@@ -138,6 +140,9 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
 
 // "Filter" của Figma: viên bo 18, đang chọn = chữ trắng trên viên thuốc Primary (SlidingPill vẽ nền); còn lại = nền trắng viền
 // Border. Chữ đổi màu cùng lúc với viên thuốc trượt; chip lún nhẹ khi chạm.
+// Phần bấm được thêm trên/dưới chip: chip ~32 → vùng bấm ≥ 44pt (Figma 972:21139), hình chip không đổi
+const _chipTapPadding = EdgeInsets.symmetric(vertical: 6);
+
 class _FilterChip extends StatelessWidget {
   const _FilterChip({required this.label, required this.selected, required this.onTap});
   final String label;
@@ -150,6 +155,12 @@ class _FilterChip extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
+      child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      excludeFromSemantics: true,
+      onTap: onTap,
+      child: Padding(
+      padding: _chipTapPadding,
       child: PressScale(
       child: Material(
       color: selected ? Colors.transparent : AppColors.surface,
@@ -170,6 +181,8 @@ class _FilterChip extends StatelessWidget {
             child: Text(label),
           ),
         ),
+      ),
+      ),
       ),
       ),
       ),

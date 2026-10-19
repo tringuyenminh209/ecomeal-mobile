@@ -10,6 +10,7 @@ import '../notifications/notification_inbox.dart' show inboxTimeLabel;
 import 'admin_gateway.dart';
 import 'admin_restaurant_page.dart' show AdminReasonSheet, maxRejectionReasonLength, showAdminReasonSheet;
 import '../../widgets/error_banner.dart';
+import 'admin_drafts.dart';
 import 'admin_tasks_gateway.dart';
 
 final _licenseImageUrlProvider = FutureProvider.autoDispose.family<String, String>(
@@ -32,7 +33,10 @@ class AdminLicensePage extends ConsumerStatefulWidget {
 }
 
 class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
-  late String? _expiresOn = widget.license.expiresOn;
+  // Hạn đã chọn mà chưa lưu (mở việc khác / xoay iPad) — audit A02
+  late final _draftKey = 'license:${widget.license.driverId}';
+  late final _drafts = ref.read(adminDraftsProvider);
+  late String? _expiresOn = (_drafts[_draftKey] as LicenseDraft?)?.expiresOn ?? widget.license.expiresOn;
   bool _busy = false;
   bool _failed = false;
   String? _expiryError;
@@ -50,6 +54,7 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
         _expiresOn = DateFormat('yyyy-MM-dd').format(picked);
         _expiryError = null;
       });
+      _drafts[_draftKey] = (expiresOn: _expiresOn);
     }
   }
 
@@ -86,6 +91,7 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
             expiresOn: verify ? _expiresOn : null,
             reason: reason,
           );
+      _drafts.remove(_draftKey);
       ref.invalidate(adminLicensesProvider);
       ref.invalidate(adminBadgesProvider);
       messenger.showSnackBar(SnackBar(content: Text(l10n.adminLicDone(widget.license.name))));

@@ -28,6 +28,9 @@ String ratingErrorMessage(Object error, AppLocalizations l10n) {
   return l10n.ratingErrorFailed;
 }
 
+// Vùng bấm tối thiểu của 1 sao (iPhone 44pt, audit C06 / Figma 972:21139)
+const _starTapSize = 44.0;
+
 class _Stars extends StatelessWidget {
   const _Stars({required this.value, required this.size, this.onTap, this.spacing = 2});
   final int value;
@@ -38,12 +41,16 @@ class _Stars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // Sao bấm được: mỗi sao nằm giữa ô ≥ 44pt; khoảng cách tính từ mép ô sao cho tâm 2 sao cách nhau ≥ 44
+    // (sao 28 + cách 8 → ô 44 sát nhau; sao 40 + cách 10 → giữ đúng 50)
+    final box = onTap == null ? size : (size > _starTapSize ? size : _starTapSize);
+    final gap = onTap == null ? spacing : ((spacing + size - box) > 0 ? spacing + size - box : 0.0);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 1; i <= 5; i++)
           Padding(
-            padding: EdgeInsets.only(right: i < 5 ? spacing : 0),
+            padding: EdgeInsets.only(right: i < 5 ? gap : 0),
             child: onTap == null
                 ? Icon(i <= value ? Icons.star_rounded : Icons.star_outline_rounded,
                     size: size, color: i <= value ? AppColors.amber : AppColors.textSecondary)
@@ -55,8 +62,11 @@ class _Stars extends StatelessWidget {
                       key: Key('ratingStar$i'),
                       radius: size * 0.7,
                       onTap: () => onTap!(i),
-                      child: Icon(i <= value ? Icons.star_rounded : Icons.star_outline_rounded,
-                          size: size, color: i <= value ? AppColors.amber : AppColors.textSecondary),
+                      child: SizedBox.square(
+                        dimension: box,
+                        child: Icon(i <= value ? Icons.star_rounded : Icons.star_outline_rounded,
+                            size: size, color: i <= value ? AppColors.amber : AppColors.textSecondary),
+                      ),
                     ),
                   ),
           ),
@@ -95,9 +105,8 @@ class RatingPrompt extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(l10n.ratingPromptTitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
+          // Ô sao cao 44 (sao 28) đã gồm khoảng cách trên/dưới 8 như trước
           _Stars(value: 0, size: 28, spacing: 8, onTap: (n) => _open(context, n)),
-          const SizedBox(height: 8),
           Text(l10n.ratingPromptHint, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
         ],
       ),

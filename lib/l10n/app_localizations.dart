@@ -1025,7 +1025,7 @@ abstract class AppLocalizations {
   /// No description provided for @addPaymentMethodButton.
   ///
   /// In ja, this message translates to:
-  /// **'支払い方法を追加してください'**
+  /// **'支払い方法を追加する'**
   String get addPaymentMethodButton;
 
   /// No description provided for @payNotice.
@@ -4208,6 +4208,24 @@ abstract class AppLocalizations {
   /// **'今月のお店の取り分'**
   String get storeMonthPayout;
 
+  /// No description provided for @storeMonthStatsLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'今月の売上・お店の取り分'**
+  String get storeMonthStatsLabel;
+
+  /// No description provided for @storeTapToReload.
+  ///
+  /// In ja, this message translates to:
+  /// **'タップしてもう一度読み込む'**
+  String get storeTapToReload;
+
+  /// No description provided for @storeRatingsLoadFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'お客様の評価を読み込めませんでした'**
+  String get storeRatingsLoadFailed;
+
   /// No description provided for @storeSharePct.
   ///
   /// In ja, this message translates to:
@@ -4447,6 +4465,48 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'写真を外す'**
   String get storePhotoRemove;
+
+  /// No description provided for @storeErrSummary.
+  ///
+  /// In ja, this message translates to:
+  /// **'入力内容を確認してください（{count}か所）'**
+  String storeErrSummary(int count);
+
+  /// No description provided for @storePhotoCameraDenied.
+  ///
+  /// In ja, this message translates to:
+  /// **'カメラを使えません'**
+  String get storePhotoCameraDenied;
+
+  /// No description provided for @storePhotoCameraDeniedBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'「設定」でカメラへのアクセスを許可するか、写真を選んでください。入力した内容はそのままです。'**
+  String get storePhotoCameraDeniedBody;
+
+  /// No description provided for @storePhotoLibraryDenied.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真を使えません'**
+  String get storePhotoLibraryDenied;
+
+  /// No description provided for @storePhotoLibraryDeniedBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'「設定」で写真へのアクセスを許可するか、カメラで撮ってください。入力した内容はそのままです。'**
+  String get storePhotoLibraryDeniedBody;
+
+  /// No description provided for @photoReadFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'写真を読み込めませんでした'**
+  String get photoReadFailed;
+
+  /// No description provided for @photoReadFailedBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'もう一度試すか、別の写真を選んでください。入力した内容はそのままです。'**
+  String get photoReadFailedBody;
 
   /// No description provided for @storeQtyLabel.
   ///
@@ -6571,6 +6631,30 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'{driver}・次: {stop}'**
   String adminOpsNext(String driver, String stop);
+
+  /// No description provided for @adminGpsJustNow.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置 1分以内'**
+  String get adminGpsJustNow;
+
+  /// No description provided for @adminGpsMinutes.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置 {minutes}分前'**
+  String adminGpsMinutes(int minutes);
+
+  /// No description provided for @adminGpsStale.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置 {minutes}分前・更新が止まっています'**
+  String adminGpsStale(int minutes);
+
+  /// No description provided for @adminGpsNone.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置はまだ届いていません'**
+  String get adminGpsNone;
 
   /// No description provided for @adminOpsEta.
   ///

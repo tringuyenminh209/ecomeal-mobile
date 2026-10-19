@@ -21,6 +21,7 @@ class SlidingPill extends StatefulWidget {
     this.expand = false,
     this.followOffset,
     this.lifted = false,
+    this.pillInset = EdgeInsets.zero,
   });
 
   final int selected;
@@ -38,6 +39,8 @@ class SlidingPill extends StatefulWidget {
   final double? followOffset;
   // đang giữ → viên thuốc phồng nhẹ (liftedScale); giảm chuyển động → không phồng
   final bool lifted;
+  // Mục có vùng bấm lớn hơn phần nhìn thấy (chip lọc: bấm được cao 44, viên thuốc vẫn theo cỡ chip) → thu viên thuốc vào
+  final EdgeInsets pillInset;
 
   @override
   State<SlidingPill> createState() => _SlidingPillState();
@@ -77,7 +80,7 @@ class _SlidingPillState extends State<SlidingPill> {
 
   Rect _pillRect(Rect item) {
     final size = widget.pillSize;
-    return size == null ? item : Rect.fromCenter(center: item.center, width: size.width, height: size.height);
+    return size == null ? widget.pillInset.deflateRect(item) : Rect.fromCenter(center: item.center, width: size.width, height: size.height);
   }
 
   // Viên thuốc đặt tâm ở ngón tay, nhưng không ra khỏi mục đầu / mục cuối
@@ -123,7 +126,7 @@ class _SlidingPillState extends State<SlidingPill> {
                 if (widget.pillSize != null)
                   SizedBox.fromSize(size: widget.pillSize, child: pill)
                 else
-                  Positioned.fill(child: pill),
+                  Positioned.fill(child: Padding(padding: widget.pillInset, child: pill)),
                 child,
               ],
             )

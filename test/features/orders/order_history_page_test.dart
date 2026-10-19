@@ -267,6 +267,24 @@ void main() {
         rating: rating,
       );
 
+  // Audit C06 (Figma 972:21139): hình giữ nguyên, vùng bấm ≥ 44pt
+  testWidgets('C06: mỗi sao bấm được trong ô ≥ 44; chạm phía trên chip (ngoài phần nhìn thấy) vẫn chọn chip', (tester) async {
+    when(() => gateway.fetchMyOrders()).thenAnswer((_) async => [pickedUp()]);
+    final handle = tester.ensureSemantics();
+    await pumpPage(tester);
+    await tester.pumpAndSettle();
+
+    for (var i = 1; i <= 5; i++) {
+      final size = tester.getSize(find.byKey(Key('ratingStar$i')));
+      expect(size.width >= 44 && size.height >= 44, isTrue, reason: 'ratingStar$i = $size');
+    }
+    final chip = find.ancestor(of: find.text('完了'), matching: find.byType(Material)).first;
+    await tester.tapAt(tester.getRect(chip).topCenter - const Offset(0, 4));
+    await tester.pumpAndSettle();
+    expect(tester.getSemantics(find.ancestor(of: find.text('完了'), matching: find.byType(Semantics)).first).hasFlag(SemanticsFlag.isSelected), isTrue);
+    handle.dispose();
+  });
+
   testWidgets('0054: đơn đã nhận chưa đánh giá → chạm ★4 → bảng → gửi kèm câu → tải lại, thẻ hiện 「あなたの評価」', (tester) async {
     var rated = false;
     when(() => gateway.fetchMyOrders()).thenAnswer((_) async => [pickedUp(rating: rated ? 4 : null)]);

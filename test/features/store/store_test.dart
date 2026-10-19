@@ -161,6 +161,30 @@ void main() {
       expect(find.text(l10nJa.storeRatingsRow('4.3')), findsOneWidget);
     });
 
+    // Audit S07 (Figma 972:21260): thẻ không đọc được vẫn giữ, nói rõ, chạm → đọc lại đúng thẻ đó
+    testWidgets('売上・評価を読み込めない → 枠を残して「読み込めませんでした」、タップで読み直す', (tester) async {
+      final gateway = FakeStoreGateway(restaurant: restaurant())
+        ..revenueError = true
+        ..ratingsError = true;
+      await tester.pumpWidget(app(gateway, const StoreGate(userId: 'u-1')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.byKey(const Key('storeRatingsError')), 200);
+      expect(find.byKey(const Key('storeRevenueError')), findsOneWidget);
+      expect(find.text(l10nJa.storeRatingsLoadFailed), findsOneWidget);
+      expect(find.text(l10nJa.storeTapToReload), findsNWidgets(2));
+
+      gateway.revenueError = false;
+      await tester.tap(find.byKey(const Key('storeRevenueError')));
+      await tester.pumpAndSettle();
+      expect(find.text('¥53,320'), findsOneWidget);
+      expect(find.byKey(const Key('storeRatingsError')), findsOneWidget); // thẻ kia không đổi
+
+      gateway.ratingsError = false;
+      await tester.tap(find.byKey(const Key('storeRatingsError')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.storeRatingsRow('4.3')), findsOneWidget);
+    });
+
     testWidgets('ロットなし → 空の状態', (tester) async {
       await tester.pumpWidget(app(FakeStoreGateway(restaurant: restaurant()), const StoreGate(userId: 'u-1')));
       await tester.pumpAndSettle();

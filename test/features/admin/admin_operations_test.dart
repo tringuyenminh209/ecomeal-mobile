@@ -9,7 +9,7 @@ import '../../helpers/test_app.dart';
 AdminRouteStop _stop(String name, {required bool departed, int hourUtc = 11}) =>
     AdminRouteStop(name: name, lat: 34.7, lng: 135.5, plannedTime: DateTime.utc(2026, 10, 10, hourUtc, 18), departed: departed);
 
-AdminRoute _route(String id, List<AdminRouteStop> stops, {String? driver = '佐藤', double? lat = 34.7}) => AdminRoute(
+AdminRoute _route(String id, List<AdminRouteStop> stops, {String? driver = '佐藤', double? lat = 34.7, DateTime? locatedAt}) => AdminRoute(
       id: id,
       plateNumber: 'なにわ 400 さ 12-34',
       driverName: driver,
@@ -17,6 +17,7 @@ AdminRoute _route(String id, List<AdminRouteStop> stops, {String? driver = '佐�
       reservedCount: 12,
       lat: lat,
       lng: lat == null ? null : 135.5,
+      locatedAt: locatedAt,
     );
 
 void main() {
@@ -63,5 +64,33 @@ void main() {
     container.invalidate(adminRoutesProvider);
     await tester.pumpAndSettle();
     expect(find.textContaining(RegExp(r'^更新できません · \d{2}:\d{2} 時点$')), findsOneWidget);
+  });
+
+  // Audit A04 (Figma 972:21643): tuổi vị trí từng xe — giờ tải trang mới không có nghĩa vị trí mới
+  test('gpsAgeLabel: < 1分 / n分前 / 2分より前は止まっている / 位置なし', () {
+    final now = DateTime.utc(2026, 10, 10, 12);
+    expect(gpsAgeLabel(now.subtract(const Duration(seconds: 20)), now, l10nJa), (text: l10nJa.adminGpsJustNow, stale: false));
+    expect(gpsAgeLabel(now.subtract(const Duration(seconds: 100)), now, l10nJa), (text: l10nJa.adminGpsMinutes(1), stale: false));
+    expect(gpsAgeLabel(now.subtract(const Duration(minutes: 2)), now, l10nJa).stale, isFalse);
+    expect(gpsAgeLabel(now.subtract(const Duration(minutes: 12)), now, l10nJa), (text: l10nJa.adminGpsStale(12), stale: true));
+    expect(gpsAgeLabel(null, now, l10nJa), (text: l10nJa.adminGpsNone, stale: false));
+  });
+
+  testWidgets('A04: 一覧に車両ごとの位置の新しさ（新しい・止まっている・まだない）', (tester) async {
+    final admin = FakeAdminGateway(state: const AdminMfaOk())
+      ..routes = [
+        _route('r1', [_stop('梅田駅前', departed: false)], locatedAt: DateTime.now().subtract(const Duration(seconds: 10))),
+        _route('r2', [_stop('梅田駅前', departed: false)], locatedAt: DateTime.now().subtract(const Duration(minutes: 12))),
+        _route('r3', [_stop('梅田駅前', departed: false)], lat: null),
+      ];
+    await tester.pumpWidget(ProviderScope(
+      overrides: [adminGatewayProvider.overrideWithValue(admin)],
+      child: testApp(const Scaffold(body: AdminOperationsPage(pollRoutes: false))),
+    ));
+    await tester.pumpAndSettle();
+    String gps(String id) => tester.widget<Text>(find.byKey(Key('adminGps-$id'))).data!;
+    expect(gps('r1'), l10nJa.adminGpsJustNow);
+    expect(gps('r2'), l10nJa.adminGpsStale(12));
+    expect(gps('r3'), l10nJa.adminGpsNone);
   });
 }
