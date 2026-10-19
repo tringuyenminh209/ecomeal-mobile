@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 import '../../core/photo_picker.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/yen.dart';
@@ -37,6 +38,8 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
   String? _allergenError;
   final List<BatchIngredient> _ingredients = [];
   bool _submitting = false;
+  // 0076 (audit S01): khoá của lần 出品 này — giữ nguyên khi gửi lại sau lỗi, đổi khi đăng xong (_reset)
+  String _requestId = const Uuid().v4();
   String? _error;
   String? _priceError;
   String? _sellByError;
@@ -49,6 +52,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
 
   void _reset() {
     setState(() {
+      _requestId = const Uuid().v4(); // lần đăng tiếp theo là 1 lô mới
       _price.clear();
       _photo = null;
       _qty = 1;
@@ -173,6 +177,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
               ingredients: List.of(_ingredients),
               noAllergens: _noAllergens,
               photo: _photo,
+              requestId: _requestId,
             ),
           );
       if (!mounted) return;

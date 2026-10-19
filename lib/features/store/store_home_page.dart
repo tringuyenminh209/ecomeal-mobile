@@ -312,7 +312,7 @@ class StoreBatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final eco = context.eco;
-    final status = batch.statusAt(DateTime.now());
+    final status = batch.statusAt(storeClock());
     final estimated = status == StoreBatchStatus.estimated;
     final planned = batch.collectionPlannedAt;
     final secondary = estimated

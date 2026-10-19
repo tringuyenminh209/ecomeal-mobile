@@ -11,12 +11,15 @@ import '../../widgets/skeleton.dart';
 import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import 'store_gateway.dart';
+import 'store_register_logic.dart' show storeClock;
 import '../../core/wide_layout.dart';
 import 'store_home_page.dart' show storeBatchStatusLabel, storeBatchStatusTone;
 
 String _hm(DateTime t) => DateFormat('HH:mm').format(toTokyo(t));
 
-// Khi lô đang bán, số còn lại ở mỗi điểm đổi theo đơn đặt / giao → tải lại định kỳ (nhãn「自動更新」của Figma)
+// Lô chưa kết thúc thì server còn đổi: 概算 → tài xế xác nhận (販売中), số còn lại theo đơn đặt / giao → tải lại định kỳ
+// (nhãn「自動更新」của Figma). Mỗi nhịp cũng dựng lại màn để nhãn theo giờ (販売中 → 終了) đổi dù không ai chạm màn —
+// đồng hồ trôi không tạo sự kiện ở DB (audit S03 2026-10-19).
 const storeBatchRefreshInterval = Duration(seconds: 30);
 
 // SCR-S03 ロット詳細 — Figma 販売中 555:319 / 回収前 555:453
@@ -29,7 +32,7 @@ class StoreBatchDetailPage extends ConsumerStatefulWidget {
   ConsumerState<StoreBatchDetailPage> createState() => _StoreBatchDetailPageState();
 }
 
-class _StoreBatchDetailPageState extends ConsumerState<StoreBatchDetailPage> {
+class _StoreBatchDetailPageState extends ConsumerState<StoreBatchDetailPage> with WidgetsBindingObserver {
   Timer? _timer;
 
   ({String restaurantId, String batchId}) get _key => (restaurantId: widget.restaurantId, batchId: widget.batchId);
@@ -37,16 +40,25 @@ class _StoreBatchDetailPageState extends ConsumerState<StoreBatchDetailPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _timer = Timer.periodic(storeBatchRefreshInterval, (_) {
       final batch = ref.read(storeBatchProvider(_key)).valueOrNull;
-      if (batch != null && batch.statusAt(DateTime.now()) == StoreBatchStatus.onSale) {
+      if (batch != null && batch.statusAt(storeClock()) != StoreBatchStatus.ended) {
         ref.invalidate(storeBatchProvider(_key));
       }
+      setState(() {}); // nhãn theo giờ (statusAt) tính lại
     });
+  }
+
+  // Quay lại app từ nền: timer có thể đã lỡ nhiều nhịp → tải lại ngay
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) ref.invalidate(storeBatchProvider(_key));
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
   }
@@ -143,7 +155,7 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final eco = context.eco;
-    final status = batch.statusAt(DateTime.now());
+    final status = batch.statusAt(storeClock());
     final planned = batch.collectionPlannedAt;
     final stats = batch.isConfirmed
         ? [
@@ -221,7 +233,7 @@ class _ProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final eco = context.eco;
-    final status = batch.statusAt(DateTime.now());
+    final status = batch.statusAt(storeClock());
     final registered = batch.registeredAt;
     final collected = batch.collectedAt;
     final planned = batch.collectionPlannedAt;
@@ -376,7 +388,7 @@ class _StopsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final eco = context.eco;
-    final live = batch.statusAt(DateTime.now()) == StoreBatchStatus.onSale;
+    final live = batch.statusAt(storeClock()) == StoreBatchStatus.onSale;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _card(eco),

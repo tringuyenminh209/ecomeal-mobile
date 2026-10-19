@@ -6,6 +6,8 @@ import 'package:ecomeal_mobile/core/yen.dart';
 import 'package:ecomeal_mobile/features/store/store_batch_detail_page.dart';
 import 'package:ecomeal_mobile/features/store/store_gate.dart';
 import 'package:ecomeal_mobile/features/store/store_gateway.dart';
+import 'package:ecomeal_mobile/features/store/store_register_logic.dart' show storeClock;
+import 'package:ecomeal_mobile/widgets/status_badge.dart';
 import 'package:ecomeal_mobile/widgets/store_shell.dart';
 import 'package:ecomeal_mobile/features/notifications/notification_inbox.dart';
 import '../../helpers/fake_inbox_gateway.dart';
@@ -208,6 +210,36 @@ void main() {
       await tester.pumpWidget(app(FakeStoreGateway(), const StoreBatchDetailPage(restaurantId: 'r-1', batchId: 'x')));
       await tester.pumpAndSettle();
       expect(find.text(l10nJa.storeBatchNotFound), findsOneWidget);
+    });
+
+    // Huy hiệu trạng thái của lô (chữ 「販売中」「終了」 còn có ở dòng tiến trình — không dùng find.text)
+    Finder badge(String label) => find.byWidgetPredicate((w) => w is StatusBadge && w.label == label);
+
+    // Audit S03 (2026-10-19): trước đây chỉ tải lại khi 販売中 → lô 概算 không biết tài xế đã xác nhận
+    testWidgets('概算のまま開いている間にドライバーが確定 → 30秒後の読み直しで販売中に変わる', (tester) async {
+      final gateway = FakeStoreGateway(batches: [batch()]);
+      await tester.pumpWidget(app(gateway, const StoreBatchDetailPage(restaurantId: 'r-1', batchId: 'b-1')));
+      await tester.pumpAndSettle();
+      expect(badge(l10nJa.storeBatchStatusEstimated), findsOneWidget);
+
+      gateway.batches = [batch(confirmed: true)];
+      await tester.pump(storeBatchRefreshInterval);
+      await tester.pumpAndSettle();
+      expect(badge(l10nJa.storeBatchStatusOnSale), findsOneWidget);
+      expect(badge(l10nJa.storeBatchStatusEstimated), findsNothing);
+    });
+
+    // Audit S03: 販売終了の時刻を過ぎたら、画面に触らなくても表示が「終了」に変わる
+    testWidgets('販売中のまま販売終了の時刻を過ぎる → 触らなくても「終了」に変わる', (tester) async {
+      addTearDown(() => storeClock = DateTime.now);
+      await tester.pumpWidget(detail(batch(confirmed: true)));
+      await tester.pumpAndSettle();
+      expect(badge(l10nJa.storeBatchStatusEnded), findsNothing);
+
+      storeClock = () => DateTime.now().add(const Duration(hours: 4)); // sellByIn mặc định 3 giờ
+      await tester.pump(storeBatchRefreshInterval);
+      await tester.pumpAndSettle();
+      expect(badge(l10nJa.storeBatchStatusEnded), findsOneWidget);
     });
   });
 }

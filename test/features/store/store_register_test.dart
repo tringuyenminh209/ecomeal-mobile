@@ -267,6 +267,27 @@ void main() {
       expect(registered, isEmpty);
     });
 
+    // Audit S01 (2026-10-19, 0076): gửi lại sau lỗi dùng CÙNG khoá → server trả lô đã tạo thay vì tạo lô thứ 2;
+    // đăng xong thì form mới có khoá mới (lần đăng mới có chủ ý vẫn ra lô riêng)
+    testWidgets('通信エラーの後の再送は同じ client_request_id、登録できたら次の出品は新しいキー', (tester) async {
+      gateway.registerError = Exception('network');
+      await pump(tester);
+      await tester.enterText(find.byKey(const Key('storePriceField')), '500');
+      await tapNoAllergens(tester);
+      await openSheetAndConfirm(tester);
+      gateway.registerError = null;
+      await openSheetAndConfirm(tester);
+      expect(registered, ['new-batch']);
+      expect(gateway.drafts, hasLength(2));
+      expect(gateway.drafts[1].requestId, gateway.drafts[0].requestId);
+
+      await tester.enterText(find.byKey(const Key('storePriceField')), '600');
+      await tapNoAllergens(tester);
+      await openSheetAndConfirm(tester);
+      expect(gateway.drafts, hasLength(3));
+      expect(gateway.drafts[2].requestId, isNot(gateway.drafts[0].requestId));
+    });
+
     testWidgets('販売の終わり: 翌日 + 時刻の入力（Figma 871:4434）→ その時刻で登録。キャンセルは元のまま', (tester) async {
       await pump(tester);
       await tester.tap(find.text(l10nJa.storeSellByTomorrow));

@@ -196,6 +196,7 @@ class StoreBatchDraft {
     required this.ingredients,
     this.noAllergens = false,
     this.photo,
+    required this.requestId,
   });
   final String restaurantId;
   final int estimatedQty;
@@ -206,6 +207,8 @@ class StoreBatchDraft {
   // 0068: dị ứng rỗng thì phải xác nhận 「アレルゲンは含まれていません」 (RPC từ chối bằng E-REST-018)
   final bool noAllergens;
   final PickedPhoto? photo;
+  // 0076 (audit S01): khoá của 1 lần "出品" — gửi lại sau lỗi dùng lại khoá này, server trả lô đã tạo thay vì tạo lô thứ 2
+  final String requestId;
 }
 
 // Lỗi ở bước tải ảnh (lô CHƯA được tạo) — để báo đúng việc người dùng cần làm (cùng cách Web: BatchPhotoUploadError)
@@ -291,22 +294,28 @@ class SupabaseStoreGateway implements StoreGateway {
                   ],
                   'p_photo_path': path,
                   'p_no_allergens': draft.noAllergens,
+                  'p_client_request_id': draft.requestId,
                 },
               )
               as Map<String, dynamic>;
+      // Lần trước đã tạo lô (chỉ mất phản hồi) → server trả lô đó với ảnh của lần trước: ảnh vừa tải lần này thừa → dọn
+      if (data['replayed'] == true && path != null && data['photo_path'] != path) await _removeOrphanPhoto(path);
       return data['surplus_batch_id'] as String;
     } catch (e) {
       // Lô không được tạo → ảnh vừa tải thành file mồ côi: dọn ngay (policy 0038 chỉ cho xoá ảnh chưa gắn lô). Storage không
       // báo lỗi khi RLS chặn xoá (第48回) → kiểm số object đã xoá. Vẫn ném lỗi RPC gốc.
-      if (path != null) {
-        try {
-          final removed = await _client.storage.from('batch_photos').remove([path]);
-          if (removed.isEmpty) debugPrint('batch photo cleanup removed nothing: $path');
-        } catch (cleanup) {
-          debugPrint('batch photo cleanup failed: $path $cleanup');
-        }
-      }
+      if (path != null) await _removeOrphanPhoto(path);
       rethrow;
+    }
+  }
+
+  // Ảnh chưa gắn lô nào (policy 0038 chỉ cho xoá loại này — ảnh đã gắn lô thì RLS chặn, không mất ảnh của lô thật)
+  Future<void> _removeOrphanPhoto(String path) async {
+    try {
+      final removed = await _client.storage.from('batch_photos').remove([path]);
+      if (removed.isEmpty) debugPrint('batch photo cleanup removed nothing: $path');
+    } catch (cleanup) {
+      debugPrint('batch photo cleanup failed: $path $cleanup');
     }
   }
 
