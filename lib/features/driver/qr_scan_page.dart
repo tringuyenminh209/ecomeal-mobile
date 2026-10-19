@@ -1,8 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/haptics.dart';
 import '../../l10n/l10n.dart';
+
+// Kết quả đặc biệt của màn quét: tài xế chọn 「コードを手動で入力」 vì camera không dùng được (không phải ID đơn).
+const qrManualEntry = '\u0000manual-entry';
+
+// Camera không dùng được (bị từ chối quyền, app khác đang dùng…): cách sửa + mã 4 ký tự thay QR (audit D05).
+class CameraUnavailablePanel extends StatelessWidget {
+  const CameraUnavailablePanel({super.key, required this.onManualEntry});
+  final VoidCallback onManualEntry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                l10n.cameraUnavailableTitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.cameraUnavailableBody,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                key: const Key('cameraOpenSettings'),
+                onPressed: Geolocator.openAppSettings, // trang Cài đặt của app (quyền camera nằm ở đó)
+                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                child: Text(l10n.openSettings),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                key: const Key('cameraManualEntry'),
+                onPressed: onManualEntry,
+                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), foregroundColor: Colors.white),
+                child: Text(l10n.enterCodeManually),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 // Màn camera quét QR của khách (SCR-M06 mã hoá nguyên văn orders.id, Chương 17). Trả về chuỗi đọc được.
 // Tài xế quét ở điểm bán buổi tối: khung ngắm + câu hướng dẫn cho biết đặt mã ở đâu, nút đèn pin cho chỗ tối,
@@ -69,18 +122,40 @@ class _QrScanPageState extends State<QrScanPage> {
           return Stack(
             fit: StackFit.expand,
             children: [
-              MobileScanner(controller: _controller, scanWindow: window, onDetect: _onDetect),
-              // Phủ tối ngoài khung + 4 góc khung: mắt đặt mã đúng chỗ ngay lần đầu
-              IgnorePointer(child: CustomPaint(painter: _ScanWindowPainter(window))),
-              Positioned(
-                left: 24,
-                right: 24,
-                top: window.bottom + 24,
-                child: Text(
-                  l10n.scanPickupQrHint,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700, height: 1.5),
-                ),
+              MobileScanner(
+                controller: _controller,
+                scanWindow: window,
+                onDetect: _onDetect,
+                // Audit D05 (Figma 963:2136): camera bị từ chối / đang bận → nói cách sửa + lối nhập mã tay
+                errorBuilder: (context, _) =>
+                    CameraUnavailablePanel(onManualEntry: () => Navigator.of(context).pop(qrManualEntry)),
+              ),
+              // Phủ tối ngoài khung + 4 góc khung + câu hướng dẫn: chỉ khi camera chạy
+              ValueListenableBuilder<MobileScannerState>(
+                valueListenable: _controller,
+                builder: (context, state, _) => state.error != null
+                    ? const SizedBox.shrink()
+                    : Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          IgnorePointer(child: CustomPaint(painter: _ScanWindowPainter(window))),
+                          Positioned(
+                            left: 24,
+                            right: 24,
+                            top: window.bottom + 24,
+                            child: Text(
+                              l10n.scanPickupQrHint,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ],
           );

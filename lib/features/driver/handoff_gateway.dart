@@ -27,19 +27,31 @@ class StopHandoff {
 }
 
 class DonationBatch {
-  const DonationBatch({required this.id, required this.restaurantId, required this.confirmedQty});
+  const DonationBatch({required this.id, required this.restaurantId, required this.confirmedQty, required this.remainingQty});
   final String id;
   final String restaurantId;
   final int confirmedQty;
+  final int remainingQty; // 0078: server tính (batch_remaining_qty) — app không tự trừ
 }
+
+// Kết quả lệnh ghi có khoá gửi lại (0078): [replayed] = lần gửi trước đã được ghi, lần này không ghi thêm
+typedef WalkupSale = ({int price, bool replayed});
+typedef DonationResult = ({int remaining, bool replayed});
 
 abstract class HandoffGateway {
   Future<StopHandoff> fetchStopHandoff(String routeStopId);
   Future<void> confirmPickup(String orderId); // API-014
-  Future<int> walkUpPurchase({required String batchId, required String routeStopId}); // API-013 → giá đã bán
+  // API-013. [requestId]: giữ nguyên khi gửi lại sau lỗi chưa rõ kết quả (audit D04)
+  Future<WalkupSale> walkUpPurchase({required String batchId, required String routeStopId, required String requestId});
   Future<int> closeRouteStop(String routeStopId); // API-020 → số đơn bị expired
   Future<List<DonationBatch>> fetchConfirmedBatches(String routeId);
-  Future<int> recordDonation({required String batchId, required int quantity, required String note}); // API-016 → còn lại
+  // API-016 → còn lại. [requestId]: như walkUpPurchase
+  Future<DonationResult> recordDonation({
+    required String batchId,
+    required int quantity,
+    required String note,
+    required String requestId,
+  });
 }
 
 class SupabaseHandoffGateway implements HandoffGateway {
@@ -91,12 +103,13 @@ class SupabaseHandoffGateway implements HandoffGateway {
 
   // Không gửi user_id nào: đơn walk-up luôn user_id = NULL (API-013, レビュー第43回).
   @override
-  Future<int> walkUpPurchase({required String batchId, required String routeStopId}) async {
+  Future<WalkupSale> walkUpPurchase({required String batchId, required String routeStopId, required String requestId}) async {
     final result = await _client.rpc('walk_up_purchase', params: {
       'p_surplus_batch_id': batchId,
       'p_pickup_route_stop_id': routeStopId,
+      'p_client_request_id': requestId,
     }) as Map<String, dynamic>;
-    return result['price_paid'] as int;
+    return (price: result['price_paid'] as int, replayed: result['replayed'] == true);
   }
 
   @override
@@ -106,27 +119,36 @@ class SupabaseHandoffGateway implements HandoffGateway {
   }
 
   @override
+  // 0078 (audit D06): lô đã chốt + số còn lại để tặng, server tính bằng cùng hàm record_donation dùng để chặn.
+  @override
   Future<List<DonationBatch>> fetchConfirmedBatches(String routeId) async {
-    final rows = await _client
-        .from('surplus_batches')
-        .select('id, restaurant_id, confirmed_qty')
-        .eq('route_id', routeId)
-        .eq('stage', 'confirmed') as List;
+    final rows = await _client.rpc('get_route_donation_batches', params: {'p_route_id': routeId}) as List;
     return rows.map((raw) {
       final row = raw as Map<String, dynamic>;
-      return DonationBatch(id: row['id'] as String, restaurantId: row['restaurant_id'] as String, confirmedQty: row['confirmed_qty'] as int);
+      return DonationBatch(
+        id: row['surplus_batch_id'] as String,
+        restaurantId: row['restaurant_id'] as String,
+        confirmedQty: row['confirmed_qty'] as int,
+        remainingQty: row['remaining_qty'] as int,
+      );
     }).toList();
   }
 
-  // Số còn lại = confirmed − đã bán − đã tặng: chỉ record_donation (Chương 08) tính, app chỉ hiện kết quả.
+  // Số còn lại = confirmed − đã bán − đã tặng − hết hạn: chỉ server tính (batch_remaining_qty), app chỉ hiện kết quả.
   @override
-  Future<int> recordDonation({required String batchId, required int quantity, required String note}) async {
+  Future<DonationResult> recordDonation({
+    required String batchId,
+    required int quantity,
+    required String note,
+    required String requestId,
+  }) async {
     final result = await _client.rpc('record_donation', params: {
       'p_surplus_batch_id': batchId,
       'p_quantity': quantity,
       'p_note': note,
+      'p_client_request_id': requestId,
     }) as Map<String, dynamic>;
-    return result['remaining_qty'] as int;
+    return (remaining: result['remaining_qty'] as int, replayed: result['replayed'] == true);
   }
 }
 

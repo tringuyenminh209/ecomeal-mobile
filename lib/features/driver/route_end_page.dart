@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
+import 'package:uuid/uuid.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
@@ -69,6 +71,9 @@ class _RouteEndBodyState extends ConsumerState<_RouteEndBody> {
   bool _saving = false;
   String? _resultMessage;
   bool _resultIsError = false;
+  // Audit D04: khoá của lần ghi này — giữ qua các lần gửi lại tới khi server xác nhận (ghi mới hoặc replayed).
+  String _requestId = const Uuid().v4();
+  bool _resultUnknown = false; // mất phản hồi: chưa biết đã ghi hay chưa
 
   @override
   void initState() {
@@ -84,11 +89,27 @@ class _RouteEndBodyState extends ConsumerState<_RouteEndBody> {
     super.dispose();
   }
 
+  DonationBatch? get _selectedBatch => ref
+      .read(confirmedBatchesProvider(widget.route.routeId!))
+      .valueOrNull
+      ?.where((b) => b.id == _batchId)
+      .firstOrNull;
+
+  // Audit D06: ngoài kiểm số nguyên dương, chặn trước khi gửi nếu vượt số còn lại server đã trả (server vẫn kiểm lần cuối)
+  String? _qtyError(AppLocalizations l10n) {
+    final base = validateDonationQty(_qtyController.text, l10n);
+    if (base != null) return base;
+    final remaining = _selectedBatch?.remainingQty;
+    final qty = int.tryParse(_qtyController.text.trim());
+    if (remaining != null && qty != null && qty > remaining) return l10n.donationQtyOverRemaining(remaining);
+    return null;
+  }
+
   bool get _canSubmit =>
       !widget.locked &&
       !_saving &&
       _batchId != null &&
-      validateDonationQty(_qtyController.text, context.l10n) == null &&
+      _qtyError(context.l10n) == null &&
       _noteController.text.trim().isNotEmpty &&
       _handedOver;
 
@@ -97,25 +118,31 @@ class _RouteEndBodyState extends ConsumerState<_RouteEndBody> {
     setState(() {
       _saving = true;
       _resultMessage = null;
+      _resultUnknown = false;
     });
     try {
-      final remaining = await ref.read(handoffGatewayProvider).recordDonation(
+      final result = await ref.read(handoffGatewayProvider).recordDonation(
             batchId: _batchId!,
             quantity: int.parse(_qtyController.text.trim()),
             note: _noteController.text.trim(),
+            requestId: _requestId,
           );
       if (!mounted) return;
+      ref.invalidate(confirmedBatchesProvider(widget.route.routeId!)); // số còn lại mới cho lần ghi sau
       setState(() {
+        _requestId = const Uuid().v4(); // thao tác đã xong → lần ghi sau là việc mới
         _resultIsError = false;
-        _resultMessage = l10n.donationRecorded(remaining);
+        _resultMessage = result.replayed ? l10n.donationReplayed(result.remaining) : l10n.donationRecorded(result.remaining);
         _qtyController.clear();
         _handedOver = false;
       });
     } catch (e) {
       if (mounted) {
         setState(() {
+          // Có mã lỗi từ server = chắc chắn chưa ghi (báo lý do như cũ). Không có (mất mạng) = chưa rõ → giữ khoá + nhập liệu.
+          _resultUnknown = e is! PostgrestException;
           _resultIsError = true;
-          _resultMessage = handoffErrorMessage(e, l10n);
+          _resultMessage = _resultUnknown ? null : handoffErrorMessage(e, l10n);
         });
       }
     } finally {
@@ -156,11 +183,16 @@ class _RouteEndBodyState extends ConsumerState<_RouteEndBody> {
     );
   }
 
+  // 「梅田収集地点（確定 28食・残り 6食）」/ hết thì 「…（残りなし）」 (Figma 16:16927, audit D06)
   String _labelOf(DonationBatch batch, AppLocalizations l10n) {
-    for (final s in widget.route.stops) {
-      if (s.type == 'restaurant' && s.restaurantId == batch.restaurantId) return l10n.donationBatchOption(s.name, batch.confirmedQty);
-    }
-    return l10n.donationBatchOption(l10n.batchLabel, batch.confirmedQty);
+    final name = widget.route.stops
+            .where((s) => s.type == 'restaurant' && s.restaurantId == batch.restaurantId)
+            .firstOrNull
+            ?.name ??
+        l10n.batchLabel;
+    return batch.remainingQty > 0
+        ? l10n.donationBatchOption(name, batch.confirmedQty, batch.remainingQty)
+        : l10n.donationBatchOptionEmpty(name);
   }
 
   Widget _donationCard(BuildContext context) {
@@ -203,7 +235,14 @@ class _RouteEndBodyState extends ConsumerState<_RouteEndBody> {
                   key: const Key('donationBatchField'),
                   value: _batchId,
                   isExpanded: true, // tên điểm thu gom dài → không tràn ngang trên màn 360dp
-                  items: [for (final b in batches) DropdownMenuItem(value: b.id, child: Text(_labelOf(b, l10n), overflow: TextOverflow.ellipsis))],
+                  items: [
+                    for (final b in batches)
+                      DropdownMenuItem(
+                        value: b.id,
+                        enabled: b.remainingQty > 0, // hết thì không chọn được
+                        child: Text(_labelOf(b, l10n), overflow: TextOverflow.ellipsis),
+                      ),
+                  ],
                   onChanged: editable ? (v) => setState(() => _batchId = v) : null,
                 ),
               ),
@@ -217,7 +256,7 @@ class _RouteEndBodyState extends ConsumerState<_RouteEndBody> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     suffixText: l10n.mealUnit,
-                    errorText: _qtyController.text.isEmpty ? null : validateDonationQty(_qtyController.text, l10n),
+                    errorText: _qtyController.text.isEmpty ? null : _qtyError(l10n),
                   ),
                 ),
               ),
@@ -241,6 +280,12 @@ class _RouteEndBodyState extends ConsumerState<_RouteEndBody> {
                 contentPadding: EdgeInsets.zero,
                 dense: true,
               ),
+              if (_resultUnknown)
+                ErrorBanner(
+                  key: const Key('donationUnknownBanner'),
+                  title: l10n.donationUnknownTitle,
+                  message: l10n.donationUnknownBody,
+                ),
               if (_resultMessage != null)
                 Text(
                   _resultMessage!,

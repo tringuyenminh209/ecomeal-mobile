@@ -2,11 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
+import 'package:uuid/uuid.dart';
 import '../../core/clock.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/confirm_dialog.dart';
+import '../../widgets/error_banner.dart';
 import '../../widgets/state_panel.dart';
 import '../../widgets/status_badge.dart';
 import '../orders/order_helpers.dart';
@@ -35,6 +38,9 @@ class _StopHandoffPageState extends ConsumerState<StopHandoffPage> {
   int _tab = 0; // 0: 予約引き渡し, 1: Walk-up
   bool _busy = false;
   Timer? _clockTick;
+  // Audit D04: lô → khoá của lần bán chưa rõ kết quả (mất mạng). Lần bấm sau gửi lại cùng khoá → server không ghi thêm.
+  final _walkupPending = <String, String>{};
+  bool _walkupUnknown = false;
 
   String get _stopId => widget.stop.routeStopId;
 
@@ -95,6 +101,7 @@ class _StopHandoffPageState extends ConsumerState<StopHandoffPage> {
   Future<void> _scanQr(StopHandoff data) async {
     final scanned = await ref.read(qrScanLauncherProvider)(context);
     if (scanned == null || !mounted) return;
+    if (scanned == qrManualEntry) return _enterManualCode(data); // camera không dùng được → nhập mã 4 ký tự (D05)
     ReservationAtStop? waitingHere(StopHandoff d) =>
         d.reservations.where((r) => r.orderId == scanned.trim() && r.status == 'allocated').firstOrNull;
     var match = waitingHere(data);
@@ -145,11 +152,39 @@ class _StopHandoffPageState extends ConsumerState<StopHandoffPage> {
     if (chosen != null) await _handOver(chosen);
   }
 
-  Future<void> _sellWalkup(WalkupStock stock) => _run(() async {
-        final l10n = context.l10n;
-        final price = await ref.read(handoffGatewayProvider).walkUpPurchase(batchId: stock.batchId, routeStopId: _stopId);
-        return l10n.walkupSoldToast(price);
-      });
+  // Audit D04: lỗi có mã từ server (PostgrestException) = chắc chắn chưa bán → bỏ khoá, báo như cũ. Lỗi khác (mất mạng)
+  // = chưa rõ → giữ khoá + băng 「販売を登録できたか確認できませんでした」. Server gặp lại khoá thì trả lần bán cũ (replayed).
+  Future<void> _sellWalkup(WalkupStock stock) async {
+    final l10n = context.l10n;
+    final requestId = _walkupPending[stock.batchId] ?? const Uuid().v4();
+    setState(() => _busy = true);
+    try {
+      final sale = await ref
+          .read(handoffGatewayProvider)
+          .walkUpPurchase(batchId: stock.batchId, routeStopId: _stopId, requestId: requestId);
+      _walkupPending.remove(stock.batchId);
+      Haptics.success();
+      if (!mounted) return;
+      setState(() => _walkupUnknown = false);
+      _toast(sale.replayed ? l10n.walkupReplayedToast(sale.price) : l10n.walkupSoldToast(sale.price));
+    } catch (e) {
+      Haptics.error();
+      final unknown = e is! PostgrestException;
+      if (unknown) {
+        _walkupPending[stock.batchId] = requestId;
+      } else {
+        _walkupPending.remove(stock.batchId);
+      }
+      if (!mounted) return;
+      setState(() => _walkupUnknown = unknown);
+      if (!unknown) _toast(handoffErrorMessage(e, l10n));
+    } finally {
+      if (mounted) {
+        ref.invalidate(stopHandoffProvider(_stopId));
+        setState(() => _busy = false);
+      }
+    }
+  }
 
   Future<void> _depart(StopHandoff data) async {
     final waiting = data.reservations.where((r) => r.status == 'allocated').length;
@@ -251,13 +286,22 @@ class _StopHandoffPageState extends ConsumerState<StopHandoffPage> {
                         onScan: () => _scanQr(data),
                         onManual: () => _enterManualCode(data),
                       )
-                    else
+                    else ...[
+                      if (_walkupUnknown) ...[
+                        ErrorBanner(
+                          key: const Key('walkupUnknownBanner'),
+                          title: l10n.walkupUnknownTitle,
+                          message: l10n.walkupUnknownBody,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
                       _WalkupSection(
                         stocks: data.walkupStocks,
                         route: widget.route,
                         enabled: !_busy && !closed,
                         onSell: _sellWalkup,
                       ),
+                    ],
                     const SizedBox(height: 14),
                     Row(
                       children: [

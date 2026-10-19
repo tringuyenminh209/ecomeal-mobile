@@ -8,6 +8,8 @@ import '../../core/jst_date.dart';
 import '../../core/maps.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
+import '../../core/location.dart';
+import '../../widgets/error_banner.dart';
 import '../../widgets/state_panel.dart';
 import 'driver_gateway.dart';
 import 'driver_profile_page.dart';
@@ -69,6 +71,7 @@ class DriverHomePage extends ConsumerWidget {
             return page([
                   // SCR-D06: chỉ khi đêm nay có tuyến (server cũng chặn: E-REPORT-404)
                   _Header(truck: route.truck, canReport: route.routeId != null),
+                  if (gps.problem case final problem?) ...[_GpsProblemBanner(problem: problem), const SizedBox(height: 12)],
                   if (route.stops.isEmpty)
                     StatePanel(
                       icon: Icons.route_outlined,
@@ -516,6 +519,30 @@ class _DriverMapState extends State<_DriverMap> {
           Positioned(left: 12, bottom: 12, child: _GpsPill(status: gps.status)),
         ],
       ),
+    );
+  }
+}
+
+// Audit D05 (Figma 963:1997, ghi chú 963:21461): băng trên cùng theo nguyên nhân. Thiếu quyền / dịch vụ định vị tắt → nút
+// 「設定を開く」 đúng trang; lỗi mạng → không nút (5 giây sau tự gửi lại). Không tự bật hộp xin quyền lặp lại.
+class _GpsProblemBanner extends StatelessWidget {
+  const _GpsProblemBanner({required this.problem});
+  final GpsProblem problem;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final (title, body, fix) = switch (problem) {
+      GpsProblem.permission => (l10n.gpsPermissionTitle, l10n.gpsPermissionBody, LocationProblem.permission),
+      GpsProblem.serviceOff => (l10n.gpsServiceOffTitle, l10n.gpsServiceOffBody, LocationProblem.serviceOff),
+      GpsProblem.notSent => (l10n.gpsNotSentTitle, l10n.gpsNotSentBody, null),
+    };
+    return ErrorBanner(
+      key: Key('gpsProblem-${problem.name}'),
+      title: title,
+      message: body,
+      retryLabel: fix == null ? null : l10n.openSettings,
+      onRetry: fix == null ? null : () => openLocationFixSettings(fix),
     );
   }
 }

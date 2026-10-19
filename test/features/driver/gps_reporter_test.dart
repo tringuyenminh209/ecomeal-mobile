@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart' show LocationPermission, LocationServiceDisabledException;
 import 'package:mocktail/mocktail.dart';
 import 'package:ecomeal_mobile/features/driver/driver_gateway.dart';
 import 'package:ecomeal_mobile/features/driver/gps_reporter.dart';
@@ -40,5 +42,32 @@ void main() {
     expect(reporter.state.lat, 34.70);
     verify(() => gateway.sendLocation(truckId: any(named: 'truckId'), lat: any(named: 'lat'), lng: any(named: 'lng'))).called(1);
     reporter.dispose();
+  });
+
+  // Audit D05: mỗi nguyên nhân 1 loại để UI chọn câu + nút (trước đây mọi lỗi chỉ là error)
+  Future<GpsProblem?> problemFor(Future<({double lat, double lng})> Function() source) async {
+    final reporter = GpsReporter(gateway, source, interval: const Duration(hours: 1));
+    reporter.start('truck-1');
+    await pumpEventQueue();
+    final problem = reporter.state.problem;
+    reporter.dispose();
+    return problem;
+  }
+
+  test('D05: thiếu quyền / dịch vụ định vị tắt / không lấy được vị trí → loại lỗi tương ứng', () async {
+    expect(await problemFor(() async => throw LocationPermission.deniedForever), GpsProblem.permission);
+    expect(await problemFor(() async => throw LocationPermission.denied), GpsProblem.permission);
+    expect(await problemFor(() async => throw const LocationServiceDisabledException()), GpsProblem.serviceOff);
+    expect(await problemFor(() async => throw TimeoutException('gps')), GpsProblem.notSent);
+  });
+
+  test('D05: lấy được vị trí nhưng gửi lên server lỗi → notSent (không nói là lỗi quyền)', () async {
+    when(() => gateway.sendLocation(truckId: any(named: 'truckId'), lat: any(named: 'lat'), lng: any(named: 'lng')))
+        .thenThrow(Exception('network'));
+    expect(await problemFor(() async => (lat: 34.70, lng: 135.50)), GpsProblem.notSent);
+  });
+
+  test('D05: gửi được → không còn lỗi', () async {
+    expect(await problemFor(() async => (lat: 34.70, lng: 135.50)), isNull);
   });
 }

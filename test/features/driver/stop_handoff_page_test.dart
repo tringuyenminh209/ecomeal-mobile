@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import 'package:ecomeal_mobile/core/clock.dart';
 import 'package:ecomeal_mobile/features/driver/handoff_gateway.dart';
 import 'package:ecomeal_mobile/features/driver/qr_scan_page.dart';
@@ -192,9 +193,10 @@ void main() {
   testWidgets('Walk-up: bán 1 suất → walk_up_purchase; hết suất thì nút 販売を登録 bị khoá', (tester) async {
     var remaining = 1;
     when(() => gateway.fetchStopHandoff('p2')).thenAnswer((_) async => handoff(remaining: remaining));
-    when(() => gateway.walkUpPurchase(batchId: 'batch-1', routeStopId: 'p2')).thenAnswer((_) async {
+    when(() => gateway.walkUpPurchase(batchId: 'batch-1', routeStopId: 'p2', requestId: any(named: 'requestId')))
+        .thenAnswer((_) async {
       remaining = 0;
-      return 500;
+      return (price: 500, replayed: false);
     });
     await pumpPage(tester);
 
@@ -207,9 +209,75 @@ void main() {
     await tester.tap(find.byKey(const Key('sellWalkup_batch-1')));
     await tester.pumpAndSettle();
 
-    verify(() => gateway.walkUpPurchase(batchId: 'batch-1', routeStopId: 'p2')).called(1);
+    verify(() => gateway.walkUpPurchase(batchId: 'batch-1', routeStopId: 'p2', requestId: any(named: 'requestId'))).called(1);
     expect(find.text('残り 0食'), findsOneWidget);
     expect(tester.widget<FilledButton>(find.byKey(const Key('sellWalkup_batch-1'))).onPressed, isNull);
+  });
+
+  // Audit D04: bán mất phản hồi → băng "chưa rõ"; bấm lại gửi CÙNG khoá → server trả lần bán cũ (replayed), không bán thêm.
+  // Lần bán sau đó là việc mới → khoá mới.
+  testWidgets('D04: mất mạng khi bán → băng chưa rõ; bấm lại dùng cùng khoá → 「前回の販売は登録済みでした」; lần sau khoá mới', (tester) async {
+    final keys = <String>[];
+    var calls = 0;
+    when(() => gateway.fetchStopHandoff('p2')).thenAnswer((_) async => handoff(remaining: 3));
+    when(() => gateway.walkUpPurchase(batchId: 'batch-1', routeStopId: 'p2', requestId: any(named: 'requestId')))
+        .thenAnswer((inv) async {
+      keys.add(inv.namedArguments[#requestId] as String);
+      if (calls++ == 0) throw Exception('SocketException: connection reset');
+      return (price: 500, replayed: calls == 2);
+    });
+    await pumpPage(tester);
+    await tester.tap(find.text('予約なし販売'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('sellWalkup_batch-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('walkupUnknownBanner')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('sellWalkup_batch-1')));
+    await tester.pumpAndSettle();
+    expect(keys[1], keys[0], reason: 'gửi lại cùng 1 lần bán phải dùng cùng khoá');
+    expect(find.text('前回の販売は登録済みでした（¥500）'), findsOneWidget);
+    expect(find.byKey(const Key('walkupUnknownBanner')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('sellWalkup_batch-1')));
+    await tester.pumpAndSettle();
+    expect(keys[2], isNot(keys[0]), reason: 'bán cho khách tiếp theo là việc mới');
+  });
+
+  testWidgets('D04: server từ chối (hết suất) → câu lỗi cũ, không có băng "chưa rõ"', (tester) async {
+    when(() => gateway.fetchStopHandoff('p2')).thenAnswer((_) async => handoff(remaining: 3));
+    when(() => gateway.walkUpPurchase(batchId: 'batch-1', routeStopId: 'p2', requestId: any(named: 'requestId')))
+        .thenThrow(const PostgrestException(message: 'E-ORDER-007: sold out at this pickup stop'));
+    await pumpPage(tester);
+    await tester.tap(find.text('予約なし販売'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('sellWalkup_batch-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('walkupUnknownBanner')), findsNothing);
+    expect(find.text('この停車地点で予約なしで販売できる分は売り切れです'), findsOneWidget);
+  });
+
+  testWidgets('D05: màn camera lỗi có câu cách sửa + 2 nút; 「コードを手動で入力」 gọi đúng callback', (tester) async {
+    var manual = 0;
+    await tester.pumpWidget(testApp(Scaffold(body: CameraUnavailablePanel(onManualEntry: () => manual++))));
+    expect(find.text(l10nJa.cameraUnavailableTitle), findsOneWidget);
+    expect(find.byKey(const Key('cameraOpenSettings')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('cameraManualEntry')));
+    expect(manual, 1);
+  });
+
+  // Audit D05: camera không dùng được → màn quét trả qrManualEntry → mở ngay hộp nhập mã 4 ký tự
+  testWidgets('D05: chọn 「コードを手動で入力」 ở màn camera lỗi → mở hộp nhập mã', (tester) async {
+    when(() => gateway.fetchStopHandoff('p2')).thenAnswer((_) async => handoff());
+    await pumpPage(tester);
+    nextScan = qrManualEntry;
+    await tester.tap(find.byKey(const Key('scanQrButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('manualCodeField')), findsOneWidget);
+    verifyNever(() => gateway.confirmPickup(any()));
   });
 
   testWidgets('出発: còn đơn chờ → dialog cảnh báo no-show (BR-004) → close_route_stop → quay về với message', (tester) async {

@@ -1330,8 +1330,8 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String donationBatchOption(String name, int qty) {
-    return '$name（確定 $qty食）';
+  String donationBatchOption(String name, int qty, int remaining) {
+    return '$name（確定 $qty食・残り $remaining食）';
   }
 
   @override
@@ -4179,4 +4179,67 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get handoutStep3 => '終わったら「停車地点を出発」→ 次の場所へ';
+
+  @override
+  String get walkupUnknownTitle => '販売を登録できたか確認できませんでした';
+
+  @override
+  String get walkupUnknownBody =>
+      '通信が切れました。もう一度「販売を登録」を押すと、同じ販売として送り直します（二重には登録されません）。登録済みだった場合は「前回の販売は登録済みでした」と出ます。';
+
+  @override
+  String walkupReplayedToast(int price) {
+    return '前回の販売は登録済みでした（¥$price）';
+  }
+
+  @override
+  String get donationUnknownTitle => '寄付を記録できたか確認できませんでした';
+
+  @override
+  String get donationUnknownBody =>
+      '通信が切れました。入力はそのまま残しています。もう一度「寄付を記録する」を押しても二重には記録されません。記録済みだった場合は「この寄付は記録済みでした」と出ます。';
+
+  @override
+  String donationReplayed(int remaining) {
+    return 'この寄付は記録済みでした（この料理の残り $remaining食）';
+  }
+
+  @override
+  String donationBatchOptionEmpty(String name) {
+    return '$name（残りなし）';
+  }
+
+  @override
+  String donationQtyOverRemaining(int remaining) {
+    return '残りは $remaining食です。$remaining食以下にしてください';
+  }
+
+  @override
+  String get gpsPermissionTitle => '位置情報がオフになっています';
+
+  @override
+  String get gpsPermissionBody =>
+      '車の位置がお客様と運営に届きません。設定で位置情報の利用を許可してください（「アプリの使用中のみ」で使えます）。';
+
+  @override
+  String get gpsServiceOffTitle => '端末の位置情報サービスがオフです';
+
+  @override
+  String get gpsServiceOffBody => '設定 → プライバシーとセキュリティ → 位置情報サービス をオンにしてください。';
+
+  @override
+  String get gpsNotSentTitle => '位置を送れていません';
+
+  @override
+  String get gpsNotSentBody => '通信が戻ると自動で送ります。最後に送った位置を表示しています。';
+
+  @override
+  String get cameraUnavailableTitle => 'カメラを使えません';
+
+  @override
+  String get cameraUnavailableBody =>
+      '設定でカメラの利用を許可してください。読み取れないときは、お客様の画面の4桁のコードでも受け渡しできます。';
+
+  @override
+  String get enterCodeManually => 'コードを手動で入力';
 }

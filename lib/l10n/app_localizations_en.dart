@@ -1396,8 +1396,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String donationBatchOption(String name, int qty) {
-    return '$name (confirmed $qty meals)';
+  String donationBatchOption(String name, int qty, int remaining) {
+    return '$name ($qty confirmed · $remaining left)';
   }
 
   @override
@@ -4357,4 +4357,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get handoutStep3 => 'When done, press Depart and go to the next stop';
+
+  @override
+  String get walkupUnknownTitle => 'Couldn\'t confirm the sale was recorded';
+
+  @override
+  String get walkupUnknownBody =>
+      'The connection dropped. Tap \"Record sale\" again to resend the same sale (it will not be recorded twice). If it was already recorded, you will see \"The last sale was already recorded\".';
+
+  @override
+  String walkupReplayedToast(int price) {
+    return 'The last sale was already recorded (¥$price)';
+  }
+
+  @override
+  String get donationUnknownTitle =>
+      'Couldn\'t confirm the donation was recorded';
+
+  @override
+  String get donationUnknownBody =>
+      'The connection dropped. Your entries are kept. Tapping \"Record donation\" again will not record it twice. If it was already recorded, you will see \"This donation was already recorded\".';
+
+  @override
+  String donationReplayed(int remaining) {
+    return 'This donation was already recorded ($remaining meals left for this batch)';
+  }
+
+  @override
+  String donationBatchOptionEmpty(String name) {
+    return '$name (none left)';
+  }
+
+  @override
+  String donationQtyOverRemaining(int remaining) {
+    return 'Only $remaining meals are left. Enter $remaining or fewer.';
+  }
+
+  @override
+  String get gpsPermissionTitle => 'Location access is off';
+
+  @override
+  String get gpsPermissionBody =>
+      'Customers and operations can\'t see the truck. Allow location access in Settings (\"While using the app\" is enough).';
+
+  @override
+  String get gpsServiceOffTitle => 'Location Services are off on this device';
+
+  @override
+  String get gpsServiceOffBody =>
+      'Turn on Settings → Privacy & Security → Location Services.';
+
+  @override
+  String get gpsNotSentTitle => 'The truck\'s location isn\'t being sent';
+
+  @override
+  String get gpsNotSentBody =>
+      'It will be sent automatically when the connection is back. Showing the last sent location.';
+
+  @override
+  String get cameraUnavailableTitle => 'The camera can\'t be used';
+
+  @override
+  String get cameraUnavailableBody =>
+      'Allow camera access in Settings. If you can\'t scan, you can also hand over with the 4-character code on the customer\'s screen.';
+
+  @override
+  String get enterCodeManually => 'Enter the code manually';
 }

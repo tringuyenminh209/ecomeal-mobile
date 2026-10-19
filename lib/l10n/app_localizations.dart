@@ -2495,8 +2495,8 @@ abstract class AppLocalizations {
   /// No description provided for @donationBatchOption.
   ///
   /// In ja, this message translates to:
-  /// **'{name}（確定 {qty}食）'**
-  String donationBatchOption(String name, int qty);
+  /// **'{name}（確定 {qty}食・残り {remaining}食）'**
+  String donationBatchOption(String name, int qty, int remaining);
 
   /// No description provided for @donationRecorded.
   ///
@@ -7509,6 +7509,108 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'終わったら「停車地点を出発」→ 次の場所へ'**
   String get handoutStep3;
+
+  /// No description provided for @walkupUnknownTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'販売を登録できたか確認できませんでした'**
+  String get walkupUnknownTitle;
+
+  /// No description provided for @walkupUnknownBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信が切れました。もう一度「販売を登録」を押すと、同じ販売として送り直します（二重には登録されません）。登録済みだった場合は「前回の販売は登録済みでした」と出ます。'**
+  String get walkupUnknownBody;
+
+  /// No description provided for @walkupReplayedToast.
+  ///
+  /// In ja, this message translates to:
+  /// **'前回の販売は登録済みでした（¥{price}）'**
+  String walkupReplayedToast(int price);
+
+  /// No description provided for @donationUnknownTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'寄付を記録できたか確認できませんでした'**
+  String get donationUnknownTitle;
+
+  /// No description provided for @donationUnknownBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信が切れました。入力はそのまま残しています。もう一度「寄付を記録する」を押しても二重には記録されません。記録済みだった場合は「この寄付は記録済みでした」と出ます。'**
+  String get donationUnknownBody;
+
+  /// No description provided for @donationReplayed.
+  ///
+  /// In ja, this message translates to:
+  /// **'この寄付は記録済みでした（この料理の残り {remaining}食）'**
+  String donationReplayed(int remaining);
+
+  /// No description provided for @donationBatchOptionEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name}（残りなし）'**
+  String donationBatchOptionEmpty(String name);
+
+  /// No description provided for @donationQtyOverRemaining.
+  ///
+  /// In ja, this message translates to:
+  /// **'残りは {remaining}食です。{remaining}食以下にしてください'**
+  String donationQtyOverRemaining(int remaining);
+
+  /// No description provided for @gpsPermissionTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置情報がオフになっています'**
+  String get gpsPermissionTitle;
+
+  /// No description provided for @gpsPermissionBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'車の位置がお客様と運営に届きません。設定で位置情報の利用を許可してください（「アプリの使用中のみ」で使えます）。'**
+  String get gpsPermissionBody;
+
+  /// No description provided for @gpsServiceOffTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'端末の位置情報サービスがオフです'**
+  String get gpsServiceOffTitle;
+
+  /// No description provided for @gpsServiceOffBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'設定 → プライバシーとセキュリティ → 位置情報サービス をオンにしてください。'**
+  String get gpsServiceOffBody;
+
+  /// No description provided for @gpsNotSentTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置を送れていません'**
+  String get gpsNotSentTitle;
+
+  /// No description provided for @gpsNotSentBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信が戻ると自動で送ります。最後に送った位置を表示しています。'**
+  String get gpsNotSentBody;
+
+  /// No description provided for @cameraUnavailableTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'カメラを使えません'**
+  String get cameraUnavailableTitle;
+
+  /// No description provided for @cameraUnavailableBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'設定でカメラの利用を許可してください。読み取れないときは、お客様の画面の4桁のコードでも受け渡しできます。'**
+  String get cameraUnavailableBody;
+
+  /// No description provided for @enterCodeManually.
+  ///
+  /// In ja, this message translates to:
+  /// **'コードを手動で入力'**
+  String get enterCodeManually;
 }
 
 class _AppLocalizationsDelegate

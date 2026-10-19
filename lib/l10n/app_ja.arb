@@ -699,13 +699,16 @@
       }
     }
   },
-  "donationBatchOption": "{name}（確定 {qty}食）",
+  "donationBatchOption": "{name}（確定 {qty}食・残り {remaining}食）",
   "@donationBatchOption": {
     "placeholders": {
       "name": {
         "type": "String"
       },
       "qty": {
+        "type": "int"
+      },
+      "remaining": {
         "type": "int"
       }
     }
@@ -1714,5 +1717,50 @@
   "handoutStepsTitle": "ここでの流れ",
   "handoutStep1": "予約のお客様: 受け取りQRを読み取る（読めないときは4桁のコード）",
   "handoutStep2": "予約のないお客様: 「予約なし販売」タブで1食ずつ登録",
-  "handoutStep3": "終わったら「停車地点を出発」→ 次の場所へ"
+  "handoutStep3": "終わったら「停車地点を出発」→ 次の場所へ",
+  "walkupUnknownTitle": "販売を登録できたか確認できませんでした",
+  "walkupUnknownBody": "通信が切れました。もう一度「販売を登録」を押すと、同じ販売として送り直します（二重には登録されません）。登録済みだった場合は「前回の販売は登録済みでした」と出ます。",
+  "walkupReplayedToast": "前回の販売は登録済みでした（¥{price}）",
+  "@walkupReplayedToast": {
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "donationUnknownTitle": "寄付を記録できたか確認できませんでした",
+  "donationUnknownBody": "通信が切れました。入力はそのまま残しています。もう一度「寄付を記録する」を押しても二重には記録されません。記録済みだった場合は「この寄付は記録済みでした」と出ます。",
+  "donationReplayed": "この寄付は記録済みでした（この料理の残り {remaining}食）",
+  "@donationReplayed": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "donationBatchOptionEmpty": "{name}（残りなし）",
+  "@donationBatchOptionEmpty": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "donationQtyOverRemaining": "残りは {remaining}食です。{remaining}食以下にしてください",
+  "@donationQtyOverRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "gpsPermissionTitle": "位置情報がオフになっています",
+  "gpsPermissionBody": "車の位置がお客様と運営に届きません。設定で位置情報の利用を許可してください（「アプリの使用中のみ」で使えます）。",
+  "gpsServiceOffTitle": "端末の位置情報サービスがオフです",
+  "gpsServiceOffBody": "設定 → プライバシーとセキュリティ → 位置情報サービス をオンにしてください。",
+  "gpsNotSentTitle": "位置を送れていません",
+  "gpsNotSentBody": "通信が戻ると自動で送ります。最後に送った位置を表示しています。",
+  "cameraUnavailableTitle": "カメラを使えません",
+  "cameraUnavailableBody": "設定でカメラの利用を許可してください。読み取れないときは、お客様の画面の4桁のコードでも受け渡しできます。",
+  "enterCodeManually": "コードを手動で入力"
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart' show LocationPermission;
 import 'package:mocktail/mocktail.dart';
 import 'package:ecomeal_mobile/features/driver/driver_gateway.dart';
 import 'package:ecomeal_mobile/features/driver/driver_report.dart' show DriverReportSheet;
@@ -69,6 +70,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l10nJa.errorLoadTitle), findsOneWidget);
     expect(find.byKey(const Key('driverSettingsButton')), findsOneWidget);
+  });
+
+  // Audit D05: băng GPS theo nguyên nhân — thiếu quyền có 「設定を開く」, lỗi mạng thì không có nút (tự gửi lại)
+  // Reporter thật (DriverShell start khi có xe), nguồn vị trí / gateway giả ném đúng loại lỗi
+  Widget shellWithGps(PositionSource source, {bool sendFails = false}) {
+    final gateway = _MockDriverGateway();
+    when(() => gateway.sendLocation(truckId: any(named: 'truckId'), lat: any(named: 'lat'), lng: any(named: 'lng')))
+        .thenAnswer((_) async => sendFails ? throw Exception('network') : null);
+    return ProviderScope(
+      overrides: [
+        tonightRouteProvider.overrideWith((ref) async => routeFixture),
+        gpsReporterProvider.overrideWith((ref) => GpsReporter(gateway, source, interval: const Duration(hours: 1))),
+      ],
+      child: testApp(const DriverShell()),
+    );
+  }
+
+  testWidgets('D05: thiếu quyền vị trí → băng 「位置情報がオフになっています」 + 設定を開く', (tester) async {
+    await tester.pumpWidget(shellWithGps(() async => throw LocationPermission.deniedForever));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('gpsProblem-permission')), findsOneWidget);
+    expect(find.text(l10nJa.gpsPermissionTitle), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('gpsProblem-permission')), matching: find.text(l10nJa.openSettings)), findsOneWidget);
+  });
+
+  testWidgets('D05: gửi lỗi mạng → 「位置を送れていません」, không có nút', (tester) async {
+    await tester.pumpWidget(shellWithGps(() async => (lat: 34.7, lng: 135.5), sendFails: true));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nJa.gpsNotSentTitle), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('gpsProblem-notSent')), matching: find.text(l10nJa.openSettings)), findsNothing);
   });
 
   testWidgets('SCR-D01: 今夜の運行がない（routeId なし）→ ボタンを出さない', (tester) async {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import 'package:ecomeal_mobile/features/driver/driver_gateway.dart';
 import 'package:ecomeal_mobile/features/driver/handoff_gateway.dart';
 import 'package:ecomeal_mobile/features/driver/route_end_page.dart';
@@ -34,7 +35,7 @@ void main() {
     handoffGateway = MockHandoffGateway();
     when(() => driverGateway.fetchTonightRoute()).thenAnswer((_) async => endedRoute);
     when(() => handoffGateway.fetchConfirmedBatches('route-1'))
-        .thenAnswer((_) async => const [DonationBatch(id: 'batch-1', restaurantId: 'rest-B', confirmedQty: 28)]);
+        .thenAnswer((_) async => const [DonationBatch(id: 'batch-1', restaurantId: 'rest-B', confirmedQty: 28, remainingQty: 6)]);
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
@@ -50,7 +51,7 @@ void main() {
   Future<void> fillDonation(WidgetTester tester, String qty) async {
     await tester.tap(find.byKey(const Key('donationBatchField')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Stop rB（確定 28食）').last);
+    await tester.tap(find.text('Stop rB（確定 28食・残り 6食）').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('donationQtyField')), qty);
     await tester.enterText(find.byKey(const Key('donationNoteField')), 'しぶやフードサポート');
@@ -74,7 +75,8 @@ void main() {
   });
 
   testWidgets('đã rời mọi điểm bán → ghi tặng: chọn lô + số lượng + nơi nhận + xác nhận → record_donation', (tester) async {
-    when(() => handoffGateway.recordDonation(batchId: 'batch-1', quantity: 6, note: 'しぶやフードサポート')).thenAnswer((_) async => 0);
+    when(() => handoffGateway.recordDonation(batchId: 'batch-1', quantity: 6, note: 'しぶやフードサポート', requestId: any(named: 'requestId')))
+        .thenAnswer((_) async => (remaining: 0, replayed: false));
     await pumpPage(tester);
     expect(find.text('3 / 3'), findsOneWidget);
     expect(find.byKey(const Key('openStopsWarning')), findsNothing);
@@ -84,15 +86,20 @@ void main() {
     await tester.tap(find.byKey(const Key('recordDonationButton')));
     await tester.pumpAndSettle();
 
-    verify(() => handoffGateway.recordDonation(batchId: 'batch-1', quantity: 6, note: 'しぶやフードサポート')).called(1);
+    verify(() => handoffGateway.recordDonation(batchId: 'batch-1', quantity: 6, note: 'しぶやフードサポート', requestId: any(named: 'requestId')))
+        .called(1);
     expect(find.text('寄付を記録しました（この料理の残り 0食）'), findsOneWidget);
   });
 
   // Audit D03: đang lưu → khoá lô / số lượng / nơi nhận (trước đây vẫn sửa được, lưu xong lại xoá số vừa nhập)
   testWidgets('D03: đang ghi tặng → khoá các ô cho tới khi server trả lời', (tester) async {
-    final pending = Completer<int>();
-    when(() => handoffGateway.recordDonation(batchId: any(named: 'batchId'), quantity: any(named: 'quantity'), note: any(named: 'note')))
-        .thenAnswer((_) => pending.future);
+    final pending = Completer<DonationResult>();
+    when(() => handoffGateway.recordDonation(
+          batchId: any(named: 'batchId'),
+          quantity: any(named: 'quantity'),
+          note: any(named: 'note'),
+          requestId: any(named: 'requestId'),
+        )).thenAnswer((_) => pending.future);
     await pumpPage(tester);
     await fillDonation(tester, '6');
     await tester.tap(find.byKey(const Key('recordDonationButton')));
@@ -101,19 +108,77 @@ void main() {
     expect(tester.widget<TextField>(find.byKey(const Key('donationQtyField'))).enabled, isFalse);
     expect(tester.widget<TextField>(find.byKey(const Key('donationNoteField'))).enabled, isFalse);
 
-    pending.complete(22);
+    pending.complete((remaining: 0, replayed: false));
     await tester.pumpAndSettle();
     expect(tester.widget<TextField>(find.byKey(const Key('donationQtyField'))).enabled, isTrue);
   });
 
-  testWidgets('tặng vượt số còn lại → câu lỗi E-INV-001 của API-016', (tester) async {
-    when(() => handoffGateway.recordDonation(batchId: any(named: 'batchId'), quantity: any(named: 'quantity'), note: any(named: 'note')))
-        .thenThrow(Exception('E-INV-001: quantity exceeds remaining stock'));
+  testWidgets('server từ chối E-INV-001 (số còn lại vừa đổi) → câu lỗi API-016, không có băng "chưa rõ"', (tester) async {
+    when(() => handoffGateway.recordDonation(
+          batchId: any(named: 'batchId'),
+          quantity: any(named: 'quantity'),
+          note: any(named: 'note'),
+          requestId: any(named: 'requestId'),
+        )).thenThrow(const PostgrestException(message: 'E-INV-001: quantity exceeds remaining stock'));
     await pumpPage(tester);
-    await fillDonation(tester, '99');
+    await fillDonation(tester, '5');
     await tester.tap(find.byKey(const Key('recordDonationButton')));
     await tester.pumpAndSettle();
 
     expect(find.text('寄付数量が残り在庫を超えています'), findsOneWidget);
+    expect(find.byKey(const Key('donationUnknownBanner')), findsNothing);
+  });
+
+  // Audit D06: thấy số còn lại trước khi nhập; nhập quá → báo ngay, nút khoá (không phải gửi rồi mới biết)
+  testWidgets('D06: nhãn lô có số còn lại; nhập 7 khi còn 6 → 「残りは 6食です…」, không gửi được', (tester) async {
+    await pumpPage(tester);
+    await fillDonation(tester, '7');
+
+    expect(find.text('Stop rB（確定 28食・残り 6食）'), findsOneWidget);
+    expect(find.text('残りは 6食です。6食以下にしてください'), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.byKey(const Key('recordDonationButton'))).onPressed, isNull);
+  });
+
+  testWidgets('D06: lô đã hết → 「（残りなし）」 và không chọn được', (tester) async {
+    when(() => handoffGateway.fetchConfirmedBatches('route-1'))
+        .thenAnswer((_) async => const [DonationBatch(id: 'batch-1', restaurantId: 'rest-B', confirmedQty: 28, remainingQty: 0)]);
+    await pumpPage(tester);
+    await tester.tap(find.byKey(const Key('donationBatchField')));
+    await tester.pumpAndSettle();
+
+    final item = tester.widget<DropdownMenuItem<String>>(find.byType(DropdownMenuItem<String>).last);
+    expect(item.enabled, isFalse);
+    expect(find.text('Stop rB（残りなし）'), findsWidgets);
+  });
+
+  // Audit D04: mất phản hồi → băng "chưa rõ", giữ nhập liệu; gửi lại dùng CÙNG khoá → server báo đã ghi (replayed)
+  testWidgets('D04: mất mạng → băng chưa rõ; gửi lại cùng khoá → 「この寄付は記録済みでした」', (tester) async {
+    final keys = <String>[];
+    var calls = 0;
+    when(() => handoffGateway.recordDonation(
+          batchId: any(named: 'batchId'),
+          quantity: any(named: 'quantity'),
+          note: any(named: 'note'),
+          requestId: any(named: 'requestId'),
+        )).thenAnswer((inv) async {
+      keys.add(inv.namedArguments[#requestId] as String);
+      if (calls++ == 0) throw Exception('SocketException: connection reset');
+      return (remaining: 0, replayed: true);
+    });
+    await pumpPage(tester);
+    await fillDonation(tester, '6');
+    await tester.tap(find.byKey(const Key('recordDonationButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('donationUnknownBanner')), findsOneWidget);
+    expect(tester.widget<TextField>(find.byKey(const Key('donationQtyField'))).controller!.text, '6');
+
+    await tester.tap(find.byKey(const Key('recordDonationButton')));
+    await tester.pumpAndSettle();
+
+    expect(keys, hasLength(2));
+    expect(keys[1], keys[0], reason: 'gửi lại phải dùng cùng khoá để server không ghi thêm');
+    expect(find.text('この寄付は記録済みでした（この料理の残り 0食）'), findsOneWidget);
+    expect(find.byKey(const Key('donationUnknownBanner')), findsNothing);
   });
 }

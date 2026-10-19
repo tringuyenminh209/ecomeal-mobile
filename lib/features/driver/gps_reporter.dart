@@ -5,9 +5,13 @@ import 'driver_gateway.dart';
 
 enum GpsStatus { idle, sending, error }
 
+// Audit D05: lỗi lấy vị trí (quyền / dịch vụ tắt / không lấy được) khác lỗi gửi lên server (mạng) — mỗi loại 1 câu + 1 cách sửa
+enum GpsProblem { permission, serviceOff, notSent }
+
 class GpsState {
-  const GpsState({required this.status, this.lat, this.lng});
+  const GpsState({required this.status, this.problem, this.lat, this.lng});
   final GpsStatus status;
+  final GpsProblem? problem; // chỉ khi status == error
   final double? lat; // vị trí gửi thành công gần nhất — GIỮ NGUYÊN khi lỗi (UC-10 例外フロー)
   final double? lng;
 }
@@ -46,14 +50,31 @@ class GpsReporter extends StateNotifier<GpsState> {
     if (truckId == null || _inFlight) return;
     _inFlight = true;
     try {
-      final position = await _positionSource();
-      await _gateway.sendLocation(truckId: truckId, lat: position.lat, lng: position.lng);
+      final ({double lat, double lng}) position;
+      try {
+        position = await _positionSource();
+      } catch (e) {
+        _fail(switch (locationProblemOf(e)) {
+          LocationProblem.permission => GpsProblem.permission,
+          LocationProblem.serviceOff => GpsProblem.serviceOff,
+          LocationProblem.unavailable => GpsProblem.notSent,
+        });
+        return;
+      }
+      try {
+        await _gateway.sendLocation(truckId: truckId, lat: position.lat, lng: position.lng);
+      } catch (_) {
+        _fail(GpsProblem.notSent); // lấy được vị trí nhưng mạng lỗi — tự gửi lại ở lượt sau
+        return;
+      }
       if (mounted) state = GpsState(status: GpsStatus.sending, lat: position.lat, lng: position.lng);
-    } catch (_) {
-      if (mounted) state = GpsState(status: GpsStatus.error, lat: state.lat, lng: state.lng);
     } finally {
       _inFlight = false;
     }
+  }
+
+  void _fail(GpsProblem problem) {
+    if (mounted) state = GpsState(status: GpsStatus.error, problem: problem, lat: state.lat, lng: state.lng);
   }
 
   @override
