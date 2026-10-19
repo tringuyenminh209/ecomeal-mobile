@@ -86,6 +86,12 @@ class _PickupConfirmPageState extends ConsumerState<PickupConfirmPage> {
       );
       if (ok != true || !mounted) return;
     }
+    // Audit D03: đọc ô nhập MỘT lần trước khi gửi, dùng cùng giá trị cho request và màn kết quả. Trước đây đọc lại sau await
+    // → sửa ô trong lúc chờ thì màn hoàn tất hiện số khác số server đã nhận (xoá ô thì parse lỗi → báo "thất bại" dù đã ghi).
+    final confirmedQty = int.parse(_qtyController.text.trim());
+    final celsius = double.parse(_tempController.text.trim());
+    // Giữ đúng thứ tự tuyến — distribute_qty_to_stops (Chương 03) dồn phần dư vào điểm đầu tiên.
+    final routeStopIds = _candidates.where((s) => _selected.contains(s.routeStopId)).map((s) => s.routeStopId).toList();
     setState(() {
       _submitting = true;
       _errorMessage = null;
@@ -93,17 +99,16 @@ class _PickupConfirmPageState extends ConsumerState<PickupConfirmPage> {
     try {
       final r = await ref.read(driverGatewayProvider).confirmWithTemperature(
             batchId: widget.batch.id,
-            confirmedQty: int.parse(_qtyController.text.trim()),
-            // Giữ đúng thứ tự tuyến — distribute_qty_to_stops (Chương 03) dồn phần dư vào điểm đầu tiên.
-            routeStopIds: _candidates.where((s) => _selected.contains(s.routeStopId)).map((s) => s.routeStopId).toList(),
-            celsius: double.parse(_tempController.text.trim()),
+            confirmedQty: confirmedQty,
+            routeStopIds: routeStopIds,
+            celsius: celsius,
           );
       Haptics.success();
       if (!mounted) return;
       Navigator.of(context).pop(PickupOutcome(
         batchId: widget.batch.id,
-        confirmedQty: int.parse(_qtyController.text.trim()),
-        celsius: double.parse(_tempController.text.trim()),
+        confirmedQty: confirmedQty,
+        celsius: celsius,
         result: r,
       ));
     } catch (e) {
@@ -163,6 +168,7 @@ class _PickupConfirmPageState extends ConsumerState<PickupConfirmPage> {
             child: TextField(
               key: const Key('confirmedQtyField'),
               controller: _qtyController,
+              enabled: !_submitting, // đang gửi: khoá cả ô nhập, không chỉ nút (audit D03)
               keyboardType: TextInputType.number,
               decoration: InputDecoration(suffixText: l10n.mealUnit, errorText: _qtyError),
             ),
@@ -173,6 +179,7 @@ class _PickupConfirmPageState extends ConsumerState<PickupConfirmPage> {
             child: TextField(
               key: const Key('temperatureField'),
               controller: _tempController,
+              enabled: !_submitting,
               keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
               // Figma 137:1199: vượt 10℃ → viền ô đỏ. 0042: nút đổi thành 「回収しない」 (lô không được bán).
               decoration: InputDecoration(
@@ -227,9 +234,11 @@ class _PickupConfirmPageState extends ConsumerState<PickupConfirmPage> {
                 timeFormat.format(toTokyo(stop.plannedTime)),
               ),
               selected: _selected.contains(stop.routeStopId),
-              onTap: () => setState(() {
-                if (!_selected.remove(stop.routeStopId)) _selected.add(stop.routeStopId);
-              }),
+              onTap: _submitting
+                  ? null
+                  : () => setState(() {
+                      if (!_selected.remove(stop.routeStopId)) _selected.add(stop.routeStopId);
+                    }),
             ),
             const SizedBox(height: 8),
           ],
@@ -309,7 +318,7 @@ class _StopRow extends StatelessWidget {
   final String name;
   final String subtitle;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap; // null: đang gửi — không đổi điểm được
 
   @override
   Widget build(BuildContext context) {

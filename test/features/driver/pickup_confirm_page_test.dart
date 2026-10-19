@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -131,6 +132,35 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => gateway.confirmWithTemperature(batchId: 'batch-1', confirmedQty: 30, routeStopIds: ['p2', 'p3'], celsius: 6.5)).called(2);
+  });
+
+  // Audit D03: đang gửi → khoá ô nhập + điểm; màn kết quả dùng đúng số đã gửi (không đọc lại ô sau khi chờ server)
+  testWidgets('D03: đang gửi → khoá ô; ô đổi trong lúc chờ thì kết quả vẫn là số đã gửi', (tester) async {
+    final pending = Completer<ConfirmResult>();
+    when(() => gateway.confirmWithTemperature(
+          batchId: any(named: 'batchId'),
+          confirmedQty: any(named: 'confirmedQty'),
+          routeStopIds: any(named: 'routeStopIds'),
+          celsius: any(named: 'celsius'),
+        )).thenAnswer((_) => pending.future);
+    PickupOutcome? outcome;
+    await pumpPage(tester, onResult: (o) => outcome = o);
+    await tester.enterText(find.byKey(const Key('temperatureField')), '6.5');
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('confirmPickupButton')));
+    await tester.pump();
+    expect(tester.widget<TextField>(find.byKey(const Key('confirmedQtyField'))).enabled, isFalse);
+    expect(tester.widget<TextField>(find.byKey(const Key('temperatureField'))).enabled, isFalse);
+
+    // Ô bị đổi trong lúc chờ (vd bản cũ còn cho sửa) → kết quả không được lấy số mới
+    tester.widget<TextField>(find.byKey(const Key('confirmedQtyField'))).controller!.text = '20';
+    tester.widget<TextField>(find.byKey(const Key('temperatureField'))).controller!.text = '';
+    pending.complete(const ConfirmResult(allocatedOrderCount: 0, refundedOrderCount: 0));
+    await tester.pumpAndSettle();
+
+    expect(outcome?.confirmedQty, 30);
+    expect(outcome?.celsius, 6.5);
   });
 
   // 0042: 10℃超 → nút đổi thành 「回収しない」, hỏi lại trước khi gửi; huỷ thì không gọi RPC

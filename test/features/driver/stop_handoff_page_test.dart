@@ -117,6 +117,59 @@ void main() {
     expect(tester.widget<FilledButton>(find.byKey(const Key('departButton'))).onPressed, isNull);
   });
 
+  // Audit D01: khách đặt thêm khi xe đang đứng bán — danh sách lúc mở màn chưa có đơn đó
+  const newOrder = '44444444-0000-0000-0000-00000000f00d'; // mã thủ công F00D
+  List<ReservationAtStop> withNewOrder() => [
+        ReservationAtStop(orderId: _waitingA, status: 'allocated', createdAt: DateTime.utc(2026, 10, 2, 3, 5)),
+        ReservationAtStop(orderId: newOrder, status: 'allocated', createdAt: DateTime.utc(2026, 10, 2, 9, 50)),
+      ];
+
+  testWidgets('D01: QR của đơn vừa đặt (chưa có lúc mở màn) → đọc lại 1 lần rồi giao, không báo "không phải đơn ở đây"', (tester) async {
+    var fetches = 0;
+    when(() => gateway.fetchStopHandoff('p2'))
+        .thenAnswer((_) async => fetches++ == 0 ? handoff() : handoff(reservations: withNewOrder()));
+    await pumpPage(tester);
+
+    nextScan = newOrder;
+    await tester.tap(find.byKey(const Key('scanQrButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('この停車地点で引き渡し待ちの予約ではありません'), findsNothing);
+    verify(() => gateway.confirmPickup(newOrder)).called(1);
+  });
+
+  testWidgets('D01: mã thủ công của đơn vừa đặt → đọc lại rồi giao', (tester) async {
+    var fetches = 0;
+    when(() => gateway.fetchStopHandoff('p2'))
+        .thenAnswer((_) async => fetches++ == 0 ? handoff() : handoff(reservations: withNewOrder()));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('manualCodeButton')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('manualCodeField')), 'f00d');
+    await tester.tap(find.byKey(const Key('submitManualCodeButton')));
+    await tester.pumpAndSettle();
+
+    verify(() => gateway.confirmPickup(newOrder)).called(1);
+  });
+
+  testWidgets('D01: đọc lại bị lỗi mạng → báo lỗi chung, không kết luận "không phải đơn ở đây", không gọi RPC', (tester) async {
+    var fetches = 0;
+    when(() => gateway.fetchStopHandoff('p2')).thenAnswer((_) async {
+      if (fetches++ == 0) return handoff();
+      throw Exception('network');
+    });
+    await pumpPage(tester);
+
+    nextScan = newOrder;
+    await tester.tap(find.byKey(const Key('scanQrButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('この停車地点で引き渡し待ちの予約ではありません'), findsNothing);
+    expect(find.text('処理に失敗しました。もう一度お試しください'), findsOneWidget);
+    verifyNever(() => gateway.confirmPickup(any()));
+  });
+
   testWidgets('mã thủ công trùng 2 đơn → hiện danh sách để chọn → giao đúng đơn được chọn', (tester) async {
     when(() => gateway.fetchStopHandoff('p2')).thenAnswer((_) async => handoff(reservations: [
           ReservationAtStop(orderId: _waitingA, status: 'allocated', createdAt: DateTime.utc(2026, 10, 2, 3, 5)),

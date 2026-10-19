@@ -30,36 +30,52 @@ class DriverHomePage extends ConsumerWidget {
     final gps = ref.watch(gpsReporterProvider);
     final l10n = context.l10n;
     final now = ref.watch(clockProvider)();
+    void reload() => ref.invalidate(tonightRouteProvider);
+
+    // Audit D02: mọi trạng thái (lỗi tải, chưa được gán xe, chưa có tuyến) vẫn có tiêu đề + 設定 — nơi nộp bằng lái, xem ca,
+    // đăng xuất — và cách tải lại khi vận hành vừa gán xe (Figma Empty 197:571). Trước đây 2 nhánh đầu chỉ có 1 câu ở giữa.
+    Widget page(List<Widget> children) => RefreshIndicator(
+      onRefresh: () async => reload(),
+      child: ListView(padding: const EdgeInsets.fromLTRB(16, 0, 16, 24), children: children),
+    );
 
     return Scaffold(
       body: SafeArea(
         child: routeAsync.when(
           // Khung: tiêu đề, tiến độ, thẻ việc kế tiếp, bản đồ, danh sách
           loading: () => const SkeletonList(heights: [56, 72, 200, 160, 160], padding: EdgeInsets.fromLTRB(16, 8, 16, 24)),
-          error: (_, __) => Center(
-            child: StatePanel.error(
+          error: (_, __) => page([
+            const _Header(truck: null, canReport: false),
+            StatePanel.error(
               title: l10n.errorLoadTitle,
               message: l10n.errorLoadBody,
               actionLabel: l10n.retry,
-              onAction: () => ref.invalidate(tonightRouteProvider),
+              onAction: reload,
             ),
-          ),
+          ]),
           data: (route) {
             if (route == null) {
-              return Center(
-                child: StatePanel(icon: Icons.local_shipping_outlined, title: l10n.noTruckAssigned),
-              );
+              return page([
+                const _Header(truck: null, canReport: false),
+                StatePanel(
+                  icon: Icons.local_shipping_outlined,
+                  title: l10n.noTruckAssigned,
+                  actionLabel: l10n.storeReload,
+                  onAction: reload,
+                ),
+              ]);
             }
             final next = nextStopOf(route.stops);
-            return RefreshIndicator(
-              onRefresh: () async => ref.invalidate(tonightRouteProvider),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                children: [
+            return page([
                   // SCR-D06: chỉ khi đêm nay có tuyến (server cũng chặn: E-REPORT-404)
                   _Header(truck: route.truck, canReport: route.routeId != null),
                   if (route.stops.isEmpty)
-                    StatePanel(icon: Icons.route_outlined, title: l10n.noRouteTonight)
+                    StatePanel(
+                      icon: Icons.route_outlined,
+                      title: l10n.noRouteTonight,
+                      actionLabel: l10n.storeReload,
+                      onAction: reload,
+                    )
                   else ...[
                     RouteProgressCard(stops: route.stops),
                     const SizedBox(height: 12),
@@ -77,9 +93,7 @@ class DriverHomePage extends ConsumerWidget {
                     const SizedBox(height: 12),
                     RouteStopList(route: route, onTapStop: (stop) => openStop(context, ref, route, stop)),
                   ],
-                ],
-              ),
-            );
+                ]);
           },
         ),
       ),
@@ -114,7 +128,7 @@ Future<void> openDirectionsTo(BuildContext context, WidgetRef ref, DriverStop st
 
 class _Header extends StatelessWidget {
   const _Header({required this.truck, required this.canReport});
-  final DriverTruck truck;
+  final DriverTruck? truck; // null: chưa gán xe / tải lỗi — không có biển số
   final bool canReport;
 
   @override
@@ -131,7 +145,7 @@ class _Header extends StatelessWidget {
               children: [
                 Text(l10n.tonightRouteTitle, style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 2),
-                Text(truck.plateNumber, style: small),
+                if (truck case final truck?) Text(truck.plateNumber, style: small),
                 // ja: 10月2日(金) / en: Fri, Oct 2 — "đêm nay" theo giờ Nhật, mẫu ngày theo locale
                 Text(DateFormat.MMMEd(l10n.localeName).format(toTokyo(DateTime.now())), style: small),
               ],

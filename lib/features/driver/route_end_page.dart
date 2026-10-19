@@ -166,7 +166,9 @@ class _RouteEndBodyState extends ConsumerState<_RouteEndBody> {
   Widget _donationCard(BuildContext context) {
     final batchesAsync = ref.watch(confirmedBatchesProvider(widget.route.routeId!));
     final l10n = context.l10n;
-    final editable = !widget.locked;
+    // Audit D03: đang lưu thì khoá cả lô / số lượng / nơi nhận — trước đây vẫn sửa được, và lúc lưu xong việc xoá ô số
+    // lượng xoá luôn số vừa nhập cho lần sau.
+    final editable = !widget.locked && !_saving;
     return _Box(
       child: batchesAsync.when(
         loading: () => const SkeletonList(heights: [20, 48, 48], padding: EdgeInsets.zero, scrollable: false),

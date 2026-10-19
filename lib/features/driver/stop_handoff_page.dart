@@ -80,23 +80,47 @@ class _StopHandoffPageState extends ConsumerState<StopHandoffPage> {
         return l10n.handedOverToast(orderDisplayNumber(reservation.orderId));
       });
 
+  // Audit D01: danh sách đơn đọc lúc mở màn — khách có thể vừa đặt thêm khi xe đang đứng bán. Không thấy đơn trong
+  // bản đang có thì đọc lại 1 lần rồi mới kết luận. Đọc lại lỗi → báo lỗi mạng (null), không nói「không phải đơn ở đây」.
+  Future<StopHandoff?> _reload() async {
+    try {
+      return await ref.refresh(stopHandoffProvider(_stopId).future);
+    } catch (e) {
+      Haptics.error();
+      if (mounted) _toast(handoffErrorMessage(e, context.l10n));
+      return null;
+    }
+  }
+
   Future<void> _scanQr(StopHandoff data) async {
     final scanned = await ref.read(qrScanLauncherProvider)(context);
     if (scanned == null || !mounted) return;
-    final match = data.reservations.where((r) => r.orderId == scanned.trim()).toList();
+    ReservationAtStop? waitingHere(StopHandoff d) =>
+        d.reservations.where((r) => r.orderId == scanned.trim() && r.status == 'allocated').firstOrNull;
+    var match = waitingHere(data);
+    if (match == null) {
+      final fresh = await _reload();
+      if (fresh == null || !mounted) return;
+      match = waitingHere(fresh);
+    }
     // QR của đơn ở điểm KHÁC (hoặc đã giao) → không gọi RPC: confirm_pickup không kiểm tra điểm dừng.
-    if (match.isEmpty || match.first.status != 'allocated') {
+    if (match == null) {
       Haptics.error();
       _toast(context.l10n.errorNotWaitingHere);
       return;
     }
-    await _handOver(match.first);
+    await _handOver(match);
   }
 
   Future<void> _enterManualCode(StopHandoff data) async {
     final input = await showDialog<String>(context: context, builder: (_) => const _ManualCodeDialog());
     if (input == null || !mounted) return;
-    final matches = matchManualCode(data.reservations, input);
+    var matches = matchManualCode(data.reservations, input);
+    if (matches.isEmpty) {
+      final fresh = await _reload();
+      if (fresh == null || !mounted) return;
+      matches = matchManualCode(fresh.reservations, input);
+    }
     if (matches.isEmpty) {
       Haptics.error();
       _toast(context.l10n.errorNoMatchingReservation);

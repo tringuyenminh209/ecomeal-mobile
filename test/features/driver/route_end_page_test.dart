@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,6 +86,24 @@ void main() {
 
     verify(() => handoffGateway.recordDonation(batchId: 'batch-1', quantity: 6, note: 'しぶやフードサポート')).called(1);
     expect(find.text('寄付を記録しました（この料理の残り 0食）'), findsOneWidget);
+  });
+
+  // Audit D03: đang lưu → khoá lô / số lượng / nơi nhận (trước đây vẫn sửa được, lưu xong lại xoá số vừa nhập)
+  testWidgets('D03: đang ghi tặng → khoá các ô cho tới khi server trả lời', (tester) async {
+    final pending = Completer<int>();
+    when(() => handoffGateway.recordDonation(batchId: any(named: 'batchId'), quantity: any(named: 'quantity'), note: any(named: 'note')))
+        .thenAnswer((_) => pending.future);
+    await pumpPage(tester);
+    await fillDonation(tester, '6');
+    await tester.tap(find.byKey(const Key('recordDonationButton')));
+    await tester.pump();
+
+    expect(tester.widget<TextField>(find.byKey(const Key('donationQtyField'))).enabled, isFalse);
+    expect(tester.widget<TextField>(find.byKey(const Key('donationNoteField'))).enabled, isFalse);
+
+    pending.complete(22);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byKey(const Key('donationQtyField'))).enabled, isTrue);
   });
 
   testWidgets('tặng vượt số còn lại → câu lỗi E-INV-001 của API-016', (tester) async {

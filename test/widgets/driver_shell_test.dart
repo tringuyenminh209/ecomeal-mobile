@@ -50,6 +50,27 @@ void main() {
     expect(find.byType(DriverReportSheet), findsOneWidget);
   });
 
+  // Audit D02: chưa được gán xe → vẫn vào được 設定 (bằng lái, ca, đăng xuất) và tải lại khi vận hành vừa gán xe
+  testWidgets('D02: chưa gán xe → có 設定 + 再読み込み; bấm 再読み込み sau khi được gán → hiện tuyến', (tester) async {
+    var fetches = 0;
+    await tester.pumpWidget(_shell(() async => fetches++ == 0 ? null : routeFixture));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nJa.noTruckAssigned), findsOneWidget);
+    expect(find.byKey(const Key('driverSettingsButton')), findsOneWidget);
+
+    await tester.tap(find.text(l10nJa.storeReload));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nJa.noTruckAssigned), findsNothing);
+    expect(find.byKey(const Key('driverReportButton')), findsOneWidget);
+  });
+
+  testWidgets('D02: tải tuyến lỗi → vẫn có 設定 (không mắc kẹt ở màn lỗi)', (tester) async {
+    await tester.pumpWidget(_shell(() => Future.error(Exception('offline'))));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nJa.errorLoadTitle), findsOneWidget);
+    expect(find.byKey(const Key('driverSettingsButton')), findsOneWidget);
+  });
+
   testWidgets('SCR-D01: 今夜の運行がない（routeId なし）→ ボタンを出さない', (tester) async {
     await tester.pumpWidget(_shell(() async => TonightRoute(truck: routeFixture.truck, routeId: null, stops: const [])));
     await tester.pumpAndSettle();
