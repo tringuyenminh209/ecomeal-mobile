@@ -1255,5 +1255,15 @@
   "gpsNotSentBody": "It will be sent automatically when the connection is back. Showing the last sent location.",
   "cameraUnavailableTitle": "The camera can't be used",
   "cameraUnavailableBody": "Allow camera access in Settings. If you can't scan, you can also hand over with the 4-character code on the customer's screen.",
-  "enterCodeManually": "Enter the code manually"
+  "enterCodeManually": "Enter the code manually",
+  "routeMapOpen": "Show the map full screen",
+  "routeMapTitle": "Route map",
+  "routeMapSubtitle": "{total} stops · heading to stop {next}",
+  "routeMapAllDone": "{total} stops · all done",
+  "routeMapFitAll": "Whole route",
+  "routeMapMyLocation": "My location",
+  "routeMapLegend": "Dotted lines show the order of stops, not the actual roads",
+  "routeMapSelectedStop": "Selected stop",
+  "routeMapOpenStop": "Open this stop",
+  "routeMapListHint": "Pull up to see every stop (① pick up at stores · ② hand over to customers)"
 }

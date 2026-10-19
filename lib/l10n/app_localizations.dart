@@ -7611,6 +7611,66 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'コードを手動で入力'**
   String get enterCodeManually;
+
+  /// No description provided for @routeMapOpen.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図を大きく表示'**
+  String get routeMapOpen;
+
+  /// No description provided for @routeMapTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'ルートの地図'**
+  String get routeMapTitle;
+
+  /// No description provided for @routeMapSubtitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{total}か所 ・ {next}か所目へ向かっています'**
+  String routeMapSubtitle(int total, int next);
+
+  /// No description provided for @routeMapAllDone.
+  ///
+  /// In ja, this message translates to:
+  /// **'{total}か所 ・ すべて完了'**
+  String routeMapAllDone(int total);
+
+  /// No description provided for @routeMapFitAll.
+  ///
+  /// In ja, this message translates to:
+  /// **'全体'**
+  String get routeMapFitAll;
+
+  /// No description provided for @routeMapMyLocation.
+  ///
+  /// In ja, this message translates to:
+  /// **'現在地'**
+  String get routeMapMyLocation;
+
+  /// No description provided for @routeMapLegend.
+  ///
+  /// In ja, this message translates to:
+  /// **'点線は回る順番の目安です（実際の道ではありません）'**
+  String get routeMapLegend;
+
+  /// No description provided for @routeMapSelectedStop.
+  ///
+  /// In ja, this message translates to:
+  /// **'選んだ地点'**
+  String get routeMapSelectedStop;
+
+  /// No description provided for @routeMapOpenStop.
+  ///
+  /// In ja, this message translates to:
+  /// **'この地点を開く'**
+  String get routeMapOpenStop;
+
+  /// No description provided for @routeMapListHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'上に引くと全部の地点（① お店で受け取る・② お客様に渡す）'**
+  String get routeMapListHint;
 }
 
 class _AppLocalizationsDelegate

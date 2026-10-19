@@ -4423,4 +4423,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enterCodeManually => 'Enter the code manually';
+
+  @override
+  String get routeMapOpen => 'Show the map full screen';
+
+  @override
+  String get routeMapTitle => 'Route map';
+
+  @override
+  String routeMapSubtitle(int total, int next) {
+    return '$total stops · heading to stop $next';
+  }
+
+  @override
+  String routeMapAllDone(int total) {
+    return '$total stops · all done';
+  }
+
+  @override
+  String get routeMapFitAll => 'Whole route';
+
+  @override
+  String get routeMapMyLocation => 'My location';
+
+  @override
+  String get routeMapLegend =>
+      'Dotted lines show the order of stops, not the actual roads';
+
+  @override
+  String get routeMapSelectedStop => 'Selected stop';
+
+  @override
+  String get routeMapOpenStop => 'Open this stop';
+
+  @override
+  String get routeMapListHint =>
+      'Pull up to see every stop (① pick up at stores · ② hand over to customers)';
 }

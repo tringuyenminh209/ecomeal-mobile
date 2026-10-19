@@ -4242,4 +4242,38 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get enterCodeManually => 'コードを手動で入力';
+
+  @override
+  String get routeMapOpen => '地図を大きく表示';
+
+  @override
+  String get routeMapTitle => 'ルートの地図';
+
+  @override
+  String routeMapSubtitle(int total, int next) {
+    return '$totalか所 ・ $nextか所目へ向かっています';
+  }
+
+  @override
+  String routeMapAllDone(int total) {
+    return '$totalか所 ・ すべて完了';
+  }
+
+  @override
+  String get routeMapFitAll => '全体';
+
+  @override
+  String get routeMapMyLocation => '現在地';
+
+  @override
+  String get routeMapLegend => '点線は回る順番の目安です（実際の道ではありません）';
+
+  @override
+  String get routeMapSelectedStop => '選んだ地点';
+
+  @override
+  String get routeMapOpenStop => 'この地点を開く';
+
+  @override
+  String get routeMapListHint => '上に引くと全部の地点（① お店で受け取る・② お客様に渡す）';
 }

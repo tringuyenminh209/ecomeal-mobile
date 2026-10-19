@@ -1762,5 +1762,32 @@
   "gpsNotSentBody": "通信が戻ると自動で送ります。最後に送った位置を表示しています。",
   "cameraUnavailableTitle": "カメラを使えません",
   "cameraUnavailableBody": "設定でカメラの利用を許可してください。読み取れないときは、お客様の画面の4桁のコードでも受け渡しできます。",
-  "enterCodeManually": "コードを手動で入力"
+  "enterCodeManually": "コードを手動で入力",
+  "routeMapOpen": "地図を大きく表示",
+  "routeMapTitle": "ルートの地図",
+  "routeMapSubtitle": "{total}か所 ・ {next}か所目へ向かっています",
+  "@routeMapSubtitle": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "next": {
+        "type": "int"
+      }
+    }
+  },
+  "routeMapAllDone": "{total}か所 ・ すべて完了",
+  "@routeMapAllDone": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "routeMapFitAll": "全体",
+  "routeMapMyLocation": "現在地",
+  "routeMapLegend": "点線は回る順番の目安です（実際の道ではありません）",
+  "routeMapSelectedStop": "選んだ地点",
+  "routeMapOpenStop": "この地点を開く",
+  "routeMapListHint": "上に引くと全部の地点（① お店で受け取る・② お客様に渡す）"
 }

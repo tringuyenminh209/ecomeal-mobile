@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,38 @@ Future<BitmapDescriptor> loadTruckMarkerIcon() {
     width: 38,
     height: 38,
   );
+}
+
+// Pin tròn có số thứ tự trên tuyến (Figma D08 966:1785): vẽ bằng Canvas thành PNG cho Marker — marker mặc định của Google
+// Maps không ghi được số. Cache theo (số, màu) vì bản đồ dựng lại mỗi khi GPS đổi.
+final _numberedPinCache = <String, BitmapDescriptor>{};
+
+Future<BitmapDescriptor> numberedPin(int number, {required Color fill, required Color label}) async {
+  final key = '$number-${fill.toARGB32()}-${label.toARGB32()}';
+  final cached = _numberedPinCache[key];
+  if (cached != null) return cached;
+  const size = 34.0;
+  const ratio = 3.0; // vẽ nét ở mật độ cao rồi thu về 34pt
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder)..scale(ratio);
+  const center = Offset(size / 2, size / 2);
+  canvas.drawCircle(center, size / 2 - 1, Paint()..color = fill);
+  canvas.drawCircle(
+    center,
+    size / 2 - 1,
+    Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2,
+  );
+  final text = TextPainter(
+    text: TextSpan(text: '$number', style: TextStyle(color: label, fontSize: 15, fontWeight: FontWeight.w700)),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  text.paint(canvas, center - Offset(text.width / 2, text.height / 2));
+  final image = await recorder.endRecording().toImage((size * ratio).round(), (size * ratio).round());
+  final png = await image.toByteData(format: ui.ImageByteFormat.png);
+  return _numberedPinCache[key] = BitmapDescriptor.bytes(png!.buffer.asUint8List(), width: size, height: size);
 }
 
 // Bản đồ ban đêm cho chế độ tài xế (theme tối): nền và đường tối, nhãn sáng vừa đủ đọc — bản đồ sáng giữa màn tối gây

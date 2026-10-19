@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../core/clock.dart';
 import '../../core/directions.dart';
 import '../../core/jst_date.dart';
-import '../../core/maps.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../core/location.dart';
@@ -14,6 +12,7 @@ import '../../widgets/state_panel.dart';
 import 'driver_gateway.dart';
 import 'driver_profile_page.dart';
 import 'driver_report.dart';
+import 'driver_route_map.dart';
 import 'driver_route_helpers.dart';
 import 'gps_reporter.dart';
 import 'pickup_stop_page.dart';
@@ -239,12 +238,17 @@ class NextTaskCard extends StatelessWidget {
     required this.onNavigate,
     required this.onArrive,
     this.now,
+    this.title,
+    this.arriveLabel,
   });
   final TonightRoute route;
   final DriverStop stop;
   final VoidCallback onNavigate;
   final VoidCallback onArrive;
   final DateTime? now;
+  // D08: bản đồ toàn màn hình dùng lại thẻ này cho điểm vừa chọn — 「選んだ地点」 + 「この地点を開く」
+  final String? title;
+  final String? arriveLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +285,7 @@ class NextTaskCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(l10n.nextTaskLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.amber))),
+              Expanded(child: Text(title ?? l10n.nextTaskLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.amber))),
               _Tag(label: isPickup ? l10n.stepBadgePickup(position) : l10n.stepBadgeSales(position), color: eco.amber),
             ],
           ),
@@ -322,7 +326,7 @@ class NextTaskCard extends StatelessWidget {
                 child: FilledButton(
                   key: const Key('arriveButton'),
                   onPressed: onArrive,
-                  child: Text(isPickup ? l10n.arrivedPickupButton : l10n.arrivedSalesButton),
+                  child: Text(arriveLabel ?? (isPickup ? l10n.arrivedPickupButton : l10n.arrivedSalesButton)),
                 ),
               ),
             ],
@@ -422,101 +426,33 @@ class _Panel extends StatelessWidget {
   }
 }
 
-// Figma 16:16731: bản đồ bo 12, marker xe Eco-Truck ở vị trí gửi gần nhất, viên GPS ở góc dưới trái.
-// Chưa có key Maps (hoặc chạy web) → khung hướng dẫn, giống SCR-M03 — viên GPS vẫn hiện vì GPS vẫn gửi.
-class _DriverMap extends StatefulWidget {
+// Figma 16:16731: bản đồ bo 12, viên GPS ở góc dưới trái. Audit D08: chạm bản đồ hoặc nút phóng to → SCR-D08 toàn màn hình
+// (cùng widget DriverRouteMap: pin có số, nét đứt theo thứ tự). Chưa có key Maps → khung hướng dẫn, nút vẫn mở trang.
+class _DriverMap extends StatelessWidget {
   const _DriverMap({required this.stops, required this.gps});
   final List<DriverStop> stops;
   final GpsState gps;
 
   @override
-  State<_DriverMap> createState() => _DriverMapState();
-}
-
-class _DriverMapState extends State<_DriverMap> {
-  BitmapDescriptor? _truckIcon;
-
-  @override
-  void initState() {
-    super.initState();
-    if (isGoogleMapsConfigured) {
-      loadTruckMarkerIcon().then((icon) {
-        if (mounted) setState(() => _truckIcon = icon);
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final gps = widget.gps;
-    final stops = widget.stops;
-    final Widget map;
-    if (!isGoogleMapsConfigured) {
-      map = ColoredBox(
-        color: context.eco.primarySoft,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(context.l10n.mapSetupRequired, textAlign: TextAlign.center),
-          ),
-        ),
-      );
-    } else {
-      final next = nextStopOf(stops);
-      final markers = <Marker>{
-        for (final (i, s) in stops.indexed)
-          Marker(
-            markerId: MarkerId(s.routeStopId),
-            position: LatLng(s.lat, s.lng),
-            infoWindow: InfoWindow(title: '${i + 1}. ${s.name}'),
-            // Điểm đã rời mờ đi, điểm kế tiếp màu vàng (cùng màu thẻ 次にやること)
-            alpha: s.departedAt != null ? 0.4 : 1,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              identical(s, next)
-                  ? BitmapDescriptor.hueYellow
-                  : (s.type == 'restaurant' ? BitmapDescriptor.hueOrange : BitmapDescriptor.hueGreen),
-            ),
-          ),
-        if (gps.lat != null)
-          Marker(
-            markerId: const MarkerId('truck'),
-            position: LatLng(gps.lat!, gps.lng!),
-            icon: _truckIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-            zIndexInt: 1,
-          ),
-      };
-      final center = gps.lat != null
-          ? LatLng(gps.lat!, gps.lng!)
-          : (stops.isNotEmpty ? LatLng(stops.first.lat, stops.first.lng) : osakaCenter);
-      // Đường nối các điểm theo đúng thứ tự tuyến (đường thẳng giữa 2 điểm, không phải đường xe chạy)
-      final route = [for (final s in stops) LatLng(s.lat, s.lng)];
-      map = GoogleMap(
-        initialCameraPosition: CameraPosition(target: center, zoom: 13),
-        myLocationButtonEnabled: false,
-        zoomControlsEnabled: false,
-        mapToolbarEnabled: false,
-        gestureRecognizers: mapGestureRecognizers,
-        markers: markers,
-        polylines: {
-          if (route.length > 1)
-            Polyline(
-              polylineId: const PolylineId('route'),
-              points: route,
-              width: 4,
-              color: context.eco.primary.withValues(alpha: 0.8),
-            ),
-        },
-        // Mở bản đồ → vừa cả tuyến + vị trí xe
-        onMapCreated: (c) => fitCameraTo(c, [...route, if (gps.lat != null) LatLng(gps.lat!, gps.lng!)]),
-        style: mapStyleFor(Theme.of(context).brightness),
-      );
-    }
+    void open() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const DriverRouteMapPage()));
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Stack(
         children: [
-          Positioned.fill(child: map),
+          Positioned.fill(child: DriverRouteMap(stops: stops, gps: gps, inScrollView: true, onTapMap: open)),
           Positioned(left: 12, bottom: 12, child: _GpsPill(status: gps.status)),
+          Positioned(
+            right: 8,
+            top: 8,
+            child: IconButton.filled(
+              key: const Key('openRouteMap'),
+              tooltip: context.l10n.routeMapOpen,
+              onPressed: open,
+              style: IconButton.styleFrom(backgroundColor: context.eco.surface, foregroundColor: context.eco.textPrimary),
+              icon: const Icon(Icons.open_in_full, size: 20),
+            ),
+          ),
         ],
       ),
     );
