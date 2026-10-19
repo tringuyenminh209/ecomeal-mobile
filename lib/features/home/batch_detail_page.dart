@@ -153,6 +153,9 @@ class _BatchDetailBody extends ConsumerWidget {
       if (reserved == null &&
           tick.valueOrNull != null &&
           !batch.expiresAt.isAfter(tick.requireValue) &&
+          // pop() đóng màn TRÊN CÙNG: M04 đang nằm dưới SCR-M05 (đặt chỗ / thanh toán) thì không được tự đóng —
+          // M05 tự xử lý (server trả E-ORDER-003), quay lại M04 thì nút đặt đã khoá theo `expired` (audit R01 2026-10-19)
+          (ModalRoute.of(context)?.isCurrent ?? false) &&
           Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(

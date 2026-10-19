@@ -12,7 +12,11 @@ enum PaymentFailure {
   priceUnavailable, // E-ORDER-011 (0071) → giá hiện tại dưới mức Stripe nhận (¥50): chưa giữ tiền
   serviceError, // E-PAY-502 → Stripe trả lỗi không phải lỗi thẻ (cấu hình / API): không phải hết hàng, thử lại sau (2026-10-15)
   unknown, // mất mạng / quá giờ → 結果確認待ち: server có thể ĐÃ tạo đơn
-  other, // hết hàng, giới hạn ngày… → khung lỗi đặt hàng như trước
+  // Audit C02 (2026-10-19): lỗi nghiệp vụ tách theo việc khách làm được tiếp (trước đây gom hết về other = 「売り切れ」)
+  dailyLimit, // E-ORDER-001 → đã đủ 2 đơn hôm nay: đổi túi khác cũng không được → xem tab 予約
+  soldOutAtStop, // E-ORDER-007 → hết phần ở điểm nhận này → tìm túi khác
+  batchUnavailable, // E-ORDER-003 hết giờ bán / 004 điểm không thuộc lô / 404 không tìm thấy → tìm túi khác
+  other, // mã khác → lỗi tạm thời, thử lại
 }
 
 PaymentFailure classifyPaymentError(Object error) {
@@ -26,6 +30,9 @@ PaymentFailure classifyPaymentError(Object error) {
     'E-RATE-429' => PaymentFailure.rateLimited,
     'E-AUTH-401' => PaymentFailure.sessionExpired,
     'E-ORDER-011' => PaymentFailure.priceUnavailable,
+    'E-ORDER-001' => PaymentFailure.dailyLimit,
+    'E-ORDER-007' => PaymentFailure.soldOutAtStop,
+    'E-ORDER-003' || 'E-ORDER-004' || 'E-ORDER-404' => PaymentFailure.batchUnavailable,
     'E-COUPON-404' || 'E-COUPON-409' || 'E-COUPON-410' => PaymentFailure.couponUnavailable,
     'E-PAY-502' => PaymentFailure.serviceError,
     'E-PAY-504' => PaymentFailure.unknown, // Stripe không trả lời kịp: có thể đã giữ/chốt tiền

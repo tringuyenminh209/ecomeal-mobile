@@ -243,15 +243,63 @@ void main() {
     expect(find.text('お支払いは完了していませんでした。もう一度お試しください'), findsOneWidget);
   });
 
-  testWidgets('lỗi đặt hàng (vd hết hàng) → khung lỗi cũ, nút đổi thành "もう一度試す"', (tester) async {
-    stubCreateOrder(() async => throw PostgrestException(message: 'E-ORDER-007: sold out at this pickup stop'));
+  testWidgets('Audit C02: 地点で売り切れ → câu đúng nguyên nhân + nút 「次にできること」, phần trên vẫn hiện', (tester) async {
+    stubCreateOrder(() async => throw const PostgrestException(message: 'E-ORDER-007: sold out at this pickup stop'));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('confirmReservationButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nJa.errorSoldOutAtStop), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('confirmReservationButton')), matching: find.text(l10nJa.actionFindOtherBags)), findsOneWidget);
+    expect(find.text(l10nJa.pickupByEcoTruck), findsOneWidget); // không ẩn thông tin khi lỗi (Figma 949:21244〜)
+  });
+
+  testWidgets('Audit C02: 本日の上限 → câu đúng nguyên nhân + nút 「次にできること」, phần trên vẫn hiện', (tester) async {
+    stubCreateOrder(() async => throw const PostgrestException(message: 'E-ORDER-001: daily reservation limit exceeded'));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('confirmReservationButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nJa.errorDailyLimit), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('confirmReservationButton')), matching: find.text(l10nJa.actionSeeReservations)), findsOneWidget);
+    expect(find.text(l10nJa.pickupByEcoTruck), findsOneWidget); // không ẩn thông tin khi lỗi (Figma 949:21244〜)
+  });
+
+  testWidgets('Audit C02: 受付終了 → câu đúng nguyên nhân + nút 「次にできること」, phần trên vẫn hiện', (tester) async {
+    stubCreateOrder(() async => throw const PostgrestException(message: 'E-ORDER-003: batch already expired'));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('confirmReservationButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nJa.errorBatchUnavailable), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('confirmReservationButton')), matching: find.text(l10nJa.actionFindOtherBags)), findsOneWidget);
+    expect(find.text(l10nJa.pickupByEcoTruck), findsOneWidget); // không ẩn thông tin khi lỗi (Figma 949:21244〜)
+  });
+
+  testWidgets('Audit C02: その他 → câu đúng nguyên nhân + nút 「次にできること」, phần trên vẫn hiện', (tester) async {
+    stubCreateOrder(() async => throw const PostgrestException(message: 'E-ORDER-999: unexpected'));
     await pumpPage(tester);
 
     await tester.tap(find.byKey(const Key('confirmReservationButton')));
     await tester.pumpAndSettle();
 
     expect(find.text(l10nJa.errorReservationFailed), findsOneWidget);
-    expect(find.text('もう一度試す'), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('confirmReservationButton')), matching: find.text(l10nJa.tryAgain)), findsOneWidget);
+    expect(find.text(l10nJa.pickupByEcoTruck), findsOneWidget); // không ẩn thông tin khi lỗi (Figma 949:21244〜)
+  });
+
+  testWidgets('Audit C02: coupon không dùng được → câu coupon, nút vẫn là 「支払って予約する」', (tester) async {
+    stubCreateOrder(() async => throw const PostgrestException(message: 'E-COUPON-409: coupon already used'));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('confirmReservationButton')));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nJa.errorCouponUnavailable), findsOneWidget);
+    expect(find.text(l10nJa.payButton('¥650')), findsOneWidget);
   });
 
   testWidgets('2026-10-15: Stripe trả lỗi hệ thống (E-PAY-502) → câu 決済サービス, không nói 売り切れ', (tester) async {

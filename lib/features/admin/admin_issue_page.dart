@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import '../../core/jst_date.dart';
 import '../../core/rpc_error.dart';
 import '../../core/theme/app_theme.dart';
@@ -41,6 +42,13 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
   final _scroll = ScrollController();
   bool _sending = false;
   bool _failed = false;
+  // Lỗi không có trả lời của server (mất mạng / quá giờ): resolve_order_issue có thể ĐÃ chạy xong (refund + resolved
+  // trong 1 transaction) → không được nói 「返金はまだ行われていません」. Gửi lại vẫn an toàn: đã xử lý thì server trả
+  // E-ISSUE-409 (audit A03 2026-10-19).
+  bool _resultUnknown = false;
+  // Nội dung (số tiền + câu trả lời) đã được operator xác nhận ở lần gửi lỗi trước. Chỉ bỏ hộp xác nhận khi gửi lại
+  // ĐÚNG nội dung này — đổi số tiền / câu trả lời thì phải xác nhận lại (audit A01 2026-10-19).
+  ({int refund, String answer})? _confirmed;
   String? _amountError;
   String? _answerError;
 
@@ -68,8 +76,9 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
       _answerError = answer.isEmpty ? l10n.adminIssueErrAnswer : null;
     });
     if (refund == null || answer.isEmpty) return;
-    // 返金はお金が動き取り消せない — 注文・店舗・金額を出して確認する。送信エラー後の「もう一度送信する」は確認済みなので聞かない
-    if (!_failed) {
+    // 返金はお金が動き取り消せない — 注文・店舗・金額を出して確認する。送信エラー後、同じ内容の「もう一度送信する」は確認済みなので聞かない
+    final payload = (refund: refund, answer: answer);
+    if (payload != _confirmed) {
       final order = orderDisplayNumber(issue.orderId);
       final ok = await showConfirmDialog(
         context,
@@ -104,7 +113,11 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
         return;
       }
       // Giữ nguyên số tiền và câu trả lời để gửi lại (bài học 第50回)
-      setState(() => _failed = true);
+      setState(() {
+        _failed = true;
+        _resultUnknown = e is! PostgrestException;
+        _confirmed = payload;
+      });
       // Khung lỗi nằm cuối danh sách, sát thanh nút cố định — cuộn tới để đọc được hết
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scroll.hasClients) {
@@ -232,8 +245,8 @@ class _AdminIssuePageState extends ConsumerState<AdminIssuePage> {
                 padding: const EdgeInsets.only(top: 8),
                 child: ErrorBanner(
                   key: const Key('adminIssueError'),
-                  title: l10n.adminIssueErrorTitle,
-                  message: l10n.adminIssueErrorBody,
+                  title: _resultUnknown ? l10n.adminIssueUnknownTitle : l10n.adminIssueErrorTitle,
+                  message: _resultUnknown ? l10n.adminIssueUnknownBody : l10n.adminIssueErrorBody,
                 ),
               ),
           ],

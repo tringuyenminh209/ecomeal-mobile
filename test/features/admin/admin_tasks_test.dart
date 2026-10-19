@@ -153,9 +153,71 @@ void main() {
       await tester.tap(find.byKey(const Key('adminIssueConfirm')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('adminIssueError')), findsOneWidget);
+      // Audit A03: mất mạng = không biết server đã xử lý chưa → không được nói 「返金はまだ行われていません」
+      expect(find.text(l10nJa.adminIssueUnknownTitle), findsOneWidget);
+      expect(find.text(l10nJa.adminIssueUnknownBody), findsOneWidget);
+      expect(find.text(l10nJa.adminIssueErrorBody), findsNothing);
       expect(find.text(l10nJa.adminIssueRetry), findsOneWidget);
       expect(tester.widget<TextField>(find.byKey(const Key('adminIssueAnswer'))).controller!.text, '申し訳ありません');
       expect(tester.widget<TextField>(find.byKey(const Key('adminIssueAmount'))).controller!.text, '620');
+    });
+
+    testWidgets('サーバーが受け付けなかった（エラーコードあり）→「返金はまだ行われていません」', (tester) async {
+      _tall(tester);
+      final tasks = FakeAdminTasksGateway()..writeError = const PostgrestException(message: 'E-ISSUE-422: refund exceeds refundable amount');
+      await tester.pumpWidget(_app(AdminIssuePage(issue: _issue()), tasks));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('adminIssueAnswer')), '回答');
+      await tester.tap(find.byKey(const Key('adminIssueSubmit')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('adminIssueConfirm')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.adminIssueErrorTitle), findsOneWidget);
+      expect(find.text(l10nJa.adminIssueErrorBody), findsOneWidget);
+      expect(find.text(l10nJa.adminIssueUnknownTitle), findsNothing);
+    });
+
+    // Audit A01 (2026-10-19): xác nhận gắn với NỘI DUNG đã xác nhận, không phải với việc "lần trước bị lỗi"
+    testWidgets('送信エラー後に金額を変えたら、新しい金額でもう一度確認する', (tester) async {
+      _tall(tester);
+      final tasks = FakeAdminTasksGateway()..writeError = Exception('network');
+      await tester.pumpWidget(_app(AdminIssuePage(issue: _issue()), tasks));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('adminIssueAmount')), '0');
+      await tester.enterText(find.byKey(const Key('adminIssueAnswer')), '対象外です');
+      await tester.tap(find.byKey(const Key('adminIssueSubmit')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('adminIssueConfirm')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('adminIssueError')), findsOneWidget);
+
+      tasks.writeError = null;
+      await tester.enterText(find.byKey(const Key('adminIssueAmount')), '620');
+      await tester.tap(find.byKey(const Key('adminIssueSubmit')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.adminIssueConfirmRefundTitle('¥620')), findsOneWidget);
+      expect(tasks.actions, isEmpty);
+      await tester.tap(find.byKey(const Key('adminIssueConfirm')));
+      await tester.pumpAndSettle();
+      expect(tasks.actions, ['resolve:i-1:620:対象外です']);
+    });
+
+    testWidgets('送信エラー後、内容を変えずに「もう一度送信する」なら確認を繰り返さない', (tester) async {
+      _tall(tester);
+      final tasks = FakeAdminTasksGateway()..writeError = Exception('network');
+      await tester.pumpWidget(_app(AdminIssuePage(issue: _issue()), tasks));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('adminIssueAnswer')), '返金します');
+      await tester.tap(find.byKey(const Key('adminIssueSubmit')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('adminIssueConfirm')));
+      await tester.pumpAndSettle();
+
+      tasks.writeError = null;
+      await tester.tap(find.byKey(const Key('adminIssueSubmit')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('adminIssueConfirm')), findsNothing);
+      expect(tasks.actions, ['resolve:i-1:620:返金します']);
     });
 
     testWidgets('返金: 金額・注文・店舗を出して確認し、戻るなら送らない', (tester) async {

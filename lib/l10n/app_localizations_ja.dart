@@ -743,8 +743,23 @@ class AppLocalizationsJa extends AppLocalizations {
       '受取予定の30分前になるまでなら無料でキャンセルできます（20:00受取なら19:30より前まで）。キャンセルは予約履歴から行えます。';
 
   @override
-  String get errorReservationFailed =>
-      '予約できませんでした。売り切れた可能性があります。別のフードバッグをお選びください';
+  String get errorReservationFailed => '予約できませんでした。時間をおいて、もう一度お試しください';
+
+  @override
+  String get errorDailyLimit =>
+      '本日の予約上限（2件）に達しているため、予約できませんでした。予約した内容は「予約」タブで確認できます';
+
+  @override
+  String get errorSoldOutAtStop => 'この受取地点の分は売り切れました。別のフードバッグをお選びください';
+
+  @override
+  String get errorBatchUnavailable => 'このフードバッグの予約受付は終わりました。別のフードバッグをお選びください';
+
+  @override
+  String get actionSeeReservations => '予約を確認する';
+
+  @override
+  String get actionFindOtherBags => 'ほかのフードバッグを探す';
 
   @override
   String get tryAgain => 'もう一度試す';
@@ -3286,7 +3301,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get adminIssueErrorBody =>
-      '通信状況を確認して、もう一度お試しください。入力した返金額と回答は残っています。返金はまだ行われていません。';
+      'もう一度お試しください。入力した返金額と回答は残っています。返金はまだ行われていません。';
+
+  @override
+  String get adminIssueUnknownTitle => '処理結果を確認できませんでした';
+
+  @override
+  String get adminIssueUnknownBody =>
+      '通信が途中で切れました。もう一度送信してください。すでに処理されていた場合は、そのことをお知らせします（二重に返金されることはありません）。入力した返金額と回答は残っています。';
 
   @override
   String get adminIssueRetry => 'もう一度送信する';
@@ -3773,6 +3795,25 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get activeOrderPickedUp => '受け取りました';
+
+  @override
+  String get activeOrderEndedStatus => 'この予約は受け取れません';
+
+  @override
+  String get activeOrderEndedCancelledTitle => 'この予約はキャンセルされました';
+
+  @override
+  String get activeOrderEndedCancelledBody => '返金の有無は予約履歴でご確認ください。';
+
+  @override
+  String get activeOrderEndedExpiredTitle => 'この予約は失効しました';
+
+  @override
+  String get activeOrderEndedExpiredBody =>
+      '受取地点の出発時刻までに受け取られなかったため、返金はありません。受け取れなかった事情がある場合は、予約履歴の「問題を報告」からご連絡ください。';
+
+  @override
+  String get activeOrderEndedBack => '予約履歴を見る';
 
   @override
   String get pickupCompleteTitle => '受け取り完了';

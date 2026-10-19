@@ -787,7 +787,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorReservationFailed =>
-      'Couldn’t complete the reservation. The meals may have sold out. Please choose another meal';
+      'Couldn’t complete the reservation. Please wait a moment and try again';
+
+  @override
+  String get errorDailyLimit =>
+      'You\'ve reached today\'s limit of 2 reservations, so this one couldn\'t be made. You can see your reservations in the Reservations tab';
+
+  @override
+  String get errorSoldOutAtStop =>
+      'This pickup point is sold out. Please choose another meal';
+
+  @override
+  String get errorBatchUnavailable =>
+      'Reservations for this meal have closed. Please choose another meal';
+
+  @override
+  String get actionSeeReservations => 'See reservations';
+
+  @override
+  String get actionFindOtherBags => 'Find other meals';
 
   @override
   String get tryAgain => 'Try again';
@@ -3435,7 +3453,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminIssueErrorBody =>
-      'Check your connection and try again. Your refund amount and answer are kept. No refund has been made yet.';
+      'Please try again. Your refund amount and answer are kept. No refund has been made yet.';
+
+  @override
+  String get adminIssueUnknownTitle => 'Couldn\'t confirm the result';
+
+  @override
+  String get adminIssueUnknownBody =>
+      'The connection was lost. Please send again. If it was already processed, we\'ll let you know (it will never be refunded twice). Your refund amount and answer are kept.';
 
   @override
   String get adminIssueRetry => 'Send again';
@@ -3931,6 +3956,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeOrderPickedUp => 'Picked up';
+
+  @override
+  String get activeOrderEndedStatus => 'This reservation can\'t be picked up';
+
+  @override
+  String get activeOrderEndedCancelledTitle => 'This reservation was cancelled';
+
+  @override
+  String get activeOrderEndedCancelledBody =>
+      'Check your reservation history to see whether it was refunded.';
+
+  @override
+  String get activeOrderEndedExpiredTitle => 'This reservation has expired';
+
+  @override
+  String get activeOrderEndedExpiredBody =>
+      'It wasn\'t picked up before the truck left the pickup point, so it isn\'t refunded. If something kept you from picking it up, use \"Report a problem\" in your reservation history.';
+
+  @override
+  String get activeOrderEndedBack => 'See reservation history';
 
   @override
   String get pickupCompleteTitle => 'Pickup complete';

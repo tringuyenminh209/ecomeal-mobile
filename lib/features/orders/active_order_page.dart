@@ -14,6 +14,7 @@ import 'order_gateway.dart';
 import 'order_helpers.dart';
 import 'order_history_page.dart';
 import 'order_rating.dart';
+import '../../widgets/customer_shell.dart' show customerTabProvider, CustomerTab;
 
 // 受け取りの案内（SCR-M18、review page 02）: đơn đã giữ chỗ — gom điểm nhận, giờ, xe đang ở giai đoạn nào,
 // cách tìm xe và QR lớn vào 1 màn (trước đây nằm rải giữa bản đồ và thẻ trong lịch sử).
@@ -33,24 +34,28 @@ PickupStage pickupStage({required DateTime now, required DateTime plannedTime, D
 
 const _statusPollInterval = Duration(seconds: 15);
 
-// Trạng thái mới nhất của 1 đơn khi SCR-M18 đang mở (API-011 danh sách đơn của mình). Dừng hỏi khi đã nhận
-// (picked_up) hoặc rời màn (autoDispose). Lỗi mạng 1 lần thì bỏ qua, lần sau hỏi lại — màn vẫn hiện QR như cũ.
+// Đơn đã kết thúc: không đổi nữa → thôi hỏi. Ngoài picked_up còn hủy / hoàn tiền /失効 (audit C01 2026-10-19).
+const _finalStatuses = {'picked_up', 'refunded', 'expired', 'cancelled'};
+
+// Bản ghi mới nhất của 1 đơn khi SCR-M18 đang mở (API-011 danh sách đơn của mình) — CẢ bản ghi, không chỉ status:
+// giờ xe rời điểm (stopDepartedAt) cũng đổi trong lúc mở màn (audit C01). Dừng hỏi khi đơn đã kết thúc hoặc rời màn
+// (autoDispose). Lỗi mạng 1 lần thì bỏ qua, lần sau hỏi lại — màn vẫn hiện như cũ.
 // Timer (không phải Future.delayed trong async*) để rời màn là huỷ được ngay, không để lại hẹn giờ chờ.
-final activeOrderStatusProvider = StreamProvider.autoDispose.family<String, String>((ref, orderId) {
+final activeOrderProvider = StreamProvider.autoDispose.family<OrderSummary, String>((ref, orderId) {
   final gateway = ref.watch(orderGatewayProvider);
-  final controller = StreamController<String>();
+  final controller = StreamController<OrderSummary>();
   Timer? timer;
   var disposed = false;
   Future<void> poll() async {
-    String? status;
+    OrderSummary? latest;
     try {
-      status = (await gateway.fetchMyOrders()).where((o) => o.id == orderId).firstOrNull?.status;
+      latest = (await gateway.fetchMyOrders()).where((o) => o.id == orderId).firstOrNull;
     } catch (_) {
-      status = null;
+      latest = null;
     }
     if (disposed) return;
-    if (status != null) controller.add(status);
-    if (status == 'picked_up') return;
+    if (latest != null) controller.add(latest);
+    if (latest != null && _finalStatuses.contains(latest.status)) return;
     timer = Timer(_statusPollInterval, poll);
   }
 
@@ -78,24 +83,29 @@ class ActiveOrderPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final current = now ?? ref.watch(_pickupClockProvider).valueOrNull ?? DateTime.now();
-    final status = ref.watch(activeOrderStatusProvider(order.id)).valueOrNull ?? order.status;
+    final latest = ref.watch(activeOrderProvider(order.id)).valueOrNull ?? order;
+    final status = latest.status;
     final pickedUp = status == 'picked_up';
+    // Hủy / hoàn tiền / 失効: QR không còn dùng được → thay bằng lý do + đường về lịch sử (Figma 949:1695)
+    final ended = _finalStatuses.contains(status) && !pickedUp;
     // Vừa chuyển sang picked_up khi đang xem màn → rung (mở màn khi đã nhận rồi thì không rung)
-    ref.listen(activeOrderStatusProvider(order.id), (previous, next) {
-      final before = previous?.valueOrNull;
-      if (before != null && before != 'picked_up' && next.valueOrNull == 'picked_up') Haptics.success();
+    ref.listen(activeOrderProvider(order.id), (previous, next) {
+      final before = previous?.valueOrNull?.status;
+      if (before != null && before != 'picked_up' && next.valueOrNull?.status == 'picked_up') Haptics.success();
     });
-    final stage = pickupStage(now: current, plannedTime: order.plannedPickupTime, departedAt: order.stopDepartedAt);
+    final stage = pickupStage(now: current, plannedTime: latest.plannedPickupTime, departedAt: latest.stopDepartedAt);
     final hm = DateFormat('HH:mm');
     final start = toTokyo(order.plannedPickupTime);
     final statusText = pickedUp
         ? l10n.activeOrderPickedUp
+        : ended
+        ? l10n.activeOrderEndedStatus
         : switch (stage) {
             PickupStage.before => l10n.activeOrderBefore(hm.format(start), remainingMinutes(order.plannedPickupTime, current)),
             PickupStage.window => l10n.activeOrderWindow(hm.format(start.add(pickupWindowLength))),
             PickupStage.over => l10n.activeOrderOver,
           };
-    final highlighted = pickedUp || stage != PickupStage.over;
+    final highlighted = pickedUp || (!ended && stage != PickupStage.over);
     const label = TextStyle(fontSize: 12, color: AppColors.textSecondary);
     const value = TextStyle(fontSize: 16, fontWeight: FontWeight.w700);
 
@@ -117,6 +127,8 @@ class ActiveOrderPage extends ConsumerWidget {
                 Icon(
                   pickedUp
                       ? Icons.check_circle
+                      : ended
+                      ? Icons.event_busy
                       : stage == PickupStage.window
                           ? Icons.local_shipping
                           : Icons.schedule,
@@ -155,7 +167,9 @@ class ActiveOrderPage extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           if (pickedUp)
-            _PickupComplete(order: order)
+            _PickupComplete(order: latest)
+          else if (ended)
+            _PickupEnded(status: status)
           else ...[
             // QR đang hiện → màn sáng tối đa (trả lại khi đã nhận / rời màn)
             MaxBrightness(child: PickupQrBlock(orderId: order.id, size: 220)),
@@ -215,6 +229,59 @@ class _PickupCompleteState extends ConsumerState<_PickupComplete> {
                 ref.invalidate(myOrdersProvider); // thẻ ở 予約履歴 cũng chuyển sang "đã đánh giá"
               },
             ),
+        ],
+      ),
+    );
+  }
+}
+
+// Thay khối QR khi đơn đã kết thúc mà không nhận (Figma 949:1695, ghi chú 949:1963): lý do theo trạng thái + nút về
+// tab 予約 (đóng màn này dù mở từ lịch sử hay từ LINE/banner). Câu hoàn tiền dùng chung với thông báo (N02).
+class _PickupEnded extends ConsumerWidget {
+  const _PickupEnded({required this.status});
+  final String status;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final (title, body) = switch (status) {
+      'refunded' => (l10n.noticeRefundedTitle, l10n.noticeRefundedBody),
+      'cancelled' => (l10n.activeOrderEndedCancelledTitle, l10n.activeOrderEndedCancelledBody),
+      _ => (l10n.activeOrderEndedExpiredTitle, l10n.activeOrderEndedExpiredBody),
+    };
+    return Container(
+      key: const Key('pickupEnded'),
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(color: AppColors.chip, shape: BoxShape.circle),
+              child: const Icon(Icons.event_busy, size: 36, color: AppColors.textSecondary),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 6),
+          Text(body, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, height: 1.6, color: AppColors.textSecondary)),
+          const SizedBox(height: 20),
+          FilledButton(
+            key: const Key('pickupEndedBack'),
+            onPressed: () {
+              ref.invalidate(myOrdersProvider);
+              ref.read(customerTabProvider.notifier).state = CustomerTab.orders;
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+            child: Text(l10n.activeOrderEndedBack),
+          ),
         ],
       ),
     );

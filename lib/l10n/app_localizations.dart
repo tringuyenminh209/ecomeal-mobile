@@ -1457,8 +1457,38 @@ abstract class AppLocalizations {
   /// No description provided for @errorReservationFailed.
   ///
   /// In ja, this message translates to:
-  /// **'予約できませんでした。売り切れた可能性があります。別のフードバッグをお選びください'**
+  /// **'予約できませんでした。時間をおいて、もう一度お試しください'**
   String get errorReservationFailed;
+
+  /// No description provided for @errorDailyLimit.
+  ///
+  /// In ja, this message translates to:
+  /// **'本日の予約上限（2件）に達しているため、予約できませんでした。予約した内容は「予約」タブで確認できます'**
+  String get errorDailyLimit;
+
+  /// No description provided for @errorSoldOutAtStop.
+  ///
+  /// In ja, this message translates to:
+  /// **'この受取地点の分は売り切れました。別のフードバッグをお選びください'**
+  String get errorSoldOutAtStop;
+
+  /// No description provided for @errorBatchUnavailable.
+  ///
+  /// In ja, this message translates to:
+  /// **'このフードバッグの予約受付は終わりました。別のフードバッグをお選びください'**
+  String get errorBatchUnavailable;
+
+  /// No description provided for @actionSeeReservations.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約を確認する'**
+  String get actionSeeReservations;
+
+  /// No description provided for @actionFindOtherBags.
+  ///
+  /// In ja, this message translates to:
+  /// **'ほかのフードバッグを探す'**
+  String get actionFindOtherBags;
 
   /// No description provided for @tryAgain.
   ///
@@ -5957,8 +5987,20 @@ abstract class AppLocalizations {
   /// No description provided for @adminIssueErrorBody.
   ///
   /// In ja, this message translates to:
-  /// **'通信状況を確認して、もう一度お試しください。入力した返金額と回答は残っています。返金はまだ行われていません。'**
+  /// **'もう一度お試しください。入力した返金額と回答は残っています。返金はまだ行われていません。'**
   String get adminIssueErrorBody;
+
+  /// No description provided for @adminIssueUnknownTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'処理結果を確認できませんでした'**
+  String get adminIssueUnknownTitle;
+
+  /// No description provided for @adminIssueUnknownBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信が途中で切れました。もう一度送信してください。すでに処理されていた場合は、そのことをお知らせします（二重に返金されることはありません）。入力した返金額と回答は残っています。'**
+  String get adminIssueUnknownBody;
 
   /// No description provided for @adminIssueRetry.
   ///
@@ -6821,6 +6863,42 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'受け取りました'**
   String get activeOrderPickedUp;
+
+  /// No description provided for @activeOrderEndedStatus.
+  ///
+  /// In ja, this message translates to:
+  /// **'この予約は受け取れません'**
+  String get activeOrderEndedStatus;
+
+  /// No description provided for @activeOrderEndedCancelledTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'この予約はキャンセルされました'**
+  String get activeOrderEndedCancelledTitle;
+
+  /// No description provided for @activeOrderEndedCancelledBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'返金の有無は予約履歴でご確認ください。'**
+  String get activeOrderEndedCancelledBody;
+
+  /// No description provided for @activeOrderEndedExpiredTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'この予約は失効しました'**
+  String get activeOrderEndedExpiredTitle;
+
+  /// No description provided for @activeOrderEndedExpiredBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'受取地点の出発時刻までに受け取られなかったため、返金はありません。受け取れなかった事情がある場合は、予約履歴の「問題を報告」からご連絡ください。'**
+  String get activeOrderEndedExpiredBody;
+
+  /// No description provided for @activeOrderEndedBack.
+  ///
+  /// In ja, this message translates to:
+  /// **'予約履歴を見る'**
+  String get activeOrderEndedBack;
 
   /// No description provided for @pickupCompleteTitle.
   ///

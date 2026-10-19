@@ -35,6 +35,8 @@ OrderSummary _withStatus(OrderSummary o, String status) => OrderSummary(
   stopName: o.stopName,
   taxRate: o.taxRate,
   taxAmount: o.taxAmount,
+  stopDepartedAt: o.stopDepartedAt,
+  rating: o.rating,
 );
 
 // Trạng thái đơn "sống" do test điều khiển (thay cho việc hỏi server mỗi 15 giây)
@@ -47,9 +49,10 @@ class _FakeBrightness implements ScreenBrightnessControl {
   Future<void> restore() async => calls.add('restore');
 }
 
-Widget _page(OrderSummary order, {required DateTime now, Stream<String>? status, ScreenBrightnessControl? brightness}) => ProviderScope(
+// status: bản ghi đơn mới nhất mà màn nhận được trong lúc mở (thay cho việc hỏi server mỗi 15 giây)
+Widget _page(OrderSummary order, {required DateTime now, Stream<OrderSummary>? status, ScreenBrightnessControl? brightness}) => ProviderScope(
   overrides: [
-    activeOrderStatusProvider.overrideWith((ref, _) => status ?? Stream.value(order.status)),
+    activeOrderProvider.overrideWith((ref, _) => status ?? Stream.value(order)),
     screenBrightnessProvider.overrideWithValue(brightness ?? _FakeBrightness()),
   ],
   child: testApp(ActiveOrderPage(order: order, now: now)),
@@ -58,7 +61,7 @@ Widget _page(OrderSummary order, {required DateTime now, Stream<String>? status,
 class MockOrderGateway extends Mock implements OrderGateway {}
 
 void main() {
-  group('activeOrderStatusProvider', () {
+  group('activeOrderProvider', () {
     testWidgets('15秒ごとに注文を読み直し、picked_up になったら止める。閉じたらタイマーも残さない', (tester) async {
       final gateway = MockOrderGateway();
       final answers = [_order(), _order(), _withStatus(_order(), 'picked_up')];
@@ -66,8 +69,8 @@ void main() {
       when(() => gateway.fetchMyOrders()).thenAnswer((_) async => [answers[calls++]]);
       final container = ProviderContainer(overrides: [orderGatewayProvider.overrideWithValue(gateway)]);
       final seen = <String>[];
-      final sub = container.listen(activeOrderStatusProvider(_order().id), (_, next) {
-        if (next.valueOrNull case final s?) seen.add(s);
+      final sub = container.listen(activeOrderProvider(_order().id), (_, next) {
+        if (next.valueOrNull case final s?) seen.add(s.status);
       });
       await tester.pump();
       expect(seen, ['allocated']);
@@ -80,6 +83,23 @@ void main() {
       await tester.pump(const Duration(milliseconds: 1)); // Riverpod gỡ provider autoDispose bằng hẹn giờ 0 ms
       container.dispose();
     });
+  });
+
+  testWidgets('Audit C01: 返金・失効・キャンセルになった予約も問い合わせを止める', (tester) async {
+    final gateway = MockOrderGateway();
+    var calls = 0;
+    when(() => gateway.fetchMyOrders()).thenAnswer((_) async {
+      calls++;
+      return [_withStatus(_order(), 'refunded')];
+    });
+    final container = ProviderContainer(overrides: [orderGatewayProvider.overrideWithValue(gateway)]);
+    final sub = container.listen(activeOrderProvider(_order().id), (_, __) {});
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 60));
+    expect(calls, 1);
+    sub.close();
+    await tester.pump(const Duration(milliseconds: 1));
+    container.dispose();
   });
 
   group('pickupStage', () {
@@ -123,14 +143,14 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    final status = StreamController<String>();
+    final status = StreamController<OrderSummary>();
     addTearDown(status.close);
     await tester.pumpWidget(_page(_order(), now: _planned, status: status.stream));
-    status.add('allocated');
+    status.add(_order());
     await tester.pumpAndSettle();
     expect(find.text(l10nJa.pickupQrTitle), findsOneWidget);
 
-    status.add('picked_up');
+    status.add(_withStatus(_order(), 'picked_up'));
     await tester.pumpAndSettle();
     expect(find.text(l10nJa.activeOrderPickedUp), findsOneWidget);
     expect(find.text(l10nJa.pickupCompleteTitle), findsOneWidget);
@@ -142,21 +162,65 @@ void main() {
 
   testWidgets('QR が出ている間は画面を最大の明るさに、受け取りが済んだら元に戻す', (tester) async {
     final brightness = _FakeBrightness();
-    final status = StreamController<String>();
+    final status = StreamController<OrderSummary>();
     addTearDown(status.close);
     await tester.pumpWidget(_page(_order(), now: _planned, status: status.stream, brightness: brightness));
-    status.add('allocated');
+    status.add(_order());
     await tester.pumpAndSettle();
     expect(brightness.calls, ['raise']);
-    status.add('picked_up');
+    status.add(_withStatus(_order(), 'picked_up'));
     await tester.pumpAndSettle();
     expect(brightness.calls, ['raise', 'restore']);
   });
 
   testWidgets('受け取り済みで評価も済み → 評価のお願いではなく「あなたの評価」', (tester) async {
-    await tester.pumpWidget(_page(_order(rating: 4), now: _planned, status: Stream.value('picked_up')));
+    await tester.pumpWidget(_page(_order(rating: 4), now: _planned, status: Stream.value(_withStatus(_order(rating: 4), 'picked_up'))));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('ratedNote')), findsOneWidget);
     expect(find.byKey(const Key('ratingPrompt')), findsNothing);
+  });
+
+  // Audit C01 (2026-10-19, Figma 949:1695): đang mở QR mà đơn kết thúc (không phải picked_up) → bỏ QR, trả độ sáng,
+  // nói rõ vì sao + đường về lịch sử
+  for (final (status, title) in [
+    ('refunded', l10nJa.noticeRefundedTitle),
+    ('cancelled', l10nJa.activeOrderEndedCancelledTitle),
+    ('expired', l10nJa.activeOrderEndedExpiredTitle),
+  ]) {
+    testWidgets('Audit C01: 開いている間に $status → QR を消し、明るさを戻し、理由と「予約履歴を見る」', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      final brightness = _FakeBrightness();
+      final latest = StreamController<OrderSummary>();
+      addTearDown(latest.close);
+      await tester.pumpWidget(_page(_order(), now: _planned, status: latest.stream, brightness: brightness));
+      latest.add(_order());
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.pickupQrTitle), findsOneWidget);
+
+      latest.add(_withStatus(_order(), status));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nJa.pickupQrTitle), findsNothing);
+      expect(find.text(l10nJa.activeOrderFindTitle), findsNothing);
+      expect(find.text(l10nJa.activeOrderEndedStatus), findsOneWidget);
+      expect(find.text(title), findsOneWidget);
+      expect(find.byKey(const Key('pickupEndedBack')), findsOneWidget);
+      expect(brightness.calls, ['raise', 'restore']);
+    });
+  }
+
+  testWidgets('Audit C01: 開いている間にトラックが出発 → 「停車は終わりました」に変わる', (tester) async {
+    final latest = StreamController<OrderSummary>();
+    addTearDown(latest.close);
+    final now = _planned.add(const Duration(minutes: 5)); // まだ20分の枠の中
+    await tester.pumpWidget(_page(_order(), now: now, status: latest.stream));
+    latest.add(_order());
+    await tester.pumpAndSettle();
+    expect(find.text(l10nJa.activeOrderOver), findsNothing);
+
+    latest.add(_order(departedAt: now));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nJa.activeOrderOver), findsOneWidget);
   });
 }

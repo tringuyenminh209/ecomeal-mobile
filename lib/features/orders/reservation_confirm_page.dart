@@ -73,13 +73,9 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
   }
   bool _cardExpired = false;
   bool _rechecking = false;
-  // Lỗi hiện ở màn review: hết hàng / giới hạn ngày… (_orderError) hoặc thẻ đã bị xoá (_cardMissing)
-  bool _orderError = false;
-  bool _cardMissing = false;
-  bool _rateLimited = false; // E-RATE-429: cùng khung lỗi với _orderError, khác câu
-  bool _couponError = false; // E-COUPON-*: coupon vừa được dùng ở máy khác / hết hạn
-  bool _priceUnavailable = false; // E-ORDER-011 (0071): giá hiện tại dưới mức Stripe nhận
-  bool _serviceError = false; // E-PAY-502: lỗi phía hệ thống thanh toán — không được nói 「売り切れ」
+  // Lỗi hiện ở màn review (khung đỏ trên nút). 1 biến thay cho 6 cờ bool cũ — các lỗi loại trừ nhau nên enum
+  // bảo đảm chỉ 1 câu + 1 nút được chọn (audit C02 2026-10-19). null = không có lỗi.
+  PaymentFailure? _reviewError;
   bool _useCoupon = true; // 0056 (Figma 470:1318): coupon có lợi nhất được bật sẵn, khách có thể tắt
 
   PaymentMethod? _selectedCard(List<PaymentMethod> methods) {
@@ -96,12 +92,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
       _paidCard = card;
       _paidAmount = amount;
       _paidCouponId = couponId;
-      _orderError = false;
-      _cardMissing = false;
-      _rateLimited = false;
-      _couponError = false;
-      _priceUnavailable = false;
-      _serviceError = false;
+      _reviewError = null;
     });
     try {
       final result = await ref.read(orderGatewayProvider).createOrder(
@@ -124,32 +115,23 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
             _cardExpired = failure == PaymentFailure.cardExpired;
           case PaymentFailure.unknown:
             _phase = PaymentPhase.unknown;
-          case PaymentFailure.methodMissing:
-            _phase = PaymentPhase.review;
-            _cardMissing = true;
-            _selectedCardId = null;
-          case PaymentFailure.rateLimited:
-            _phase = PaymentPhase.review;
-            _orderError = true;
-            _rateLimited = true;
-          case PaymentFailure.couponUnavailable:
-            _phase = PaymentPhase.review;
-            _orderError = true;
-            _couponError = true;
-          case PaymentFailure.priceUnavailable:
-            _phase = PaymentPhase.review;
-            _orderError = true;
-            _priceUnavailable = true;
-          case PaymentFailure.serviceError:
-            _phase = PaymentPhase.review;
-            _orderError = true;
-            _serviceError = true;
           case PaymentFailure.sessionExpired:
             // không phải lỗi đặt hàng: đăng xuất trên máy → SessionGuard đóng màn này và báo 「ログインし直してください」
             _phase = PaymentPhase.review;
-          case PaymentFailure.other:
+          case PaymentFailure.methodMissing:
             _phase = PaymentPhase.review;
-            _orderError = true;
+            _reviewError = failure;
+            _selectedCardId = null;
+          case PaymentFailure.rateLimited ||
+              PaymentFailure.couponUnavailable ||
+              PaymentFailure.priceUnavailable ||
+              PaymentFailure.serviceError ||
+              PaymentFailure.dailyLimit ||
+              PaymentFailure.soldOutAtStop ||
+              PaymentFailure.batchUnavailable ||
+              PaymentFailure.other:
+            _phase = PaymentPhase.review;
+            _reviewError = failure;
         }
       });
       if (failure == PaymentFailure.sessionExpired) unawaited(ref.read(authControllerProvider.notifier).expireSession());
@@ -204,6 +186,13 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
+  // Lô hết / hết giờ / giá không trả được: về tab ホーム (đóng M04/M05) và tải lại danh sách túi
+  void _goToBrowse() {
+    ref.invalidate(activeListingsProvider);
+    ref.read(customerTabProvider.notifier).state = CustomerTab.home;
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   Future<void> _chooseCard(String? currentId) async {
     final id = await Navigator.of(context).push<String>(
       MaterialPageRoute(builder: (_) => PaymentMethodsPage(isSelecting: true, selectedId: currentId)),
@@ -211,7 +200,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
     if (id == null || !mounted) return;
     setState(() {
       _selectedCardId = id;
-      _cardMissing = false;
+      if (_reviewError == PaymentFailure.methodMissing) _reviewError = null;
       _phase = PaymentPhase.review;
     });
   }
@@ -221,7 +210,7 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
     if (id == null || !mounted) return;
     setState(() {
       _selectedCardId = id;
-      _cardMissing = false;
+      if (_reviewError == PaymentFailure.methodMissing) _reviewError = null;
     });
   }
 
@@ -272,6 +261,8 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
     // Chưa có giá hoặc chưa có thẻ thì KHÔNG cho trả — người dùng không được đồng ý trả một số tiền mà màn hình
     // chưa hiển thị. create_order vẫn tự tính lại giá ở server.
     final canPay = price != null && card != null;
+    final reviewError = _reviewError;
+    final errorAction = reviewError == null ? null : reviewErrorAction(reviewError);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.reservationConfirmTitle)),
@@ -282,70 +273,67 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
               children: [
-                // Figma Error (54:3909): khi đặt thất bại thì ẩn phần thông tin — mắt người dùng đi thẳng xuống lỗi
-                // + nút "もう一度試す" ở vùng dính đáy.
-                if (!_orderError) ...[
-                  const SizedBox(height: 12),
-                  _OutlinedBox(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.local_shipping, size: 20, color: AppColors.primary),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(l10n.pickupByEcoTruck, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                              const SizedBox(height: 3),
-                              Text('${widget.stopName}・$window', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                            ],
-                          ),
+                // Lỗi KHÔNG ẩn phần trên (thẻ, coupon, đơn): khách cần thấy để tắt coupon / đổi thẻ (audit C02, Figma 949:21244〜)
+                const SizedBox(height: 12),
+                _OutlinedBox(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.local_shipping, size: 20, color: AppColors.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.pickupByEcoTruck, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 3),
+                            Text('${widget.stopName}・$window', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _PaymentMethodSection(
-                    methodsAsync: methodsAsync,
-                    card: card,
-                    onAdd: _addFirstCard,
-                    onChange: () => _chooseCard(card?.id),
-                    onRetry: () => ref.invalidate(myPaymentMethodsProvider),
-                  ),
-                  if (coupon != null) ...[
-                    const SizedBox(height: 20),
-                    Text(l10n.couponSectionLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 8),
-                    CouponTile(
-                      coupon: coupon,
-                      trailing: Switch(
-                        key: const Key('useCouponSwitch'),
-                        value: _useCoupon,
-                        onChanged: (v) => setState(() => _useCoupon = v),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _PaymentMethodSection(
+                  methodsAsync: methodsAsync,
+                  card: card,
+                  onAdd: _addFirstCard,
+                  onChange: () => _chooseCard(card?.id),
+                  onRetry: () => ref.invalidate(myPaymentMethodsProvider),
+                ),
+                if (coupon != null) ...[
                   const SizedBox(height: 20),
-                  // "Cancellation note": nền vàng nhạt, viền Amber.
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.amberSoft,
-                      border: Border.all(color: AppColors.amber),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l10n.freeCancelTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 6),
-                        Text(l10n.freeCancelBody, style: const TextStyle(fontSize: 11, height: 1.6, color: AppColors.textSecondary)),
-                      ],
+                  Text(l10n.couponSectionLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  CouponTile(
+                    coupon: coupon,
+                    trailing: Switch(
+                      key: const Key('useCouponSwitch'),
+                      value: _useCoupon,
+                      onChanged: (v) => setState(() => _useCoupon = v),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  if (ref.watch(paymentTestModeProvider)) PaymentNote(text: l10n.testPaymentNote, icon: Icons.science_outlined),
                 ],
+                const SizedBox(height: 20),
+                // "Cancellation note": nền vàng nhạt, viền Amber.
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.amberSoft,
+                    border: Border.all(color: AppColors.amber),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l10n.freeCancelTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 6),
+                      Text(l10n.freeCancelBody, style: const TextStyle(fontSize: 11, height: 1.6, color: AppColors.textSecondary)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (ref.watch(paymentTestModeProvider)) PaymentNote(text: l10n.testPaymentNote, icon: Icons.science_outlined),
               ],
             ),
           ),
@@ -439,20 +427,8 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                     ),
                     const SizedBox(height: 8),
                   ],
-                  if (_orderError || _cardMissing) ...[
-                    _ErrorBox(
-                      message: _cardMissing
-                          ? l10n.errorPaymentMethodMissing
-                          : _rateLimited
-                              ? l10n.errorRateLimited
-                              : _couponError
-                                  ? l10n.errorCouponUnavailable
-                                  : _priceUnavailable
-                                      ? l10n.errorPriceTooLow
-                                      : _serviceError
-                                      ? l10n.errorPaymentService
-                                      : l10n.errorReservationFailed,
-                    ),
+                  if (reviewError != null) ...[
+                    _ErrorBox(message: reviewErrorMessage(reviewError, l10n)),
                     const SizedBox(height: 10),
                   ] else if (price != null && methodsAsync.hasValue) ...[
                     Text(
@@ -465,14 +441,17 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                   ],
                   FilledButton(
                     key: const Key('confirmReservationButton'),
-                    onPressed: canPay ? () => _pay(card, price, discount > 0 ? coupon?.id : null) : null,
-                    child: Text(
-                      _orderError
-                          ? l10n.tryAgain
-                          : card == null && methodsAsync.hasValue
-                              ? l10n.addPaymentMethodButton
-                              : l10n.payButton(priceText),
-                    ),
+                    onPressed: switch (errorAction) {
+                      ReviewErrorAction.seeReservations => _goToOrders,
+                      ReviewErrorAction.browse => _goToBrowse,
+                      _ => canPay ? () => _pay(card, price, discount > 0 ? coupon?.id : null) : null,
+                    },
+                    child: Text(switch (errorAction) {
+                      ReviewErrorAction.seeReservations => l10n.actionSeeReservations,
+                      ReviewErrorAction.browse => l10n.actionFindOtherBags,
+                      ReviewErrorAction.retry => l10n.tryAgain,
+                      null => card == null && methodsAsync.hasValue ? l10n.addPaymentMethodButton : l10n.payButton(priceText),
+                    }),
                   ),
                 ],
               ),
@@ -625,3 +604,26 @@ class _SummaryLine extends StatelessWidget {
     );
   }
 }
+
+// Nút chính khi có lỗi ở màn review = "việc khách làm được tiếp" (Figma 949:21244〜, ghi chú 949:21567).
+// null = giữ nút thường (thanh toán / thêm thẻ): lỗi coupon (đã tải lại coupon) và thẻ bị xoá (chọn thẻ ở trên).
+enum ReviewErrorAction { seeReservations, browse, retry }
+
+ReviewErrorAction? reviewErrorAction(PaymentFailure failure) => switch (failure) {
+  PaymentFailure.dailyLimit => ReviewErrorAction.seeReservations,
+  PaymentFailure.soldOutAtStop || PaymentFailure.batchUnavailable || PaymentFailure.priceUnavailable => ReviewErrorAction.browse,
+  PaymentFailure.couponUnavailable || PaymentFailure.methodMissing => null,
+  _ => ReviewErrorAction.retry,
+};
+
+String reviewErrorMessage(PaymentFailure failure, AppLocalizations l10n) => switch (failure) {
+  PaymentFailure.methodMissing => l10n.errorPaymentMethodMissing,
+  PaymentFailure.rateLimited => l10n.errorRateLimited,
+  PaymentFailure.couponUnavailable => l10n.errorCouponUnavailable,
+  PaymentFailure.priceUnavailable => l10n.errorPriceTooLow,
+  PaymentFailure.serviceError => l10n.errorPaymentService,
+  PaymentFailure.dailyLimit => l10n.errorDailyLimit,
+  PaymentFailure.soldOutAtStop => l10n.errorSoldOutAtStop,
+  PaymentFailure.batchUnavailable => l10n.errorBatchUnavailable,
+  _ => l10n.errorReservationFailed,
+};

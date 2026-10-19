@@ -124,8 +124,8 @@ Future<void> _pumpShell(WidgetTester tester, {required LineMenuLinks links, requ
         sharedPreferencesProvider.overrideWithValue(prefs),
         currentPositionProvider.overrideWith((ref) => Future.error(Exception('GPS denied'))),
         lineMenuLinksProvider.overrideWithValue(links),
-        // SCR-M18 hỏi trạng thái mỗi 15 giây — test cố định trạng thái
-        activeOrderStatusProvider.overrideWith((ref, _) => Stream.value('allocated')),
+        // SCR-M18 hỏi lại đơn mỗi 15 giây — test không phát gì: màn dùng đúng đơn được mở
+        activeOrderProvider.overrideWith((ref, _) => const Stream.empty()),
         screenBrightnessProvider.overrideWithValue(_NoBrightness()),
       ],
       child: testApp(const CustomerShell()),

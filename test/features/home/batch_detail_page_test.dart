@@ -238,6 +238,31 @@ void main() {
     expect(find.text(l10nJa.batchExpired), findsOneWidget);
   });
 
+  // Audit R01 (2026-10-19): M04 nằm DƯỚI 1 màn khác (vd SCR-M05 đang thanh toán) → hết giờ không được pop màn trên
+  testWidgets('expiry while another screen is on top keeps that screen open', (tester) async {
+    when(() => gateway.fetchTodayReservationCount()).thenAnswer((_) async => 0);
+    final ticks = StreamController<DateTime>();
+    addTearDown(ticks.close);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          homeGatewayProvider.overrideWithValue(gateway),
+          homeClockProvider.overrideWith((ref) => ticks.stream),
+        ],
+        child: testApp(
+          BatchDetailPage(batchId: 'b-1', routeStopId: 'rs-1', stopName: '大阪駅前', plannedPickupTime: DateTime.now()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+    unawaited(navigator.push(MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('checkout on top')))));
+    await tester.pumpAndSettle();
+    ticks.add(batch.expiresAt.add(const Duration(seconds: 1)));
+    await tester.pumpAndSettle();
+    expect(find.text('checkout on top'), findsOneWidget);
+  });
+
   testWidgets('quán có đăng ảnh (0038) → hiện ảnh thật + câu "写真は店舗が登録した料理です"; không có → ảnh minh hoạ + "写真はイメージです"', (tester) async {
     when(() => gateway.fetchTodayReservationCount()).thenAnswer((_) async => 0);
     await pumpPage(tester);

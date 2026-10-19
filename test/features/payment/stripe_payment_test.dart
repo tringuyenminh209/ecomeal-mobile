@@ -85,7 +85,13 @@ void main() {
     expect(classifyPaymentError(const PaymentApiException('E-PAY-404')), PaymentFailure.methodMissing);
     expect(classifyPaymentError(const PaymentApiException('E-PAY-504')), PaymentFailure.unknown);
     expect(classifyPaymentError(const PaymentApiException('E-RATE-429')), PaymentFailure.rateLimited);
-    expect(classifyPaymentError(const PaymentApiException('E-ORDER-007')), PaymentFailure.other);
+    // Audit C02 (2026-10-19): lỗi nghiệp vụ tách theo việc khách làm được tiếp, không gom về 'other' (「売り切れ」)
+    expect(classifyPaymentError(const PaymentApiException('E-ORDER-007')), PaymentFailure.soldOutAtStop);
+    expect(classifyPaymentError(const PaymentApiException('E-ORDER-001')), PaymentFailure.dailyLimit);
+    expect(classifyPaymentError(const PaymentApiException('E-ORDER-003')), PaymentFailure.batchUnavailable);
+    expect(classifyPaymentError(const PaymentApiException('E-ORDER-004')), PaymentFailure.batchUnavailable);
+    expect(classifyPaymentError(const PaymentApiException('E-ORDER-404')), PaymentFailure.batchUnavailable);
+    expect(classifyPaymentError(const PaymentApiException('E-ORDER-999')), PaymentFailure.other);
     expect(classifyPaymentError(TimeoutException('slow')), PaymentFailure.unknown);
   });
 
