@@ -4329,4 +4329,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get routeMapListHint => '上に引くと全部の地点（① お店で受け取る・② お客様に渡す）';
+
+  @override
+  String get routeMapRoadLoading => '道を読み込んでいます…';
+
+  @override
+  String routeMapRoadLegend(int count, int minutes, String km) {
+    return '道に沿った道順 ・ 残り$countか所 約$minutes分（${km}km）';
+  }
+
+  @override
+  String get routeMapRoadFailed => '道を読み込めませんでした（点線は順番の目安）';
+
+  @override
+  String get routeMapRoadRetry => 'もう一度';
+
+  @override
+  String get roadTimeLeftLabel => '道で あと';
 }

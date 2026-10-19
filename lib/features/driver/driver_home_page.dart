@@ -240,6 +240,7 @@ class NextTaskCard extends StatelessWidget {
     this.now,
     this.title,
     this.arriveLabel,
+    this.driveMinutes,
   });
   final TonightRoute route;
   final DriverStop stop;
@@ -249,6 +250,8 @@ class NextTaskCard extends StatelessWidget {
   // D08: bản đồ toàn màn hình dùng lại thẻ này cho điểm vừa chọn — 「選んだ地点」 + 「この地点を開く」
   final String? title;
   final String? arriveLabel;
+  // D08 bước 2: phút chạy theo đường thật (API-090) tới điểm này → ô giữa 「道で あと」 thay cho 「あと」 theo giờ kế hoạch
+  final int? driveMinutes;
 
   @override
   Widget build(BuildContext context) {
@@ -302,7 +305,11 @@ class NextTaskCard extends StatelessWidget {
             children: [
               Expanded(child: _Fact(label: l10n.arriveByLabel, value: tokyoTime(stop.plannedTime), color: eco.amber)),
               const SizedBox(width: 8),
-              Expanded(child: _Fact(label: l10n.timeLeftLabel, value: l10n.minutesShort(minutesUntil(stop.plannedTime, now: now)))),
+              Expanded(
+                child: driveMinutes == null
+                    ? _Fact(label: l10n.timeLeftLabel, value: l10n.minutesShort(minutesUntil(stop.plannedTime, now: now)))
+                    : _Fact(label: l10n.roadTimeLeftLabel, value: l10n.minutesShort(driveMinutes!)),
+              ),
               const SizedBox(width: 8),
               Expanded(child: _Fact(label: isPickup ? l10n.pickupAmountLabel : l10n.handoutAmountLabel, value: amount)),
             ],

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/batch_photo.dart';
@@ -96,6 +97,36 @@ class ConfirmResult {
   final bool rejectedForTemperature;
 }
 
+// API-090 route-directions (D08 bước 2): đường bộ thật cho các điểm CÒN LẠI theo đúng thứ tự server giao, từ Google
+// Routes API qua Edge Function (key chỉ ở server). Có tính tình trạng đường lúc hỏi.
+class RoadRoute {
+  const RoadRoute({required this.polyline, required this.distanceMeters, required this.durationSeconds, required this.secondsToStop});
+  final String? polyline; // Google encoded polyline; null: không còn đoạn nào để vẽ
+  final int distanceMeters;
+  final int durationSeconds;
+  // route_stop_id → số giây từ điểm xuất phát (xe, hoặc điểm còn lại đầu tiên) tới điểm đó, cộng dồn các đoạn
+  final Map<String, int> secondsToStop;
+
+  // `data` của envelope API-090. Đoạn i kết thúc ở legs[i].routeStopId → cộng dồn thành thời gian tới từng điểm.
+  factory RoadRoute.fromApi(Map<dynamic, dynamic> data) {
+    var total = 0;
+    final secondsToStop = <String, int>{};
+    for (final leg in data['legs'] as List) {
+      final l = leg as Map;
+      total += (l['durationSeconds'] as num).toInt();
+      secondsToStop[l['routeStopId'] as String] = total;
+    }
+    return RoadRoute(
+      polyline: data['polyline'] as String?,
+      distanceMeters: (data['distanceMeters'] as num).toInt(),
+      durationSeconds: (data['durationSeconds'] as num).toInt(),
+      secondsToStop: secondsToStop,
+    );
+  }
+
+  int get remainingStops => secondsToStop.length;
+}
+
 abstract class DriverGateway {
   // SCR-D00 (ADR-007): 運営 đã tạm dừng tài khoản này chưa (driver_profiles.is_active, RLS chỉ cho đọc dòng của mình).
   // Không có dòng hồ sơ → coi như đang hoạt động (chưa từng bị dừng).
@@ -111,6 +142,7 @@ abstract class DriverGateway {
     required List<String> routeStopIds,
     required double celsius,
   });
+  Future<RoadRoute> fetchRoadRoute(); // API-090
 }
 
 class SupabaseDriverGateway implements DriverGateway {
@@ -256,6 +288,15 @@ class SupabaseDriverGateway implements DriverGateway {
       rejectedForTemperature: result['rejected_for_temperature'] as bool? ?? false,
     );
   }
+
+  // functions.invoke tự gắn JWT tài xế — server tự đọc tuyến/toạ độ từ DB, app không gửi gì. Lỗi → ném (màn hiện băng lỗi).
+  @override
+  Future<RoadRoute> fetchRoadRoute() async {
+    final res = await _client.functions.invoke('route-directions').timeout(const Duration(seconds: 15));
+    final body = res.data;
+    if (body is! Map || body['success'] != true || body['data'] is! Map) throw StateError('route-directions: unexpected response');
+    return RoadRoute.fromApi(body['data'] as Map);
+  }
 }
 
 final driverGatewayProvider = Provider<DriverGateway>((ref) => SupabaseDriverGateway(SupabaseClientHolder.instance));
@@ -267,4 +308,14 @@ final driverActiveProvider = FutureProvider.autoDispose.family<bool, String>((re
 
 final tonightRouteProvider = FutureProvider.autoDispose<TonightRoute?>((ref) {
   return ref.watch(driverGatewayProvider).fetchTonightRoute();
+});
+
+// Đọc lại đường mỗi 5 phút khi bản đồ còn mở (tình trạng đường đổi) — Routes API có phí nên không đọc dày hơn.
+const roadRouteRefresh = Duration(minutes: 5);
+
+// Khoá theo điểm kế tiếp: rời 1 điểm → điểm kế tiếp đổi → đọc đường mới. Chỉ SCR-D08 dùng (ホーム vẫn nét đứt, không tốn phí).
+final roadRouteProvider = FutureProvider.autoDispose.family<RoadRoute, String>((ref, nextStopId) {
+  final timer = Timer(roadRouteRefresh, ref.invalidateSelf);
+  ref.onDispose(timer.cancel);
+  return ref.watch(driverGatewayProvider).fetchRoadRoute();
 });

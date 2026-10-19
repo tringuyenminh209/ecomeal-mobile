@@ -4519,4 +4519,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get routeMapListHint =>
       'Pull up to see every stop (① pick up at stores · ② hand over to customers)';
+
+  @override
+  String get routeMapRoadLoading => 'Loading roads…';
+
+  @override
+  String routeMapRoadLegend(int count, int minutes, String km) {
+    return 'Along the roads · $count stops left · about $minutes min ($km km)';
+  }
+
+  @override
+  String get routeMapRoadFailed =>
+      'Couldn\'t load the roads (dotted line shows the order only)';
+
+  @override
+  String get routeMapRoadRetry => 'Try again';
+
+  @override
+  String get roadTimeLeftLabel => 'By road';
 }

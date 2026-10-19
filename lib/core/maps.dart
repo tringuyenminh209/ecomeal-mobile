@@ -110,3 +110,30 @@ Future<void> fitCameraTo(GoogleMapController controller, Iterable<LatLng> points
         : CameraUpdate.newLatLngBounds(bounds, 48),
   );
 }
+
+// Giải "encoded polyline" của Google (Routes API, độ chính xác 1e-5) thành các điểm — thuật toán công khai của Google:
+// mỗi toạ độ là hiệu so với điểm trước, chia nhóm 5 bit, bit 0x20 = còn nhóm tiếp. Chuỗi hỏng → dừng ở điểm cuối đọc được.
+List<LatLng> decodePolyline(String encoded) {
+  final points = <LatLng>[];
+  var index = 0, lat = 0, lng = 0;
+  int? next() {
+    var shift = 0, result = 0;
+    while (index < encoded.length) {
+      final b = encoded.codeUnitAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+      if (b < 0x20) return (result & 1) != 0 ? ~(result >> 1) : result >> 1;
+    }
+    return null;
+  }
+
+  while (index < encoded.length) {
+    final dLat = next();
+    final dLng = next();
+    if (dLat == null || dLng == null) break;
+    lat += dLat;
+    lng += dLng;
+    points.add(LatLng(lat / 1e5, lng / 1e5));
+  }
+  return points;
+}

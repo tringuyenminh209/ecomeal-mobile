@@ -1280,5 +1280,10 @@
   "routeMapLegend": "Dotted lines show the order of stops, not the actual roads",
   "routeMapSelectedStop": "Selected stop",
   "routeMapOpenStop": "Open this stop",
-  "routeMapListHint": "Pull up to see every stop (① pick up at stores · ② hand over to customers)"
+  "routeMapListHint": "Pull up to see every stop (① pick up at stores · ② hand over to customers)",
+  "routeMapRoadLoading": "Loading roads…",
+  "routeMapRoadLegend": "Along the roads · {count} stops left · about {minutes} min ({km} km)",
+  "routeMapRoadFailed": "Couldn't load the roads (dotted line shows the order only)",
+  "routeMapRoadRetry": "Try again",
+  "roadTimeLeftLabel": "By road"
 }

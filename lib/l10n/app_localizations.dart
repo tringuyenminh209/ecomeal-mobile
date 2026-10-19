@@ -7761,6 +7761,36 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'上に引くと全部の地点（① お店で受け取る・② お客様に渡す）'**
   String get routeMapListHint;
+
+  /// No description provided for @routeMapRoadLoading.
+  ///
+  /// In ja, this message translates to:
+  /// **'道を読み込んでいます…'**
+  String get routeMapRoadLoading;
+
+  /// No description provided for @routeMapRoadLegend.
+  ///
+  /// In ja, this message translates to:
+  /// **'道に沿った道順 ・ 残り{count}か所 約{minutes}分（{km}km）'**
+  String routeMapRoadLegend(int count, int minutes, String km);
+
+  /// No description provided for @routeMapRoadFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'道を読み込めませんでした（点線は順番の目安）'**
+  String get routeMapRoadFailed;
+
+  /// No description provided for @routeMapRoadRetry.
+  ///
+  /// In ja, this message translates to:
+  /// **'もう一度'**
+  String get routeMapRoadRetry;
+
+  /// No description provided for @roadTimeLeftLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'道で あと'**
+  String get roadTimeLeftLabel;
 }
 
 class _AppLocalizationsDelegate

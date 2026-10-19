@@ -12,8 +12,8 @@ import 'driver_route_helpers.dart';
 import 'gps_reporter.dart';
 
 // Bản đồ tuyến dùng chung cho bản đồ nhỏ ở ホーム (SCR-D01) và trang toàn màn hình (SCR-D08). Pin có số theo thứ tự server
-// giao (đã rời: mờ, kế tiếp: vàng), chấm xe theo GPS gửi gần nhất. Đường nối là NÉT ĐỨT giữa các điểm — chỉ thứ tự, không
-// phải đường xe chạy (chưa có dữ liệu đường bộ; audit D08 bước 2 mới vẽ theo đường thật).
+// giao (đã rời: mờ, kế tiếp: vàng), chấm xe theo GPS gửi gần nhất. Có đường bộ thật (D08 bước 2, chỉ SCR-D08) → nét LIỀN
+// theo đường; không có (ホーム, đang tải, tải lỗi) → NÉT ĐỨT nối thẳng các điểm, chỉ thứ tự — không giả làm đường xe chạy.
 class DriverRouteMap extends StatefulWidget {
   const DriverRouteMap({
     super.key,
@@ -24,6 +24,7 @@ class DriverRouteMap extends StatefulWidget {
     this.onTapMap,
     this.onController,
     this.inScrollView = false,
+    this.roadPolyline,
   });
   final List<DriverStop> stops;
   final GpsState gps;
@@ -33,6 +34,8 @@ class DriverRouteMap extends StatefulWidget {
   final void Function(GoogleMapController controller)? onController;
   // Bản đồ nằm trong danh sách cuộn (ホーム): nhận cử chỉ trước ListView (mapGestureRecognizers)
   final bool inScrollView;
+  // Encoded polyline từ API-090 (xe → các điểm còn lại). null → nét đứt
+  final String? roadPolyline;
 
   @override
   State<DriverRouteMap> createState() => _DriverRouteMapState();
@@ -100,6 +103,7 @@ class _DriverRouteMapState extends State<DriverRouteMap> {
     final next = nextStopOf(stops);
     final points = [for (final s in stops) LatLng(s.lat, s.lng)];
     final truck = gps.lat == null ? null : LatLng(gps.lat!, gps.lng!);
+    final road = widget.roadPolyline == null ? const <LatLng>[] : decodePolyline(widget.roadPolyline!);
     return GoogleMap(
       initialCameraPosition: CameraPosition(target: truck ?? (points.isNotEmpty ? points.first : osakaCenter), zoom: 13),
       myLocationButtonEnabled: false,
@@ -127,7 +131,15 @@ class _DriverRouteMapState extends State<DriverRouteMap> {
           ),
       },
       polylines: {
-        if (points.length > 1)
+        if (road.length > 1)
+          Polyline(
+            polylineId: const PolylineId('route-road'),
+            points: road,
+            width: 5,
+            color: context.eco.amber,
+            jointType: JointType.round,
+          )
+        else if (points.length > 1)
           Polyline(
             polylineId: const PolylineId('route-order'),
             points: points,
@@ -147,8 +159,9 @@ class _DriverRouteMapState extends State<DriverRouteMap> {
   }
 }
 
-// SCR-D08 ルートの地図（全画面）— Figma 966:1785 / chọn điểm 967:1785, audit D08 bước 1. Chỉ dùng dữ liệu đang có
-// (tuyến đêm nay + GPS gửi gần nhất), không thêm API. Chạm pin → thẻ của điểm đó; chạm chỗ trống → về 「次にやること」.
+// SCR-D08 ルートの地図（全画面）— Figma 966:1785 / chọn điểm 967:1785 (bước 1). Bước 2 (Figma 978:1833 có đường /
+// 978:1899 đang tải / 978:1965 tải lỗi): đường bộ thật + 「道で あと n分」 từ API-090. Chạm pin → thẻ của điểm đó;
+// chạm chỗ trống → về 「次にやること」.
 // Mở / đóng không đụng tới ホーム (trang push lên trên), nên không mất gì đang làm.
 class DriverRouteMapPage extends ConsumerStatefulWidget {
   const DriverRouteMapPage({super.key});
@@ -184,6 +197,12 @@ class _DriverRouteMapPageState extends ConsumerState<DriverRouteMapPage> {
     final selected = stops.where((s) => s.routeStopId == _selectedId).firstOrNull;
     final cardStop = selected ?? next;
     final truck = gps.lat == null ? null : LatLng(gps.lat!, gps.lng!);
+    // Đã rời hết thì không còn đường để hỏi (không tốn phí)
+    final roadAsync = next == null ? null : ref.watch(roadRouteProvider(next.routeStopId));
+    final road = roadAsync?.valueOrNull;
+    final roadFailed = roadAsync != null && roadAsync.hasError && !roadAsync.isLoading;
+    final roadPolyline = roadFailed ? null : road?.polyline;
+    final secondsToCard = cardStop == null || roadPolyline == null ? null : road!.secondsToStop[cardStop.routeStopId];
     final chipDecoration = BoxDecoration(color: eco.surface, borderRadius: BorderRadius.circular(14));
 
     Widget pillButton(Key key, String label, VoidCallback? onPressed) => FilledButton.tonal(
@@ -204,6 +223,7 @@ class _DriverRouteMapPageState extends ConsumerState<DriverRouteMapPage> {
               onTapStop: _select,
               onTapMap: () => _select(null),
               onController: (c) => _map = c,
+              roadPolyline: roadPolyline,
             ),
           ),
           SafeArea(
@@ -261,13 +281,18 @@ class _DriverRouteMapPageState extends ConsumerState<DriverRouteMapPage> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  // Trung thực về nét nối: chưa có dữ liệu đường bộ (bước 2)
-                  Container(
-                    key: const Key('routeMapLegend'),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(color: eco.surface.withValues(alpha: 0.92), borderRadius: BorderRadius.circular(8)),
-                    child: Text(l10n.routeMapLegend, style: TextStyle(fontSize: 11, color: eco.textSecondary)),
-                  ),
+                  // Trung thực về nét nối: nét liền chỉ khi đã có đường thật; tải lỗi thì nói rõ + cho tải lại
+                  if (roadFailed)
+                    _RoadFailedStrip(onRetry: () => ref.invalidate(roadRouteProvider(next!.routeStopId)))
+                  else
+                    _Legend(
+                      roadAsync != null && roadAsync.isLoading && !roadAsync.hasValue
+                          ? l10n.routeMapRoadLoading
+                          : roadPolyline != null
+                              ? l10n.routeMapRoadLegend(road!.remainingStops, (road.durationSeconds / 60).ceil(),
+                                  (road.distanceMeters / 1000).toStringAsFixed(1))
+                              : l10n.routeMapLegend,
+                    ),
                 ],
               ),
             ),
@@ -300,6 +325,7 @@ class _DriverRouteMapPageState extends ConsumerState<DriverRouteMapPage> {
                       now: now,
                       title: selected == null ? null : l10n.routeMapSelectedStop,
                       arriveLabel: selected == null ? null : l10n.routeMapOpenStop,
+                      driveMinutes: secondsToCard == null ? null : (secondsToCard / 60).ceil(),
                       onNavigate: () => openDirectionsTo(context, ref, cardStop),
                       onArrive: () => openStop(context, ref, route, cardStop),
                     ),
@@ -318,6 +344,62 @@ class _DriverRouteMapPageState extends ConsumerState<DriverRouteMapPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _Legend extends StatelessWidget {
+  const _Legend(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.eco;
+    return Container(
+      key: const Key('routeMapLegend'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: eco.surface.withValues(alpha: 0.92), borderRadius: BorderRadius.circular(8)),
+      child: Text(text, style: TextStyle(fontSize: 11, color: eco.textSecondary)),
+    );
+  }
+}
+
+// Figma 978:1965: không tải được đường → giữ nét đứt, nói rõ + 「もう一度」
+class _RoadFailedStrip extends StatelessWidget {
+  const _RoadFailedStrip({required this.onRetry});
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.eco;
+    final l10n = context.l10n;
+    return Row(
+      children: [
+        Flexible(
+          child: Container(
+            key: const Key('routeMapRoadFailed'),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: eco.surface.withValues(alpha: 0.92),
+              border: Border.all(color: eco.amber),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(l10n.routeMapRoadFailed, style: TextStyle(fontSize: 11, color: eco.textPrimary)),
+          ),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton(
+          key: const Key('routeMapRoadRetry'),
+          onPressed: onRetry,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: eco.surface,
+            foregroundColor: eco.textPrimary,
+            side: BorderSide(color: eco.amber),
+            minimumSize: const Size(0, 44),
+          ),
+          child: Text(l10n.routeMapRoadRetry),
+        ),
+      ],
     );
   }
 }
