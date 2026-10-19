@@ -1,4 +1,5 @@
 import '../../core/jst_date.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import '../../core/rpc_error.dart';
 import '../../l10n/l10n.dart';
 import 'store_gateway.dart';
@@ -102,6 +103,9 @@ DateTime sellByAtJst({required DateTime now, required bool tomorrow, required in
 // Câu báo lỗi theo mã của create_surplus_batch (10_API設計 §3, API-004) — cùng bảng với Web (create-batch-error.ts)
 String registerBatchErrorMessage(Object error, AppLocalizations l10n) {
   if (error is BatchPhotoUploadException) return l10n.storeErrPhotoUpload;
+  // Không có trả lời của server (mất mạng / quá giờ): lô có thể ĐÃ được tạo → không nói 「登録できませんでした」.
+  // Gửi lại an toàn: cùng client_request_id thì server trả lô đã tạo (0076, audit S01, Figma 953:5970)
+  if (error is! PostgrestException) return l10n.storeErrResultUnknown;
   return switch (rpcErrorCode(error)) {
     'E-REST-004' || 'E-REST-019' => l10n.storeErrPrice,
     'E-REST-008' => l10n.storeErrSellByPast,

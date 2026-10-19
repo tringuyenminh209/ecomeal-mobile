@@ -18,7 +18,7 @@ import '../../widgets/account_notice_screen.dart';
 import '../../widgets/admin_shell.dart';
 import '../../widgets/customer_shell.dart';
 import '../../widgets/driver_shell.dart';
-import '../../widgets/placeholder_screen.dart';
+import '../../widgets/load_error_screen.dart';
 
 // Màn gốc của cả 4 app (ADR-007, ADR-015). Mọi chuyển màn trước/sau đăng nhập đều đi qua đây — không màn nào tự
 // Navigator.push. App khách: SCR-M01/M02 → CustomerShell. App tài xế: SCR-D00 → DriverShell. App nhà hàng: SCR-S00 →
@@ -49,7 +49,7 @@ class RoleGate extends ConsumerWidget {
       // App khách: lần đầu (chưa chọn ngôn ngữ) → SCR-M01; đã chọn rồi (mở lại app, vừa đăng xuất) → thẳng SCR-M02.
       return ref.watch(onboardingDoneProvider) ? const LoginSignupPage() : const OnboardingPage();
     }
-    if (authState.role == null) return PlaceholderScreen(label: l10n.errorProfileLoadFailed);
+    if (authState.role == null) return LoadErrorScreen(onRetry: () => ref.read(authControllerProvider.notifier).reloadProfile());
     if (flavor == AppFlavor.store) {
       return authState.role == AppRole.restaurantOwner
           ? StoreGate(userId: authState.session!.user.id)
@@ -79,7 +79,7 @@ class RoleGate extends ConsumerWidget {
             ? AccountNoticeScreen(title: l10n.driverOnlyAppTitle, body: l10n.driverOnlyAppBody)
             : const WebAdminOnlyScreen();
       case null:
-        return PlaceholderScreen(label: l10n.errorProfileLoadFailed);
+        return LoadErrorScreen(onRetry: () => ref.read(authControllerProvider.notifier).reloadProfile());
     }
   }
 }
@@ -95,7 +95,7 @@ class _DriverActiveGate extends ConsumerWidget {
     final l10n = context.l10n;
     return ref.watch(driverActiveProvider(userId)).when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (_, _) => PlaceholderScreen(label: l10n.errorProfileLoadFailed),
+      error: (_, _) => LoadErrorScreen(onRetry: () => ref.invalidate(driverActiveProvider(userId))),
       data: (active) => active
           ? const DriverShell()
           : AccountNoticeScreen(title: l10n.driverSuspendedTitle, body: l10n.driverSuspendedBody),
@@ -114,7 +114,7 @@ class _TermsGate extends ConsumerWidget {
     return ref.watch(acceptedTermsVersionProvider(userId)).when(
       // invalidate sau khi bấm 同意 là "refresh": mặc định giữ màn đồng ý tới khi có kết quả mới (không nháy spinner).
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (_, _) => PlaceholderScreen(label: context.l10n.errorProfileLoadFailed),
+      error: (_, _) => LoadErrorScreen(onRetry: () => ref.invalidate(acceptedTermsVersionProvider(userId))),
       data: (version) => version == currentTermsVersion
           ? PushRegistrar(onMessage: refreshOrdersAfterPush, onOpened: openOrdersFromPush, child: CustomerShell(userId: userId))
           : TermsConsentPage(userId: userId),

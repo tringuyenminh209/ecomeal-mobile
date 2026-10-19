@@ -97,6 +97,30 @@ void main() {
       expect(find.byType(StoreShell), findsNothing);
     });
 
+    // Audit S02 (2026-10-19, Figma 953:5928): đã được duyệt mà app đang mở màn 審査中 → bấm kiểm tra là vào ホーム
+    testWidgets('審査中 →「審査の結果を確認する」で読み直し、承認済みならホームへ', (tester) async {
+      final gateway = FakeStoreGateway(restaurant: restaurant(approved: false));
+      await tester.pumpWidget(app(gateway, const StoreGate(userId: 'u-1')));
+      await tester.pumpAndSettle();
+      expect(find.byType(StoreShell), findsNothing);
+
+      gateway.restaurant = restaurant(approved: true);
+      await tester.tap(find.text(l10nJa.storeReviewCheckButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(StoreShell), findsOneWidget);
+    });
+
+    testWidgets('審査中のまま → アプリに戻ったときも読み直す', (tester) async {
+      final gateway = FakeStoreGateway(restaurant: restaurant(approved: false));
+      await tester.pumpWidget(app(gateway, const StoreGate(userId: 'u-1')));
+      await tester.pumpAndSettle();
+      gateway.restaurant = restaurant(approved: true);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.byType(StoreShell), findsOneWidget);
+    });
+
     testWidgets('却下: 理由と「Web 管理画面を開く」', (tester) async {
       await tester.pumpWidget(app(
         FakeStoreGateway(restaurant: restaurant(approved: false, rejectedAt: DateTime.utc(2026, 10, 9), reason: 'PL保険の証書の有効期限が切れています。')),

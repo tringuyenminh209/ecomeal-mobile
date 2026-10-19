@@ -154,6 +154,9 @@ class AuthController extends StateNotifier<AppAuthState> {
 
   Future<void> signOut() => _gateway.signOut();
 
+  // Màn lỗi 「もう一度試す」 (audit C03): đọc lại hồ sơ/quyền của phiên hiện tại — không đăng nhập lại
+  Future<void> reloadProfile() => _syncSession(_gateway.currentSession);
+
   // Báo cáo 2026-10-14 (B): app vẫn hiện như đã đăng nhập dù server đã xoá phiên (session_not_found) → mua hàng, thêm thẻ
   // đều 401 mà người dùng không hiểu vì sao. Gọi khi app mở / quay lại màn hình (SessionGuard). Mất mạng → không làm gì.
   Future<void> verifySession() async {

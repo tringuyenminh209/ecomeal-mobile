@@ -46,19 +46,47 @@ class StoreGate extends ConsumerWidget {
               );
             }
             if (restaurant.isApproved) return StoreApp(restaurant: restaurant, userId: userId);
-            return StoreReviewStatusPage(restaurant: restaurant);
+            return StoreReviewStatusPage(
+              restaurant: restaurant,
+              onCheck: () => ref.invalidate(myRestaurantProvider(userId)),
+            );
           },
         );
   }
 }
 
-// SCR-S00 審査中（552:72）／却下（552:107）
-class StoreReviewStatusPage extends StatelessWidget {
-  const StoreReviewStatusPage({super.key, required this.restaurant});
+// SCR-S00 審査中（552:72）／却下（552:107）. Kết quả duyệt chỉ đọc 1 lần khi vào app → nút 「審査の結果を確認する」
+// (953:5928) và tự đọc lại khi quay về app từ nền: quán nhận mail "đã duyệt" mở app là vào được (audit S02 2026-10-19).
+class StoreReviewStatusPage extends StatefulWidget {
+  const StoreReviewStatusPage({super.key, required this.restaurant, required this.onCheck});
   final StoreRestaurant restaurant;
+  final VoidCallback onCheck;
+
+  @override
+  State<StoreReviewStatusPage> createState() => _StoreReviewStatusPageState();
+}
+
+class _StoreReviewStatusPageState extends State<StoreReviewStatusPage> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) widget.onCheck();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final restaurant = widget.restaurant;
     final l10n = context.l10n;
     final eco = context.eco;
     final locale = Localizations.localeOf(context).languageCode;
@@ -145,6 +173,14 @@ class StoreReviewStatusPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               if (rejected) ...[const OpenWebAdminButton(), const SizedBox(height: 12)],
+              if (!rejected) ...[
+                FilledButton(
+                  key: const Key('storeReviewCheck'),
+                  onPressed: widget.onCheck,
+                  child: Text(l10n.storeReviewCheckButton),
+                ),
+                const SizedBox(height: 12),
+              ],
               const LogoutButton(danger: false),
               if (rejected) ...[
                 const SizedBox(height: 16),

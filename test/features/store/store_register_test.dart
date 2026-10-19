@@ -69,7 +69,9 @@ void main() {
       expect(registerBatchErrorMessage(const PostgrestException(message: 'E-ROUTE-004: departed'), l10nJa), l10nJa.storeErrTruckDeparted);
       expect(registerBatchErrorMessage(const PostgrestException(message: 'E-REST-008: past'), l10nJa), l10nJa.storeErrSellByPast);
       expect(registerBatchErrorMessage(const BatchPhotoUploadException('net'), l10nJa), l10nJa.storeErrPhotoUpload);
-      expect(registerBatchErrorMessage(Exception('timeout'), l10nJa), l10nJa.storeErrRegisterFailed);
+      // Audit S01: không có trả lời của server → kết quả chưa rõ (lô có thể đã tạo), không nói 「登録できませんでした」
+      expect(registerBatchErrorMessage(Exception('timeout'), l10nJa), l10nJa.storeErrResultUnknown);
+      expect(registerBatchErrorMessage(const PostgrestException(message: 'E-XXX-999: other'), l10nJa), l10nJa.storeErrRegisterFailed);
     });
   });
 
@@ -275,6 +277,9 @@ void main() {
       await tester.enterText(find.byKey(const Key('storePriceField')), '500');
       await tapNoAllergens(tester);
       await openSheetAndConfirm(tester);
+      // Mất phản hồi: không biết server đã tạo lô chưa → không nói 「登録できませんでした」 (Figma 953:5970)
+      expect(find.text(l10nJa.storeErrResultUnknown), findsOneWidget);
+      expect(find.text(l10nJa.storeErrRegisterFailed), findsNothing);
       gateway.registerError = null;
       await openSheetAndConfirm(tester);
       expect(registered, ['new-batch']);

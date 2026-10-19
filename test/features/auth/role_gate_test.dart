@@ -14,7 +14,7 @@ import 'package:ecomeal_mobile/features/auth/role_gate.dart';
 import 'package:ecomeal_mobile/app.dart';
 import 'package:ecomeal_mobile/core/app_flavor.dart';
 import 'package:ecomeal_mobile/features/auth/business_login_page.dart';
-import 'package:ecomeal_mobile/widgets/placeholder_screen.dart';
+import 'package:ecomeal_mobile/widgets/load_error_screen.dart';
 import '../../helpers/fake_admin_gateway.dart';
 import '../../helpers/fake_store_gateway.dart';
 import 'package:ecomeal_mobile/features/admin/admin_gateway.dart';
@@ -187,9 +187,9 @@ void main() {
   );
 
   // ---- ADR-007: mỗi app chỉ mở luồng của mình ----
-  Future<void> pumpApp(WidgetTester tester, AppFlavor flavor, {String? role, bool active = true}) async {
+  Future<void> pumpApp(WidgetTester tester, AppFlavor flavor, {String? role, bool active = true, Future<bool> Function()? isActive}) async {
     final driver = MockDriverGateway();
-    when(() => driver.fetchIsActive()).thenAnswer((_) async => active);
+    when(() => driver.fetchIsActive()).thenAnswer((_) => isActive != null ? isActive() : Future.value(active));
     when(() => driver.fetchTonightRoute()).thenAnswer((_) async => null);
     if (role != null) {
       final session = MockSession();
@@ -217,6 +217,40 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  // Audit C03 (2026-10-19, Figma 953:1756): đọc hồ sơ / trạng thái lỗi → màn lỗi có 「もう一度試す」 (đọc lại đúng phần
+  // lỗi), không chỉ ログアウト. Hết lỗi thì vào đúng app, không phải đăng nhập lại.
+  testWidgets('プロフィールを読めない →「もう一度試す」で読み直してアプリへ', (tester) async {
+    final session = MockSession();
+    final user = MockUser();
+    when(() => session.user).thenReturn(user);
+    when(() => user.id).thenReturn('u-1');
+    when(() => gateway.currentSession).thenReturn(session);
+    var calls = 0;
+    when(() => gateway.fetchProfile('u-1')).thenAnswer((_) async {
+      if (calls++ == 0) throw Exception('network');
+      return (role: 'driver', languageCode: 'ja');
+    });
+    await pumpApp(tester, AppFlavor.driver);
+    expect(find.text(l10nJa.loadErrorTitle), findsOneWidget);
+    expect(find.byKey(const Key('logoutButton')), findsOneWidget);
+
+    await tester.tap(find.text(l10nJa.tryAgain));
+    await tester.pumpAndSettle();
+    expect(find.byType(DriverShell), findsOneWidget);
+  });
+
+  testWidgets('ドライバーの稼働状態を読めない →「もう一度試す」で読み直す', (tester) async {
+    var calls = 0;
+    await pumpApp(tester, AppFlavor.driver, role: 'driver', isActive: () async {
+      if (calls++ == 0) throw Exception('network');
+      return true;
+    });
+    expect(find.text(l10nJa.loadErrorTitle), findsOneWidget);
+    await tester.tap(find.text(l10nJa.tryAgain));
+    await tester.pumpAndSettle();
+    expect(find.byType(DriverShell), findsOneWidget);
+  });
 
   testWidgets('app tài xế, chưa đăng nhập → SCR-D00 (không có màn giới thiệu, không có 新規登録)', (tester) async {
     await pumpApp(tester, AppFlavor.driver);
@@ -325,7 +359,7 @@ void main() {
     testWidgets('app nhà hàng + tài khoản $role → 「店舗専用アプリです」', (tester) async {
       await pumpApp(tester, AppFlavor.store, role: role);
       expect(find.text(l10nJa.storeOnlyAppTitle), findsOneWidget);
-      expect(find.byType(PlaceholderScreen), findsNothing);
+      expect(find.byType(LoadErrorScreen), findsNothing);
     });
   }
 
@@ -333,7 +367,7 @@ void main() {
     testWidgets('app vận hành + tài khoản $role → 「運営専用アプリです」', (tester) async {
       await pumpApp(tester, AppFlavor.admin, role: role);
       expect(find.text(l10nJa.adminOnlyAppTitle), findsOneWidget);
-      expect(find.byType(PlaceholderScreen), findsNothing);
+      expect(find.byType(LoadErrorScreen), findsNothing);
     });
   }
 }

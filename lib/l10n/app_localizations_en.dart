@@ -82,8 +82,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorOpenWebAdmin => 'Couldn\'t open the web admin';
 
   @override
-  String get errorProfileLoadFailed =>
-      'Couldn’t load your profile. Please try again';
+  String get loadErrorTitle => 'Couldn\'t load your account information';
+
+  @override
+  String get loadErrorBody => 'Check your connection and try again.';
 
   @override
   String get appTitle => 'EcoMeal';
@@ -2262,6 +2264,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'EcoMeal is reviewing your registration. We\'ll email you the result.';
 
   @override
+  String get storeReviewCheckButton => 'Check the review result';
+
+  @override
   String get storeFieldName => 'Store';
 
   @override
@@ -2818,6 +2823,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get storeErrRegisterFailed =>
       'Couldn\'t register. Check your connection and try again.';
+
+  @override
+  String get storeErrResultUnknown =>
+      'We couldn\'t confirm whether it was registered. Please tap \"Register\" again. If it was already registered, that listing will be shown (it will never be registered twice). What you entered is kept.';
 
   @override
   String get storeSettlementTitle => 'Payouts';

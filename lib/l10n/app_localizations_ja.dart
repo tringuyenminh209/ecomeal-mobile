@@ -78,7 +78,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get errorOpenWebAdmin => 'Web管理画面を開けませんでした';
 
   @override
-  String get errorProfileLoadFailed => 'プロフィール情報の取得に失敗しました。もう一度お試しください';
+  String get loadErrorTitle => 'アカウントの情報を読み込めませんでした';
+
+  @override
+  String get loadErrorBody => '通信状態を確認して、もう一度お試しください。';
 
   @override
   String get appTitle => 'EcoMeal';
@@ -2148,6 +2151,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeReviewPendingBody => 'EcoMeal が登録の内容を確認しています。結果はメールでお知らせします。';
 
   @override
+  String get storeReviewCheckButton => '審査の結果を確認する';
+
+  @override
   String get storeFieldName => '店舗名';
 
   @override
@@ -2684,6 +2690,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get storeErrRegisterFailed => '登録できませんでした。通信状態を確認して、もう一度お試しください。';
+
+  @override
+  String get storeErrResultUnknown =>
+      '登録できたか確認できませんでした。もう一度「登録する」を押してください。すでに登録されていた場合は、その出品が表示されます（二重に登録されることはありません）。入力した内容は残っています。';
 
   @override
   String get storeSettlementTitle => '入金';

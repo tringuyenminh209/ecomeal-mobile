@@ -230,11 +230,17 @@ abstract class AppLocalizations {
   /// **'Web管理画面を開けませんでした'**
   String get errorOpenWebAdmin;
 
-  /// No description provided for @errorProfileLoadFailed.
+  /// No description provided for @loadErrorTitle.
   ///
   /// In ja, this message translates to:
-  /// **'プロフィール情報の取得に失敗しました。もう一度お試しください'**
-  String get errorProfileLoadFailed;
+  /// **'アカウントの情報を読み込めませんでした'**
+  String get loadErrorTitle;
+
+  /// No description provided for @loadErrorBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'通信状態を確認して、もう一度お試しください。'**
+  String get loadErrorBody;
 
   /// No description provided for @appTitle.
   ///
@@ -3974,6 +3980,12 @@ abstract class AppLocalizations {
   /// **'EcoMeal が登録の内容を確認しています。結果はメールでお知らせします。'**
   String get storeReviewPendingBody;
 
+  /// No description provided for @storeReviewCheckButton.
+  ///
+  /// In ja, this message translates to:
+  /// **'審査の結果を確認する'**
+  String get storeReviewCheckButton;
+
   /// No description provided for @storeFieldName.
   ///
   /// In ja, this message translates to:
@@ -4903,6 +4915,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'登録できませんでした。通信状態を確認して、もう一度お試しください。'**
   String get storeErrRegisterFailed;
+
+  /// No description provided for @storeErrResultUnknown.
+  ///
+  /// In ja, this message translates to:
+  /// **'登録できたか確認できませんでした。もう一度「登録する」を押してください。すでに登録されていた場合は、その出品が表示されます（二重に登録されることはありません）。入力した内容は残っています。'**
+  String get storeErrResultUnknown;
 
   /// No description provided for @storeSettlementTitle.
   ///
