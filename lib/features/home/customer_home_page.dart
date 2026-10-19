@@ -4,7 +4,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:intl/intl.dart';
 import '../../core/haptics.dart';
 import '../../core/motion.dart';
 import '../../core/theme/app_theme.dart';
@@ -107,10 +106,11 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
     _unsubscribe = ref
         .read(homeGatewayProvider)
         .watchChanges(
-          onChange: () {
-            if (!mounted) return;
-            ref.invalidate(activeListingsProvider);
-            ref.invalidate(todayTrucksProvider);
+          onTrucks: () {
+            if (mounted) ref.invalidate(todayTrucksProvider);
+          },
+          onListings: () {
+            if (mounted) ref.invalidate(activeListingsProvider);
           },
         );
   }
@@ -552,7 +552,7 @@ class _RenderMeasureSize extends RenderProxyBox {
     return (
       truckId: t.truckId,
       stopName: next.stopName,
-      time: DateFormat('HH:mm').format(toTokyo(next.plannedTime)),
+      time: tokyoTime(next.plannedTime),
       minutes: minutes < 0 ? 0 : minutes,
     );
   }

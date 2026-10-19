@@ -66,7 +66,7 @@ OrderStatusBadge badgeForStatus(String status, AppLocalizations l10n) {
 String orderTimeLabel(DateTime plannedPickupTime, AppLocalizations l10n, {DateTime? now}) {
   final local = toTokyo(plannedPickupTime);
   final today = toTokyo(now ?? DateTime.now());
-  final time = DateFormat('HH:mm').format(local); // cùng dạng với pickupWindowLabel (Hm của ja ra "1:00")
+  final time = tokyoTime(plannedPickupTime); // cùng dạng với pickupWindowLabel (Hm của ja ra "1:00")
   final isToday = local.year == today.year && local.month == today.month && local.day == today.day;
   return isToday ? l10n.todayTime(time) : '${DateFormat.MMMd(l10n.localeName).format(local)} $time';
 }

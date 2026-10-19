@@ -26,10 +26,11 @@ Widget _app(
   FakePreferencesGateway? prefs,
   FakeInboxGateway? inbox,
   FakePushClient? push,
+  FakeAdminTasksGateway? tasks,
 }) => ProviderScope(
       overrides: [
         adminGatewayProvider.overrideWithValue(admin ?? FakeAdminGateway()),
-        adminTasksGatewayProvider.overrideWithValue(FakeAdminTasksGateway()),
+        adminTasksGatewayProvider.overrideWithValue(tasks ?? FakeAdminTasksGateway()),
         notificationInboxGatewayProvider.overrideWithValue(inbox ?? FakeInboxGateway()),
         if (push != null) pushClientProvider.overrideWithValue(push),
         notificationPreferencesGatewayProvider.overrideWithValue(prefs ?? FakePreferencesGateway(const [])),
@@ -192,6 +193,29 @@ void main() {
       await tester.pumpAndSettle();
       expect(container.read(adminTaskProvider), AdminTask.inquiries);
       expect(find.byType(NotificationInboxPage), findsNothing);
+    });
+
+    // Audit A05: push tới khi đang mở danh sách → danh sách đọc lại (trước đây chỉ số đếm đổi)
+    testWidgets('push lúc app đang mở → danh sách 対応 đang xem có việc mới', (tester) async {
+      final tasks = FakeAdminTasksGateway();
+      final push = FakePushClient(PushPermission.denied);
+      await tester.pumpWidget(_app(const AdminApp(userId: 'u-1', email: 'admin@ecomeal.jp'), admin: admin, push: push, tasks: tasks));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(tester.element(find.byType(AdminShell)));
+      container.read(adminTaskProvider.notifier).state = AdminTask.inquiries;
+      container.read(adminTabProvider.notifier).state = AdminTab.tasks;
+      await tester.pumpAndSettle();
+      expect(find.text('山田 太郎'), findsNothing);
+
+      tasks.inquiries = [
+        AdminInquiry(
+          id: 'q-1', type: 'restaurant', name: '山田 太郎', companyName: null, email: 'yamada@example.jp', phone: null,
+          message: '相談です', status: 'new', adminNote: null, createdAt: DateTime.now(),
+        ),
+      ];
+      push.foreground.add((title: '問い合わせ', body: '新しい問い合わせがあります'));
+      await tester.pumpAndSettle();
+      expect(find.text('山田 太郎'), findsOneWidget);
     });
 
     testWidgets('chuông: chạm 飲食店の申請 → 対応タブ・審査', (tester) async {

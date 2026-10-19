@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,6 +86,21 @@ void main() {
 
     expect(find.byKey(const Key('orderCard_00000000-0000-0000-0000-00000000a001')), findsOneWidget);
     expect(find.byKey(const Key('orderCard_00000000-0000-0000-0000-00000000a002')), findsNothing);
+  });
+
+  // Audit C06: trình đọc màn hình đọc được chip nào đang chọn
+  testWidgets('chip lọc: trạng thái chọn có trong semantics, đổi theo lựa chọn', (tester) async {
+    when(() => gateway.fetchMyOrders()).thenAnswer((_) async => []);
+    final handle = tester.ensureSemantics();
+    await pumpPage(tester);
+    SemanticsNode chip(String label) => tester.getSemantics(find.ancestor(of: find.text(label), matching: find.byType(Semantics)).first);
+    expect(chip('すべて').hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(chip('予約中').hasFlag(SemanticsFlag.isSelected), isFalse);
+    await tester.tap(find.text('予約中'));
+    await tester.pumpAndSettle();
+    expect(chip('すべて').hasFlag(SemanticsFlag.isSelected), isFalse);
+    expect(chip('予約中').hasFlag(SemanticsFlag.isSelected), isTrue);
+    handle.dispose();
   });
 
   testWidgets('đơn pending còn hơn 30 phút → có nút キャンセル; xác nhận dialog → gọi cancelOrder', (tester) async {

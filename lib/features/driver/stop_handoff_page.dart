@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import 'package:uuid/uuid.dart';
 import '../../core/clock.dart';
@@ -144,7 +143,7 @@ class _StopHandoffPageState extends ConsumerState<StopHandoffPage> {
                 for (final r in matches)
                   SimpleDialogOption(
                     onPressed: () => Navigator.of(context).pop(r),
-                    child: Text(context.l10n.duplicateCodeOption(orderDisplayNumber(r.orderId), DateFormat('HH:mm').format(toTokyo(r.createdAt)))),
+                    child: Text(context.l10n.duplicateCodeOption(orderDisplayNumber(r.orderId), tokyoTime(r.createdAt))),
                   ),
               ],
             ),

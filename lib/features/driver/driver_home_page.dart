@@ -254,7 +254,6 @@ class NextTaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final eco = context.eco;
-    final time = DateFormat('HH:mm');
     final isPickup = stop.type == 'restaurant';
     final position = route.stops.indexOf(stop) + 1;
 
@@ -265,7 +264,7 @@ class NextTaskCard extends StatelessWidget {
       amount = l10n.approxMeals(pending.fold(0, (sum, b) => sum + b.estimatedQty));
       detail = pending.isEmpty
           ? l10n.nothingToPickUp
-          : l10n.nextTaskPickupDetail(pending.length, time.format(toTokyo(pending.first.sellByAt)));
+          : l10n.nextTaskPickupDetail(pending.length, tokyoTime(pending.first.sellByAt));
     } else {
       final capacity = route.capacityAtStop[stop.routeStopId];
       amount = capacity == null ? l10n.stopReservations(stop.reservedCount) : l10n.mealsCount(capacity);
@@ -301,7 +300,7 @@ class NextTaskCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _Fact(label: l10n.arriveByLabel, value: time.format(toTokyo(stop.plannedTime)), color: eco.amber)),
+              Expanded(child: _Fact(label: l10n.arriveByLabel, value: tokyoTime(stop.plannedTime), color: eco.amber)),
               const SizedBox(width: 8),
               Expanded(child: _Fact(label: l10n.timeLeftLabel, value: l10n.minutesShort(minutesUntil(stop.plannedTime, now: now)))),
               const SizedBox(width: 8),
@@ -628,7 +627,7 @@ class _StopRow extends StatelessWidget {
               ),
             ),
             Text(
-              DateFormat('HH:mm').format(toTokyo(stop.plannedTime)),
+              tokyoTime(stop.plannedTime),
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: accent),
             ),
             Icon(Icons.chevron_right, size: 18, color: eco.textSecondary),

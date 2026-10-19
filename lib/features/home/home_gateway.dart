@@ -135,7 +135,9 @@ abstract class HomeGateway {
   Future<BatchDetail> fetchBatchDetail(String batchId);
   Future<int> fetchTodayReservationCount();
   // Trả về callback huỷ đăng ký — cùng kiểu trả về đã dùng ở RouteMonitorPage (Chương 13).
-  VoidCallback watchChanges({required VoidCallback onChange});
+  // 2 callback theo phần dữ liệu đổi (audit U01): GPS chỉ tải lại xe, đổi lô/tồn chỉ tải lại món — trước đây 1 callback
+  // chung nên mỗi lần xe gửi GPS cũng tải lại cả danh sách món.
+  VoidCallback watchChanges({required VoidCallback onTrucks, required VoidCallback onListings});
 }
 
 class SupabaseHomeGateway implements HomeGateway {
@@ -188,48 +190,42 @@ class SupabaseHomeGateway implements HomeGateway {
     }).toList();
   }
 
-  // Bỏ ràng buộc "1 truck/đêm" của bản trước (lấy 1 dòng mới nhất toàn bảng): mỗi xe lấy vị trí mới nhất RIÊNG
-  // bằng limit 1 — không kéo cả lịch sử GPS về client (bài học 第51回, PostgREST cắt ở 1000 dòng).
+  // Mỗi xe lấy vị trí mới nhất RIÊNG — không kéo cả lịch sử GPS về client (bài học 第51回, PostgREST cắt ở 1000 dòng).
+  // 1 query cho mọi xe (audit U02): limit của bảng nhúng tính theo từng dòng cha (routes → trucks → truck_locations),
+  // trước đây 1 query routes + 1 query GPS cho mỗi xe. Đã kiểm trên Cloud: kết quả trùng cách cũ (2026-10-20).
   @override
   Future<List<TruckRoute>> fetchTodayTrucks() async {
     final routes =
         await _client
                 .from('routes')
                 .select(
-                  'truck_id, route_stops(id, sequence, planned_time, actual_departure_at, stop_locations!inner(name, type))',
+                  'truck_id, route_stops(id, sequence, planned_time, actual_departure_at, stop_locations!inner(name, type)), '
+                  'trucks(truck_locations(lat, lng, recorded_at))',
                 )
                 .eq('service_date', todayInTokyo())
                 .eq('route_stops.stop_locations.type', 'public')
                 .order('truck_id')
                 .order('sequence', referencedTable: 'route_stops')
+                .order('recorded_at', referencedTable: 'trucks.truck_locations', ascending: false)
+                .limit(1, referencedTable: 'trucks.truck_locations')
             as List;
-    return Future.wait(
-      routes.map((raw) async {
-        final route = raw as Map<String, dynamic>;
-        final truckId = route['truck_id'] as String;
-        final position =
-            await _client
-                    .from('truck_locations')
-                    .select('lat, lng, recorded_at')
-                    .eq('truck_id', truckId)
-                    .order('recorded_at', ascending: false)
-                    .limit(1)
-                as List;
-        return TruckRoute(
-          truckId: truckId,
-          position: position.isEmpty ? null : _position(position.first as Map<String, dynamic>),
-          stops: (route['route_stops'] as List).map((s) {
-            final stop = s as Map<String, dynamic>;
-            return RouteStopInfo(
-              routeStopId: stop['id'] as String,
-              stopName: (stop['stop_locations'] as Map<String, dynamic>)['name'] as String,
-              plannedTime: DateTime.parse(stop['planned_time'] as String).toLocal(),
-              departed: stop['actual_departure_at'] != null,
-            );
-          }).toList(),
-        );
-      }),
-    );
+    return routes.map((raw) {
+      final route = raw as Map<String, dynamic>;
+      final positions = ((route['trucks'] as Map<String, dynamic>?)?['truck_locations'] as List?) ?? const [];
+      return TruckRoute(
+        truckId: route['truck_id'] as String,
+        position: positions.isEmpty ? null : _position(positions.first as Map<String, dynamic>),
+        stops: (route['route_stops'] as List).map((s) {
+          final stop = s as Map<String, dynamic>;
+          return RouteStopInfo(
+            routeStopId: stop['id'] as String,
+            stopName: (stop['stop_locations'] as Map<String, dynamic>)['name'] as String,
+            plannedTime: DateTime.parse(stop['planned_time'] as String).toLocal(),
+            departed: stop['actual_departure_at'] != null,
+          );
+        }).toList(),
+      );
+    }).toList();
   }
 
   TruckPosition _position(Map<String, dynamic> row) => TruckPosition(
@@ -324,32 +320,35 @@ class SupabaseHomeGateway implements HomeGateway {
   }
 
   @override
-  VoidCallback watchChanges({required VoidCallback onChange}) {
+  VoidCallback watchChanges({required VoidCallback onTrucks, required VoidCallback onListings}) {
     final channel = _client.channel('customer-home-updates')
       ..onPostgresChanges(
         event: PostgresChangeEvent.all,
         schema: 'public',
         table: 'truck_locations',
-        callback: (_) => onChange(),
+        callback: (_) => onTrucks(),
       )
       ..onPostgresChanges(
         event: PostgresChangeEvent.all,
         schema: 'public',
         table: 'surplus_batches',
-        callback: (_) => onChange(),
+        callback: (_) => onListings(),
       )
       ..onPostgresChanges(
         event: PostgresChangeEvent.all,
         schema: 'public',
         table: 'batch_route_stops',
-        callback: (_) => onChange(),
+        callback: (_) => onListings(),
       )
-      // actual_departure_at thay đổi khi tài xế rời 1 điểm → "次の停車地" và lộ trình phải cập nhật.
+      // actual_departure_at thay đổi khi tài xế rời 1 điểm → "次の停車地" (xe) và món còn bán ở điểm đó (món) cùng đổi.
       ..onPostgresChanges(
         event: PostgresChangeEvent.update,
         schema: 'public',
         table: 'route_stops',
-        callback: (_) => onChange(),
+        callback: (_) {
+          onTrucks();
+          onListings();
+        },
       );
     channel.subscribe();
     return () => _client.removeChannel(channel);

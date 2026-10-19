@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/yen.dart';
@@ -15,7 +14,6 @@ import 'store_register_logic.dart' show storeClock;
 import '../../core/wide_layout.dart';
 import 'store_home_page.dart' show storeBatchStatusLabel, storeBatchStatusTone;
 
-String _hm(DateTime t) => DateFormat('HH:mm').format(toTokyo(t));
 
 // Lô chưa kết thúc thì server còn đổi: 概算 → tài xế xác nhận (販売中), số còn lại theo đơn đặt / giao → tải lại định kỳ
 // (nhãn「自動更新」của Figma). Mỗi nhịp cũng dựng lại màn để nhãn theo giờ (販売中 → 終了) đổi dù không ai chạm màn —
@@ -168,7 +166,7 @@ class _SummaryCard extends StatelessWidget {
             (l10n.storeStatEstimated, '${batch.estimatedQty}', false),
             (l10n.storeStatReserved, '${batch.reservedCount}', false),
             (l10n.storeStatPickedUp, '—', false),
-            (l10n.storeStatCollection, planned == null ? '—' : _hm(planned), false),
+            (l10n.storeStatCollection, planned == null ? '—' : tokyoTime(planned), false),
           ];
     return Container(
       padding: const EdgeInsets.all(14),
@@ -186,7 +184,7 @@ class _SummaryCard extends StatelessWidget {
                     StatusBadge(label: storeBatchStatusLabel(status, l10n), tone: storeBatchStatusTone(status)),
                     const SizedBox(height: 6),
                     Text(
-                      l10n.storeBatchPriceLine(formatYen(batch.unitPrice), _hm(batch.sellByAt)),
+                      l10n.storeBatchPriceLine(formatYen(batch.unitPrice), tokyoTime(batch.sellByAt)),
                       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                     ),
                     if (batch.allergens.isNotEmpty)
@@ -257,14 +255,14 @@ class _ProgressCard extends StatelessWidget {
       (
         _StepState.done,
         l10n.storeStepEstimated,
-        registered == null ? null : _hm(registered),
+        registered == null ? null : tokyoTime(registered),
         Text(l10n.storeStepEstimatedDetail(batch.estimatedQty)),
       ),
       batch.isConfirmed
           ? (
               _StepState.done,
               l10n.storeStepCollected,
-              collected == null ? null : _hm(collected),
+              collected == null ? null : tokyoTime(collected),
               Wrap(
                 spacing: 8,
                 runSpacing: 6,
@@ -278,7 +276,7 @@ class _ProgressCard extends StatelessWidget {
           : (
               _StepState.current,
               l10n.storeStepCollected,
-              planned == null ? null : l10n.storeStepCollectedPlanned(_hm(planned)),
+              planned == null ? null : l10n.storeStepCollectedPlanned(tokyoTime(planned)),
               Text(l10n.storeStepCollectedHint),
             ),
       (
@@ -288,7 +286,7 @@ class _ProgressCard extends StatelessWidget {
           StoreBatchStatus.ended => _StepState.done,
         },
         l10n.storeStepOnSale,
-        l10n.storeStepOnSaleUntil(_hm(batch.sellByAt)),
+        l10n.storeStepOnSaleUntil(tokyoTime(batch.sellByAt)),
         Text(l10n.storeStepOnSaleDetail(batch.stops.length)),
       ),
       (

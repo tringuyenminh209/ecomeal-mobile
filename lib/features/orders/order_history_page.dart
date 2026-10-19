@@ -146,7 +146,11 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PressScale(
+    // Trình đọc màn hình đọc cả trạng thái chọn — trước đây chỉ màu viên thuốc cho biết (audit C06)
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: PressScale(
       child: Material(
       color: selected ? Colors.transparent : AppColors.surface,
       shape: StadiumBorder(side: selected ? BorderSide.none : const BorderSide(color: AppColors.border)),
@@ -166,6 +170,7 @@ class _FilterChip extends StatelessWidget {
             child: Text(label),
           ),
         ),
+      ),
       ),
       ),
     );

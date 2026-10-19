@@ -16,7 +16,8 @@ class MockHomeGateway extends Mock implements HomeGateway {}
 void main() {
   late MockHomeGateway gateway;
   late bool unsubscribed;
-  late VoidCallback onChange;
+  late VoidCallback onTrucks;
+  late VoidCallback onListings;
   final listing = BatchListing(
     batchId: 'b1',
     routeStopId: 'rs1',
@@ -32,8 +33,9 @@ void main() {
   setUp(() {
     gateway = MockHomeGateway();
     unsubscribed = false;
-    when(() => gateway.watchChanges(onChange: any(named: 'onChange'))).thenAnswer((invocation) {
-      onChange = invocation.namedArguments[#onChange] as VoidCallback;
+    when(() => gateway.watchChanges(onTrucks: any(named: 'onTrucks'), onListings: any(named: 'onListings'))).thenAnswer((invocation) {
+      onTrucks = invocation.namedArguments[#onTrucks] as VoidCallback;
+      onListings = invocation.namedArguments[#onListings] as VoidCallback;
       return () {
         unsubscribed = true;
       };
@@ -120,10 +122,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('¥320'), findsOneWidget);
   });
+  // U01: GPS (onTrucks) chỉ tải lại xe — không gọi lại danh sách món; đổi lô (onListings) chỉ tải lại món
+  testWidgets('Realtime: GPS reloads trucks only, batch change reloads listings only', (tester) async {
+    await pump(tester);
+    clearInteractions(gateway);
+    onTrucks();
+    await tester.pumpAndSettle();
+    verify(() => gateway.fetchTodayTrucks()).called(1);
+    verifyNever(() => gateway.fetchActiveListings());
+    onListings();
+    await tester.pumpAndSettle();
+    verify(() => gateway.fetchActiveListings()).called(1);
+    verifyNever(() => gateway.fetchTodayTrucks());
+  });
   testWidgets('Realtime invalidates data and subscription is removed on dispose', (tester) async {
     await pump(tester);
     when(() => gateway.fetchActiveListings()).thenAnswer((_) async => []);
-    onChange();
+    onListings();
     await tester.pumpAndSettle();
     expect(find.text('本日はまだ販売予定がありません'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());

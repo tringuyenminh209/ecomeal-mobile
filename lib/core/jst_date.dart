@@ -17,6 +17,10 @@ DateTime toTokyo(DateTime t) => t.toUtc().add(const Duration(hours: 9));
 // Ngày (YYYY-MM-DD) theo giờ Tokyo của 1 thời điểm bất kỳ (vd ngày nộp đơn — SCR-S00).
 String dateInTokyo(DateTime t) => _formatDate(toTokyo(t));
 
+// Giờ "HH:mm" theo Tokyo của 1 thời điểm (giờ xe tới, hạn bán…). Một chỗ cho mọi màn — trước đây mỗi màn tự ghép
+// DateFormat('HH:mm').format(toTokyo(…)) (audit U06).
+String tokyoTime(DateTime t) => DateFormat('HH:mm').format(toTokyo(t));
+
 String todayInTokyo() => dateInTokyo(DateTime.now());
 
 String tomorrowInTokyo() {
@@ -29,9 +33,7 @@ String tomorrowInTokyo() {
 const pickupWindowLength = Duration(minutes: 20);
 
 String pickupWindowLabel(DateTime plannedTime) {
-  final format = DateFormat('HH:mm');
-  final start = toTokyo(plannedTime);
-  return '${format.format(start)}–${format.format(start.add(pickupWindowLength))}';
+  return '${tokyoTime(plannedTime)}–${tokyoTime(plannedTime.add(pickupWindowLength))}';
 }
 
 int remainingMinutes(DateTime expiresAt, DateTime now) =>

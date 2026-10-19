@@ -20,7 +20,6 @@ import 'store_ratings_page.dart';
 // Mốc 概算登録 trong ngày (02 §3.1.1「15〜16時頃」) — chỉ là mốc hướng dẫn: server không chặn đăng ký sau 16:00.
 const storeRegisterDeadlineHour = 16;
 
-String _hm(DateTime t) => DateFormat('HH:mm').format(toTokyo(t));
 
 // Hạn bán / giờ lấy hàng của lô theo trạng thái (dùng chung cho thẻ ở S01 và đầu trang S03)
 String storeBatchStatusLabel(StoreBatchStatus s, AppLocalizations l10n) => switch (s) {
@@ -324,8 +323,8 @@ class StoreBatchCard extends StatelessWidget {
     final estimated = status == StoreBatchStatus.estimated;
     final planned = batch.collectionPlannedAt;
     final secondary = estimated
-        ? (planned == null ? '' : l10n.storeCollectionPlanned(_hm(planned)))
-        : l10n.storeSellBy(_hm(batch.sellByAt));
+        ? (planned == null ? '' : l10n.storeCollectionPlanned(tokyoTime(planned)))
+        : l10n.storeSellBy(tokyoTime(batch.sellByAt));
     return Material(
       color: eco.surface,
       borderRadius: BorderRadius.circular(16),

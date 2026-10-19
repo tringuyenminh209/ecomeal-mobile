@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
@@ -45,7 +44,6 @@ class PickupStopPage extends ConsumerWidget {
     final routeAsync = ref.watch(tonightRouteProvider);
     final route = routeAsync.valueOrNull;
     final stop = route?.stops.where((s) => s.routeStopId == routeStopId).firstOrNull;
-    final time = DateFormat('HH:mm');
 
     return Scaffold(
       appBar: AppBar(
@@ -58,7 +56,7 @@ class PickupStopPage extends ConsumerWidget {
               Text(
                 () {
                   final p = pickupPositionOf(route.stops, stop);
-                  return l10n.pickupStopSubtitle(p.index, p.total, time.format(toTokyo(stop.plannedTime)));
+                  return l10n.pickupStopSubtitle(p.index, p.total, tokyoTime(stop.plannedTime));
                 }(),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -188,7 +186,7 @@ class _BatchCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      l10n.shopSellByLabel(DateFormat('HH:mm').format(toTokyo(batch.sellByAt))),
+                      l10n.shopSellByLabel(tokyoTime(batch.sellByAt)),
                       style: TextStyle(fontSize: 12, color: eco.textSecondary),
                     ),
                     if (batch.allergens.isNotEmpty) ...[

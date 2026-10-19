@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/screen_brightness.dart';
 import '../../core/haptics.dart';
@@ -94,15 +93,13 @@ class ActiveOrderPage extends ConsumerWidget {
       if (before != null && before != 'picked_up' && next.valueOrNull?.status == 'picked_up') Haptics.success();
     });
     final stage = pickupStage(now: current, plannedTime: latest.plannedPickupTime, departedAt: latest.stopDepartedAt);
-    final hm = DateFormat('HH:mm');
-    final start = toTokyo(order.plannedPickupTime);
     final statusText = pickedUp
         ? l10n.activeOrderPickedUp
         : ended
         ? l10n.activeOrderEndedStatus
         : switch (stage) {
-            PickupStage.before => l10n.activeOrderBefore(hm.format(start), remainingMinutes(order.plannedPickupTime, current)),
-            PickupStage.window => l10n.activeOrderWindow(hm.format(start.add(pickupWindowLength))),
+            PickupStage.before => l10n.activeOrderBefore(tokyoTime(order.plannedPickupTime), remainingMinutes(order.plannedPickupTime, current)),
+            PickupStage.window => l10n.activeOrderWindow(tokyoTime(order.plannedPickupTime.add(pickupWindowLength))),
             PickupStage.over => l10n.activeOrderOver,
           };
     final highlighted = pickedUp || (!ended && stage != PickupStage.over);

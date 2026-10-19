@@ -34,7 +34,8 @@ void openAdminTask(WidgetRef ref, AdminTask task) {
 }
 
 // Shell + thông báo app (token đăng ký với p_app = 'admin' — server chỉ nhận khi đã aal2). Thông báo của admin là việc cần
-// xử lý: đang mở app → tải lại số đếm; chạm → tab 対応 đúng nhóm (adminTaskFor).
+// xử lý: đang mở app → tải lại số đếm VÀ danh sách việc đang xem (audit A05: trước đây chỉ số đếm đổi, danh sách giữ bản cũ);
+// chạm → tab 対応 đúng nhóm (adminTaskFor).
 class AdminApp extends StatelessWidget {
   const AdminApp({super.key, required this.userId, required this.email});
   final String userId;
@@ -44,7 +45,9 @@ class AdminApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return PushRegistrar(
       onMessage: (context, ref) {
-        ref.invalidate(adminBadgesProvider);
+        // Chỉ danh sách đang hiển thị tải lại (provider autoDispose không ai xem thì không đọc); việc đang chọn và nháp ở cột
+        // phải giữ nguyên (chúng không nằm trong provider danh sách).
+        refreshAdminTasks(ref);
         ref.invalidate(inboxUnreadProvider(userId));
       },
       onOpened: (context, ref, push) {

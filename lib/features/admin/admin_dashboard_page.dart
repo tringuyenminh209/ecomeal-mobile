@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
@@ -69,7 +68,7 @@ class AdminDashboardPage extends ConsumerWidget {
                       Text(
                         l10n.adminDateTime(
                           formatServiceDate(todayInTokyo(), locale),
-                          DateFormat('HH:mm').format(toTokyo(now)),
+                          tokyoTime(now),
                         ),
                         style: TextStyle(fontSize: 13, color: eco.textSecondary),
                       ),

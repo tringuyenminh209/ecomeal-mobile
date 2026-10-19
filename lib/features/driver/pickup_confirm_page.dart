@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
@@ -127,7 +126,6 @@ class _PickupConfirmPageState extends ConsumerState<PickupConfirmPage> {
     final l10n = context.l10n;
     final position = pickupPositionOf(widget.route.stops, widget.collectionStop);
     final overLimit = _overLimit;
-    final timeFormat = DateFormat('HH:mm');
     final textTheme = Theme.of(context).textTheme;
     final tempError = _tempController.text.isEmpty ? null : _tempError;
 
@@ -231,7 +229,7 @@ class _PickupConfirmPageState extends ConsumerState<PickupConfirmPage> {
               name: stop.name,
               subtitle: l10n.distributionStopSubtitle(
                 i == 0 ? l10n.nextStopLabel : l10n.nthStopLabel(i + 1),
-                timeFormat.format(toTokyo(stop.plannedTime)),
+                tokyoTime(stop.plannedTime),
               ),
               selected: _selected.contains(stop.routeStopId),
               onTap: _submitting

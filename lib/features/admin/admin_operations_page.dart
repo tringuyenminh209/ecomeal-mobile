@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:intl/intl.dart';
 import '../../core/jst_date.dart';
 import '../../core/maps.dart';
 import '../../core/theme/app_theme.dart';
@@ -71,7 +70,7 @@ class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
     final locale = Localizations.localeOf(context).languageCode;
     final routes = ref.watch(adminRoutesProvider(_date));
     final list = routes.valueOrNull ?? const <AdminRoute>[];
-    final updatedAt = _updatedAt == null ? null : DateFormat('HH:mm').format(toTokyo(_updatedAt!));
+    final updatedAt = _updatedAt == null ? null : tokyoTime(_updatedAt!);
     // Lần tải lại lỗi nhưng vẫn giữ danh sách cũ → báo dữ liệu đã cũ
     final isStale = routes.hasError && routes.hasValue;
     final statusColor = isStale ? AppColors.amberInk : eco.primary;
@@ -329,7 +328,7 @@ class _RouteTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                next == null ? '—' : DateFormat('HH:mm').format(toTokyo(next.plannedTime)),
+                next == null ? '—' : tokyoTime(next.plannedTime),
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: eco.primary),
               ),
               Text(l10n.adminOpsEta, style: TextStyle(fontSize: 10, color: eco.textSecondary)),

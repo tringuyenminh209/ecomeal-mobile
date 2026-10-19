@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
@@ -89,7 +88,7 @@ class StoreRegisterDonePage extends ConsumerWidget {
                     l10n.storeDoneCollection,
                     planned == null
                         ? null
-                        : l10n.storeDoneCollectionValue(DateFormat('HH:mm').format(toTokyo(planned))),
+                        : l10n.storeDoneCollectionValue(tokyoTime(planned)),
                   ),
                   row(l10n.storeDoneRoute, route),
                 ],

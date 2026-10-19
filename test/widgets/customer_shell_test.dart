@@ -27,7 +27,7 @@ void main() {
 
   testWidgets('3 tab ホーム/予約/マイページ; mở tab 予約 → tải lại lịch sử; tab マイページ là SCR-M07 thật (Chương 18)', (tester) async {
     final home = MockHomeGateway();
-    when(() => home.watchChanges(onChange: any(named: 'onChange'))).thenReturn(() {});
+    when(() => home.watchChanges(onTrucks: any(named: 'onTrucks'), onListings: any(named: 'onListings'))).thenReturn(() {});
     when(() => home.fetchActiveListings()).thenAnswer((_) async => []);
     when(() => home.fetchTodayTrucks()).thenAnswer((_) async => []);
     final orders = MockOrderGateway();
@@ -100,7 +100,7 @@ OrderSummary _order(String id, String status) => OrderSummary(
 
 Future<void> _pumpShell(WidgetTester tester, {required LineMenuLinks links, required List<OrderSummary> orders}) async {
   final home = MockHomeGateway();
-  when(() => home.watchChanges(onChange: any(named: 'onChange'))).thenReturn(() {});
+  when(() => home.watchChanges(onTrucks: any(named: 'onTrucks'), onListings: any(named: 'onListings'))).thenReturn(() {});
   when(() => home.fetchActiveListings()).thenAnswer((_) async => []);
   when(() => home.fetchTodayTrucks()).thenAnswer((_) async => []);
   final orderGateway = MockOrderGateway();

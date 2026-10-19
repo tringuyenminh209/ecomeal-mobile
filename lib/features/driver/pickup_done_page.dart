@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
@@ -30,7 +29,6 @@ class PickupDonePage extends ConsumerWidget {
     final route = ref.watch(tonightRouteProvider).valueOrNull;
     final dropsAsync = ref.watch(batchDropsProvider(outcome.batchId));
     final next = route == null ? null : nextStopOf(route.stops);
-    final time = DateFormat('HH:mm');
     // Quán còn lô chưa nhận → việc kế tiếp vẫn ở đây: quay lại D07 thay vì về nhà / dẫn đường.
     final sameStop = next?.routeStopId == collectionStop.routeStopId;
     void home() => sameStop ? Navigator.of(context).pop() : Navigator.of(context).popUntil((r) => r.isFirst);
@@ -107,7 +105,7 @@ class PickupDonePage extends ConsumerWidget {
                                   children: [
                                     Text(stop.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                                     Text(
-                                      l10n.dropSubtitle(time.format(toTokyo(stop.plannedTime)), d.reservedCount),
+                                      l10n.dropSubtitle(tokyoTime(stop.plannedTime), d.reservedCount),
                                       style: TextStyle(fontSize: 11, color: eco.textSecondary),
                                     ),
                                   ],

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import 'package:uuid/uuid.dart';
 import '../../core/jst_date.dart';
@@ -38,7 +37,7 @@ class RouteEndPage extends ConsumerWidget {
             Text(l10n.routeEndTitle),
             if (route != null)
               Text(
-                '${route.truck.plateNumber} • ${DateFormat('HH:mm').format(toTokyo(DateTime.now()))}',
+                '${route.truck.plateNumber} • ${tokyoTime(DateTime.now())}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
           ],

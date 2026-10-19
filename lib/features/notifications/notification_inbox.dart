@@ -88,7 +88,7 @@ String _reservationBody(Map<String, dynamic>? p, AppLocalizations l10n) {
   final total = p?['total_count'];
   final sellBy = p?['sell_by_at'] is String ? DateTime.tryParse(p!['sell_by_at'] as String) : null;
   if (count is! int || total is! int || sellBy == null) return l10n.noticeReservationReceivedFallback;
-  return l10n.noticeReservationReceivedBody(DateFormat('HH:mm').format(toTokyo(sellBy)), count, total);
+  return l10n.noticeReservationReceivedBody(tokyoTime(sellBy), count, total);
 }
 
 ({String title, String body, IconData icon}) inboxContent(
@@ -188,7 +188,7 @@ String inboxTimeLabel(DateTime at, DateTime now, AppLocalizations l10n, String l
   if (diff.inMinutes < 1) return l10n.inboxJustNow;
   if (diff.inMinutes < 60) return l10n.inboxMinutesAgo(diff.inMinutes);
   final day = dateInTokyo(at);
-  final time = DateFormat('HH:mm').format(toTokyo(at));
+  final time = tokyoTime(at);
   if (day == dateInTokyo(now)) return time;
   if (day == dateInTokyo(now.subtract(const Duration(days: 1)))) return l10n.inboxYesterday(time);
   return DateFormat.MMMd(locale).format(DateTime.parse(day));

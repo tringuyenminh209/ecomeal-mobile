@@ -61,7 +61,7 @@ void main() {
     ) async {
       final home = MockHomeGateway();
       when(
-        () => home.watchChanges(onChange: any(named: 'onChange')),
+        () => home.watchChanges(onTrucks: any(named: 'onTrucks'), onListings: any(named: 'onListings')),
       ).thenReturn(() {});
       when(() => home.fetchActiveListings()).thenAnswer((_) async => []);
       when(() => home.fetchTodayTrucks()).thenAnswer((_) async => []);

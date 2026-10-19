@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../core/jst_date.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
@@ -120,7 +119,7 @@ class _StopRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            DateFormat('HH:mm').format(toTokyo(stop.plannedTime)),
+            tokyoTime(stop.plannedTime),
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color),
           ),
           const SizedBox(width: 12),
