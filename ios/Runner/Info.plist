@@ -66,6 +66,11 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>line3rdp.$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+				<!-- LINE Login quay về app bằng line3rdp.<bundle ID lúc chạy>. Sideloadly đổi bundle ID (mỗi Apple ID một hậu tố)
+				     nhưng không đổi dòng trên → thêm sẵn bundle ID của từng thành viên (khớp LINE Developers > iOS bundle ID) -->
+				<string>line3rdp.com.ecomeal.ecomealMobile-firu</string>
+				<string>line3rdp.com.ecomeal.ecomealMobile-tsuru</string>
+				<string>line3rdp.com.ecomeal.ecomealMobile-yuichi</string>
 			</array>
 		</dict>
 		<dict>
