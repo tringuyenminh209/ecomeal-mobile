@@ -322,7 +322,7 @@ class _StoreRegisterPageState extends ConsumerState<StoreRegisterPage> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          Flexible(child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700))),
           if (required) ...[
             const SizedBox(width: 6),
             Container(
@@ -993,7 +993,7 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(k, style: TextStyle(fontSize: 13, color: eco.textSecondary)),
+                      Flexible(child: Text(k, style: TextStyle(fontSize: 13, color: eco.textSecondary))),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(

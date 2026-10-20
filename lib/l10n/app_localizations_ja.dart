@@ -963,6 +963,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get languageNameEn => '英語';
 
   @override
+  String get languageNameVi => 'ベトナム語';
+
+  @override
+  String get languageNameUz => 'ウズベク語';
+
+  @override
   String get languageSearchHint => '言語を検索 / Search';
 
   @override

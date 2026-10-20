@@ -139,32 +139,42 @@ class _Header extends StatelessWidget {
     final small = Theme.of(context).textTheme.bodySmall;
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 12, 0, 12),
-      child: Row(
+      // Tiêu đề trái, 2 nút phải; chữ dài (vi/uz, chữ lớn) không đủ chỗ → hàng nút xuống dưới thay vì tràn
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.tonightRouteTitle, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 2),
-                if (truck case final truck?) Text(truck.plateNumber, style: small),
-                // ja: 10月2日(金) / en: Fri, Oct 2 — "đêm nay" theo giờ Nhật, mẫu ngày theo locale
-                Text(DateFormat.MMMEd(l10n.localeName).format(toTokyo(DateTime.now())), style: small),
-              ],
-            ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.tonightRouteTitle, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 2),
+              if (truck case final truck?) Text(truck.plateNumber, style: small),
+              // ja: 10月2日(金) / en: Fri, Oct 2 — "đêm nay" theo giờ Nhật, mẫu ngày theo locale
+              Text(DateFormat.MMMEd(l10n.localeName).format(toTokyo(DateTime.now())), style: small),
+            ],
           ),
-          if (canReport) ...[
-            OutlinedButton(
-              key: const Key('driverReportButton'),
-              onPressed: () => openDriverReportSheet(context),
-              child: Text(l10n.driverReportShort),
-            ),
-            const SizedBox(width: 8),
-          ],
-          OutlinedButton(
-            key: const Key('driverSettingsButton'),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DriverProfilePage())),
-            child: Text(l10n.settings),
+          Wrap(
+            spacing: 0,
+            runSpacing: 8,
+            children: [
+              if (canReport) ...[
+                OutlinedButton(
+                  key: const Key('driverReportButton'),
+                  onPressed: () => openDriverReportSheet(context),
+                  child: Text(l10n.driverReportShort),
+                ),
+                const SizedBox(width: 8),
+              ],
+              OutlinedButton(
+                key: const Key('driverSettingsButton'),
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DriverProfilePage())),
+                child: Text(l10n.settings),
+              ),
+            ],
           ),
         ],
       ),
@@ -194,7 +204,15 @@ class RouteProgressCard extends StatelessWidget {
               Expanded(
                 child: Text(l10n.driverProgressTitle, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: eco.textSecondary)),
               ),
-              Text(l10n.driverProgressCount(p.done, p.total), key: const Key('progressCount'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  l10n.driverProgressCount(p.done, p.total),
+                  key: const Key('progressCount'),
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),

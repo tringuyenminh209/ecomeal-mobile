@@ -64,7 +64,9 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
               // Nền Primary của chip đang chọn là 1 viên thuốc trượt giữa các chip (Figma 「動きの提案」 M00 フィルター)
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: SlidingPill(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SlidingPill(
                   selected: _filters.indexOf(_filter),
                   color: AppColors.primary,
                   spacing: 8,
@@ -80,6 +82,7 @@ class _OrderHistoryPageState extends ConsumerState<OrderHistoryPage> {
                         },
                       ),
                   ],
+                  ),
                 ),
               ),
             ),
@@ -310,7 +313,8 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              StatusBadge(label: badge.label, tone: badge.tone),
+              Flexible(child: StatusBadge(label: badge.label, tone: badge.tone)),
+              const SizedBox(width: 8),
               // Figma: 「本日 20:10」/「9月28日 19:40」 — giờ Tokyo, mẫu ngày theo locale (order_helpers.dart)
               Text(orderTimeLabel(order.plannedPickupTime, l10n), style: secondary),
             ],
@@ -321,10 +325,14 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.orderNumber(orderDisplayNumber(order.id)), style: secondary),
-              Text(
-                l10n.priceTaxIncluded('¥${order.pricePaid}'),
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              Flexible(child: Text(l10n.orderNumber(orderDisplayNumber(order.id)), style: secondary)),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  l10n.priceTaxIncluded('¥${order.pricePaid}'),
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),

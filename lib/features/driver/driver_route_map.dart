@@ -264,8 +264,10 @@ class _DriverRouteMapPageState extends ConsumerState<DriverRouteMapPage> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  // chữ dài (vi/uz) không vừa 1 hàng → nút thứ 2 xuống dưới
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    runSpacing: 8,
                     children: [
                       pillButton(
                         const Key('routeMapFitAll'),

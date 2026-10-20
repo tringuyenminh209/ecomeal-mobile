@@ -55,16 +55,20 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
                     if (_mode != _AuthMode.resetPassword) ...[
                       Row(
                         children: [
-                          _AuthTab(
-                            label: context.l10n.loginTab,
-                            selected: _mode == _AuthMode.login,
-                            onTap: _showLogin,
+                          Flexible(
+                            child: _AuthTab(
+                              label: context.l10n.loginTab,
+                              selected: _mode == _AuthMode.login,
+                              onTap: _showLogin,
+                            ),
                           ),
                           const SizedBox(width: 8),
-                          _AuthTab(
-                            label: context.l10n.signupTab,
-                            selected: _mode == _AuthMode.signup,
-                            onTap: _showSignup,
+                          Flexible(
+                            child: _AuthTab(
+                              label: context.l10n.signupTab,
+                              selected: _mode == _AuthMode.signup,
+                              onTap: _showSignup,
+                            ),
                           ),
                         ],
                       ),
@@ -119,13 +123,17 @@ class _AuthTab extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(999),
           ),
-          child: Text(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
             label,
+            maxLines: 1,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: selected ? AppColors.surface : AppColors.textSecondary,
             ),
+          ),
           ),
         ),
       ),

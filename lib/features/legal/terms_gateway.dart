@@ -7,10 +7,11 @@ import '../../core/supabase_client.dart';
 const currentTermsVersion = '2026-10-11';
 
 // Trang của site công khai mở bằng trình duyệt ngoài: liên hệ (SCR-P04, khung 「お問い合わせ」 cuối SCR-M10/M11) và
-// 特定商取引法に基づく表記 (SCR-P06, dòng trong 「アプリについて」 của SCR-M07). Bản tiếng Anh nằm dưới /en/.
+// 特定商取引法に基づく表記 (SCR-P06, dòng trong 「アプリについて」 của SCR-M07). Bản tiếng Anh nằm dưới /en/ — site chưa có
+// vi / uz nên app tiếng Việt / Uzbek mở bản tiếng Anh.
 const _publicSiteUrl = 'https://ecomeal-site.vercel.app';
 const contactPageUrl = '$_publicSiteUrl/contact/';
-String tokushohoPageUrl(String languageCode) => languageCode == 'en' ? '$_publicSiteUrl/en/tokushoho/' : '$_publicSiteUrl/tokushoho/';
+String tokushohoPageUrl(String languageCode) => languageCode == 'ja' ? '$_publicSiteUrl/tokushoho/' : '$_publicSiteUrl/en/tokushoho/';
 
 abstract class TermsGateway {
   // users.terms_version của chính mình (NULL: tài khoản tạo trước 0044, chưa từng đồng ý).

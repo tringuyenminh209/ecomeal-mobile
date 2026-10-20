@@ -573,9 +573,11 @@ class _InquiriesListState extends State<_InquiriesList> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      inquiryTypeLabel(q.type, l10n),
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    Flexible(
+                      child: Text(
+                        inquiryTypeLabel(q.type, l10n),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     StatusBadge(label: inquiryStatusLabel(q.status, l10n), tone: inquiryStatusTone(q.status)),

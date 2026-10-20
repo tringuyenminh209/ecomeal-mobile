@@ -16,6 +16,8 @@
 	<array>
 		<string>ja</string>
 		<string>en</string>
+		<string>vi</string>
+		<string>uz</string>
 	</array>
 	<key>CFBundleDisplayName</key>
 	<string>EcoMeal</string>

@@ -427,6 +427,8 @@
   "languageLabel": "言語 / Language",
   "languageNameJa": "日本語",
   "languageNameEn": "英語",
+  "languageNameVi": "ベトナム語",
+  "languageNameUz": "ウズベク語",
   "languageSearchHint": "言語を検索 / Search",
   "onboardingStart": "はじめる",
   "errorBatchAlreadyConfirmed": "この料理の数量はすでに確定しています",

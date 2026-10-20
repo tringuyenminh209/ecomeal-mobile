@@ -131,9 +131,13 @@ class _RailItem extends StatelessWidget {
               children: [
                 Icon(icon, size: 26, color: color),
                 const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+                  ),
                 ),
               ],
             ),

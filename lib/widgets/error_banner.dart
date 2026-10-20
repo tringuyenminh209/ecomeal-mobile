@@ -41,7 +41,8 @@ class ErrorBanner extends StatelessWidget {
               ],
             ),
           ),
-          if (onRetry != null && retryLabel != null) TextButton(onPressed: onRetry, child: Text(retryLabel!)),
+          if (onRetry != null && retryLabel != null)
+            Flexible(child: TextButton(onPressed: onRetry, child: Text(retryLabel!, textAlign: TextAlign.center))),
         ],
       ),
     );

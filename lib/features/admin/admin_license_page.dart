@@ -194,9 +194,15 @@ class _AdminLicensePageState extends ConsumerState<AdminLicensePage> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Text(l10n.adminLicTruck, style: TextStyle(fontSize: 13, color: eco.textSecondary)),
-              const Spacer(),
-              Text(truck ?? l10n.adminLicNoTruck, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+              Flexible(child: Text(l10n.adminLicTruck, style: TextStyle(fontSize: 13, color: eco.textSecondary))),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  truck ?? l10n.adminLicNoTruck,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),

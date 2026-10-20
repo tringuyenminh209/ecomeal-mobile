@@ -310,11 +310,15 @@ class PickupQrBlock extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.pickupQrTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-              Text(
-                l10n.manualCodeLabel(pickupManualCode(orderId)),
-                key: const Key('pickupManualCode'),
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              Flexible(child: Text(l10n.pickupQrTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  l10n.manualCodeLabel(pickupManualCode(orderId)),
+                  key: const Key('pickupManualCode'),
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),

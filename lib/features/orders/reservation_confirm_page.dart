@@ -403,7 +403,8 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(l10n.totalWithQuantity(1), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                            Flexible(child: Text(l10n.totalWithQuantity(1), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700))),
+                            const SizedBox(width: 8),
                             Text(priceText, key: const Key('totalPrice'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                           ],
                         ),
@@ -413,10 +414,13 @@ class _ReservationConfirmPageState extends ConsumerState<ReservationConfirmPage>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                l10n.taxIncludedLine(reducedTaxRate),
-                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                              Flexible(
+                                child: Text(
+                                  l10n.taxIncludedLine(reducedTaxRate),
+                                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Text(
                                 '¥${includedTax(price)}',
                                 key: const Key('taxAmount'),

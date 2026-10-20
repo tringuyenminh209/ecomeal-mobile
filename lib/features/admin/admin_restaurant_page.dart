@@ -325,7 +325,8 @@ class _Line extends StatelessWidget {
         Expanded(
           child: Text(label, style: TextStyle(fontSize: 13, color: context.eco.textSecondary)),
         ),
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        const SizedBox(width: 8),
+        Flexible(child: Text(value, textAlign: TextAlign.end, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700))),
         if (trailing != null) ...[const SizedBox(width: 8), trailing!],
       ],
     ),

@@ -293,6 +293,8 @@
   "languageLabel": "言語 / Language",
   "languageNameJa": "Japanese",
   "languageNameEn": "English",
+  "languageNameVi": "Vietnamese",
+  "languageNameUz": "Uzbek",
   "languageSearchHint": "Search languages / 言語を検索",
   "onboardingStart": "Get started",
   "errorBatchAlreadyConfirmed": "The quantity for this food has already been confirmed",

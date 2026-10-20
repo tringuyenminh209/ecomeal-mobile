@@ -124,8 +124,8 @@ class _StopRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(child: Text(stop.stopName, style: TextStyle(fontSize: 14, color: color))),
-          if (isNext) StatusBadge(label: l10n.nextStopBadge),
-          if (passed) Text(l10n.stopPassed, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          if (isNext) Flexible(child: StatusBadge(label: l10n.nextStopBadge)),
+          if (passed) Flexible(child: Text(l10n.stopPassed, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
         ],
       ),
     );

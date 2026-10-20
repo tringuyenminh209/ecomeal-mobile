@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ecomeal_mobile/features/home/home_gateway.dart';
 import 'package:ecomeal_mobile/l10n/l10n.dart';
 import 'package:ecomeal_mobile/widgets/language_picker.dart';
 import '../helpers/test_app.dart';
@@ -19,6 +20,25 @@ void main() {
     expect(defaultLocaleFor(const Locale('ja', 'JP'), supported), const Locale('ja'));
     expect(defaultLocaleFor(const Locale('en', 'GB'), supported), const Locale('en'));
     expect(defaultLocaleFor(const Locale('ko'), supported), const Locale('en'));
+  });
+
+  test('2026-10-20: app có tiếng Việt và Uzbek (chữ Latin); máy tiếng Việt / Uzbek → chọn sẵn đúng ngôn ngữ đó', () {
+    final codes = AppLocalizations.supportedLocales.map((l) => l.languageCode).toList();
+    expect(codes, containsAll(['ja', 'en', 'vi', 'uz']));
+    expect(languageEndonym('vi'), 'Tiếng Việt');
+    expect(languageEndonym('uz'), 'Oʻzbekcha');
+    expect(languageNameIn(l10nJa, 'uz'), 'ウズベク語');
+    const supported = AppLocalizations.supportedLocales;
+    expect(defaultLocaleFor(const Locale('vi', 'VN'), supported), const Locale('vi'));
+    expect(defaultLocaleFor(const Locale('uz'), supported), const Locale('uz'));
+  });
+
+  test('tên chất gây dị ứng (DB chỉ có ja/en): tiếng Nhật → ja, còn lại (en/vi/uz) → en', () {
+    const a = AllergenName(ja: '卵', en: 'Egg');
+    expect(a.forLanguage('ja'), '卵');
+    expect(a.forLanguage('en'), 'Egg');
+    expect(a.forLanguage('vi'), 'Egg');
+    expect(a.forLanguage('uz'), 'Egg');
   });
 
   test('filterLanguages: khớp tên bằng ngôn ngữ đó, tên bằng ngôn ngữ đang dùng, không phân biệt hoa thường', () {

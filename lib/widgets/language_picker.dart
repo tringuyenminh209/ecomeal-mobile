@@ -7,7 +7,7 @@ import '../l10n/l10n.dart';
 // AppLocalizations.supportedLocales (có file ARB là có ngôn ngữ), cần thêm tên ở [_endonyms] và [languageNameIn].
 
 // Tên ngôn ngữ viết bằng chính ngôn ngữ đó — không dịch (người đọc nhận ra ngôn ngữ của mình)
-const _endonyms = {'ja': '日本語', 'en': 'English'};
+const _endonyms = {'ja': '日本語', 'en': 'English', 'vi': 'Tiếng Việt', 'uz': 'Oʻzbekcha'};
 
 // Từ ngần này ngôn ngữ trở lên thì có ô tìm phía trên danh sách
 const languageSearchThreshold = 9;
@@ -18,6 +18,8 @@ String languageEndonym(String code) => _endonyms[code] ?? code;
 String languageNameIn(AppLocalizations l10n, String code) => switch (code) {
   'ja' => l10n.languageNameJa,
   'en' => l10n.languageNameEn,
+  'vi' => l10n.languageNameVi,
+  'uz' => l10n.languageNameUz,
   _ => code,
 };
 

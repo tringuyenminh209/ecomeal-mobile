@@ -401,7 +401,14 @@ class _HandoutSummary extends StatelessWidget {
                 child: Row(
                   children: [
                     Expanded(child: Text(_batchLabel(route, stock, l10n), style: const TextStyle(fontSize: 12))),
-                    Text(l10n.batchCapacityRow(stock.capacity, stock.remaining), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        l10n.batchCapacityRow(stock.capacity, stock.remaining),
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                      ),
+                    ),
                   ],
                 ),
               ),

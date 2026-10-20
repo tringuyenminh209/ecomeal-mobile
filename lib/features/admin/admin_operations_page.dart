@@ -92,9 +92,11 @@ class _AdminOperationsPageState extends ConsumerState<AdminOperationsPage> {
         if (updatedAt != null) ...[
           Icon(isStale ? Icons.sync_problem_rounded : Icons.sensors_rounded, size: 16, color: statusColor),
           const SizedBox(width: 4),
-          Text(
-            isStale ? l10n.adminOpsStale(updatedAt) : l10n.adminOpsUpdatedAt(updatedAt),
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: statusColor),
+          Flexible(
+            child: Text(
+              isStale ? l10n.adminOpsStale(updatedAt) : l10n.adminOpsUpdatedAt(updatedAt),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: statusColor),
+            ),
           ),
         ],
       ],
@@ -324,7 +326,7 @@ class _RouteTile extends StatelessWidget {
                       child: Text(r.plateNumber, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                     ),
                     const SizedBox(width: 8),
-                    StatusBadge(label: label, tone: tone),
+                    Flexible(child: StatusBadge(label: label, tone: tone)),
                   ],
                 ),
                 Text(

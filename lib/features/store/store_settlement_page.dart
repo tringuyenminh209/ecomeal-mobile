@@ -70,9 +70,11 @@ class StoreSettlementPage extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          l10n.storeSettlementCurrent(month),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                        Flexible(
+                          child: Text(
+                            l10n.storeSettlementCurrent(month),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Container(
@@ -146,9 +148,11 @@ class StoreSettlementPage extends ConsumerWidget {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                               title: Row(
                                 children: [
-                                  Text(
-                                    _ym(s.periodMonth, locale),
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                                  Flexible(
+                                    child: Text(
+                                      _ym(s.periodMonth, locale),
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                                    ),
                                   ),
                                   const SizedBox(width: 8),
                                   StatusBadge(

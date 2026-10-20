@@ -104,7 +104,8 @@ class AllergenName {
   final String ja;
   final String en;
 
-  String forLanguage(String languageCode) => languageCode == 'en' ? en : ja;
+  // DB chỉ có ja / en: ngôn ngữ khác tiếng Nhật (en, vi, uz) → tiếng Anh (người nước ngoài đọc tiếng Anh dễ hơn tiếng Nhật)
+  String forLanguage(String languageCode) => languageCode == 'ja' ? ja : en;
 }
 
 class BatchDetail {

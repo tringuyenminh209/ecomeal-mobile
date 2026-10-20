@@ -1014,6 +1014,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageNameEn => 'English';
 
   @override
+  String get languageNameVi => 'Vietnamese';
+
+  @override
+  String get languageNameUz => 'Uzbek';
+
+  @override
   String get languageSearchHint => 'Search languages / 言語を検索';
 
   @override

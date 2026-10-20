@@ -75,6 +75,8 @@ class BatchCard extends ConsumerWidget {
                         children: [
                           Text(
                             l10n.partnerStore,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -84,6 +86,8 @@ class BatchCard extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text(
                             l10n.mysteryBag,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 4),
@@ -111,6 +115,7 @@ class BatchCard extends ConsumerWidget {
                 Row(
                   children: [
                     if (price != null) ...[
+                      // nhãn giờ giữ 1 dòng (thẻ cao cố định); chữ không đủ chỗ thì số túi bên phải bị cắt "…"
                       StatusBadge(
                         label: l10n.minutesRemaining(
                           remainingMinutes(listing.expiresAt, now),
@@ -119,11 +124,15 @@ class BatchCard extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                     ],
-                    Text(
-                      l10n.remainingBags(listing.remainingQty),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                    Flexible(
+                      child: Text(
+                        l10n.remainingBags(listing.remainingQty),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ),
                   ],

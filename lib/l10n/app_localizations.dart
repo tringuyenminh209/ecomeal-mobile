@@ -7,6 +7,8 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
 import 'app_localizations_ja.dart';
+import 'app_localizations_uz.dart';
+import 'app_localizations_vi.dart';
 
 // ignore_for_file: type=lint
 
@@ -96,6 +98,8 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('ja'),
+    Locale('uz'),
+    Locale('vi'),
   ];
 
   /// No description provided for @loginTab.
@@ -1849,6 +1853,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'英語'**
   String get languageNameEn;
+
+  /// No description provided for @languageNameVi.
+  ///
+  /// In ja, this message translates to:
+  /// **'ベトナム語'**
+  String get languageNameVi;
+
+  /// No description provided for @languageNameUz.
+  ///
+  /// In ja, this message translates to:
+  /// **'ウズベク語'**
+  String get languageNameUz;
 
   /// No description provided for @languageSearchHint.
   ///
@@ -7804,7 +7820,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ja'].contains(locale.languageCode);
+      <String>['en', 'ja', 'uz', 'vi'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -7817,6 +7833,10 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEn();
     case 'ja':
       return AppLocalizationsJa();
+    case 'uz':
+      return AppLocalizationsUz();
+    case 'vi':
+      return AppLocalizationsVi();
   }
 
   throw FlutterError(
