@@ -4,6 +4,7 @@ import '../../core/app_flavor.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/ecomeal_logo.dart';
+import '../../widgets/language_picker.dart';
 import 'locale_controller.dart';
 import 'login_signup_page.dart';
 import 'reset_password_view.dart';
@@ -23,9 +24,9 @@ class BusinessLoginPage extends ConsumerStatefulWidget {
 class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
   bool _resettingPassword = false;
 
-  void _toggleLanguage() {
-    final current = ref.read(localeControllerProvider).languageCode;
-    ref.read(localeControllerProvider.notifier).setLocale(Locale(current == 'ja' ? 'en' : 'ja'));
+  Future<void> _pickLanguage() async {
+    final code = await showLanguageSheet(context, current: ref.read(localeControllerProvider).languageCode);
+    if (code != null) await ref.read(localeControllerProvider.notifier).setLocale(Locale(code));
   }
 
   @override
@@ -85,14 +86,11 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
                                       alignment: Alignment.centerRight,
                                       child: FittedBox(
                                         fit: BoxFit.scaleDown,
-                                        child: TextButton(
+                                        // Figma 1000:21720: 🌐 ngôn ngữ đang dùng ⌄ → bảng chọn
+                                        child: LanguageButton(
                                           key: const Key('switchLanguageButton'),
-                                          onPressed: _toggleLanguage,
-                                          style: TextButton.styleFrom(foregroundColor: eco.textSecondary),
-                                          child: Text(
-                                            l10n.languageToggleBoth,
-                                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-                                          ),
+                                          current: ref.watch(localeControllerProvider).languageCode,
+                                          onPressed: _pickLanguage,
                                         ),
                                       ),
                                     ),

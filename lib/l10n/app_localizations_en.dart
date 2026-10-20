@@ -97,9 +97,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get driverBadge => 'Driver';
 
   @override
-  String get languageToggleBoth => '日本語 / English';
-
-  @override
   String get driverLoginLead =>
       'Sign in with the driver account issued by EcoMeal.';
 
@@ -165,15 +162,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get driverSuspendedBody =>
       'This account can\'t take shifts right now. Please contact EcoMeal for the reason and how to resume.';
-
-  @override
-  String get selectLanguage => '言語を選択 / Select language';
-
-  @override
-  String get japaneseLanguage => '日本語';
-
-  @override
-  String get englishLanguage => 'English';
 
   @override
   String get backToLogin => 'Back to log in';
@@ -1018,6 +1006,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageLabel => '言語 / Language';
+
+  @override
+  String get languageNameJa => 'Japanese';
+
+  @override
+  String get languageNameEn => 'English';
+
+  @override
+  String get languageSearchHint => 'Search languages / 言語を検索';
+
+  @override
+  String get onboardingStart => 'Get started';
 
   @override
   String get errorBatchAlreadyConfirmed =>

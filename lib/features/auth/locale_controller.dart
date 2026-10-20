@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../l10n/l10n.dart';
+import '../../widgets/language_picker.dart';
 
 const _localePrefsKey = 'preferred_language';
 
 // Quản lý ngôn ngữ TRƯỚC khi có session — xem box-warn đầu chương. Lưu local (SharedPreferences)
 // thay vì gọi API-023 ngay, vì SCR-M01 chạy lúc chưa đăng nhập, chưa có auth.uid() nào để UPDATE.
 class LocaleController extends StateNotifier<Locale> {
-  LocaleController(this._prefs)
-    : super(Locale(_prefs.getString(_localePrefsKey) ?? 'ja'));
+  // Chưa từng chọn → ngôn ngữ của máy nếu app có, không thì English (SCR-M01 chọn sẵn, 2026-10-20)
+  LocaleController(this._prefs, Locale device)
+    : super(_saved(_prefs) ?? defaultLocaleFor(device, AppLocalizations.supportedLocales));
+
+  static Locale? _saved(SharedPreferences prefs) {
+    final code = prefs.getString(_localePrefsKey);
+    return code == null ? null : Locale(code);
+  }
 
   final SharedPreferences _prefs;
 
@@ -24,9 +32,12 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   );
 });
 
+// Ngôn ngữ của máy (test ghi đè để không phụ thuộc máy chạy test)
+final deviceLocaleProvider = Provider<Locale>((ref) => WidgetsBinding.instance.platformDispatcher.locale);
+
 final localeControllerProvider =
     StateNotifierProvider<LocaleController, Locale>((ref) {
-      return LocaleController(ref.watch(sharedPreferencesProvider));
+      return LocaleController(ref.watch(sharedPreferencesProvider), ref.watch(deviceLocaleProvider));
     });
 
 // Đã qua SCR-M01 (chọn ngôn ngữ) ít nhất 1 lần trên máy này chưa — RoleGate (bước 8) dùng để quyết định

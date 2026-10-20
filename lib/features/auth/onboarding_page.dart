@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
 import '../../widgets/ecomeal_logo.dart';
+import '../../widgets/language_picker.dart';
 import 'locale_controller.dart';
 
-// SCR-M01 オンボーディング — khớp frame Figma 16:16295: logo, hero xanh nhạt, thông điệp, chọn ngôn ngữ ở đáy.
+// SCR-M01 オンボーディング — khớp frame Figma 16:16295: logo, hero xanh nhạt, thông điệp; đáy: hàng ngôn ngữ + 「はじめる」.
 class OnboardingPage extends ConsumerWidget {
   const OnboardingPage({super.key});
 
@@ -44,34 +45,26 @@ class OnboardingPage extends ConsumerWidget {
                     ),
                     const Spacer(),
                     const SizedBox(height: 24),
-                    // ARB giữ câu hỏi và tên ngôn ngữ song ngữ để người dùng đọc được trước khi chọn (06 §0.1).
-                    Text(
-                      context.l10n.selectLanguage,
-                      textAlign: TextAlign.center,
-                      style: textTheme.labelMedium,
+                    // Figma 1000:21670 (2026-10-20): 1 hàng ngôn ngữ (bấm → bảng chọn, đã chọn sẵn ngôn ngữ của máy) + 「はじめる」.
+                    // Thêm ngôn ngữ không làm đổi màn này.
+                    LanguageRow(
+                      key: const Key('onboardingLanguageRow'),
+                      inline: true,
+                      current: ref.watch(localeControllerProvider).languageCode,
+                      onTap: () async {
+                        final code = await showLanguageSheet(context, current: ref.read(localeControllerProvider).languageCode);
+                        if (code != null) await ref.read(localeControllerProvider.notifier).setLocale(Locale(code));
+                      },
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _LanguageOption(
-                            key: const Key('selectJapaneseButton'),
-                            label: context.l10n.japaneseLanguage,
-                            // Figma tô đặc lựa chọn mặc định (日本語 — LocaleController mặc định 'ja').
-                            highlighted: true,
-                            onPressed: () => _selectLanguage(ref, const Locale('ja')),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _LanguageOption(
-                            key: const Key('selectEnglishButton'),
-                            label: context.l10n.englishLanguage,
-                            highlighted: false,
-                            onPressed: () => _selectLanguage(ref, const Locale('en')),
-                          ),
-                        ),
-                      ],
+                    FilledButton(
+                      key: const Key('onboardingStartButton'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () => _start(ref),
+                      child: Text(context.l10n.onboardingStart, style: const TextStyle(fontSize: 15)),
                     ),
                   ],
                 ),
@@ -83,8 +76,9 @@ class OnboardingPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _selectLanguage(WidgetRef ref, Locale locale) async {
-    await ref.read(localeControllerProvider.notifier).setLocale(locale);
+  Future<void> _start(WidgetRef ref) async {
+    // Lưu ngôn ngữ đang chọn (kể cả khi giữ ngôn ngữ chọn sẵn) — có khoá này nghĩa là đã qua SCR-M01
+    await ref.read(localeControllerProvider.notifier).setLocale(ref.read(localeControllerProvider));
     // KHÔNG Navigator.pushReplacement sang LoginSignupPage: route gốc là RoleGate (bước 8) — thay nó đi
     // thì sau khi đăng nhập không còn ai lắng nghe authControllerProvider để đưa vào màn chính (đã
     // bắt được khi chạy thật ở Chương 18). Chỉ đổi state, RoleGate tự chuyển sang SCR-M02.
@@ -159,39 +153,3 @@ class _HeroArt extends StatelessWidget {
 }
 
 // "Language option" của Figma: 2 nút ngang nhau, cao 48, bo 8 (khác nút pill ở các màn khác).
-class _LanguageOption extends StatelessWidget {
-  const _LanguageOption({
-    super.key,
-    required this.label,
-    required this.highlighted,
-    required this.onPressed,
-  });
-  final String label;
-  final bool highlighted;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(8));
-    return highlighted
-        ? FilledButton(
-            style: FilledButton.styleFrom(shape: shape),
-            onPressed: onPressed,
-            // Cỡ chữ đặt ở Text (gộp với font của theme), KHÔNG ở styleFrom(textStyle:) — textStyle của
-            // ButtonStyle thay hẳn style của theme nên sẽ mất fontFamily Noto Sans JP.
-            child: Text(label, style: const TextStyle(fontSize: 14)),
-          )
-        : OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              shape: shape,
-              foregroundColor: AppColors.textPrimary,
-              side: const BorderSide(color: AppColors.border),
-            ),
-            onPressed: onPressed,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          );
-  }
-}

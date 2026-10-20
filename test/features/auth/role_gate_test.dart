@@ -130,15 +130,18 @@ void main() {
   }
 
   testWidgets(
-    'lần đầu: SCR-M01 → chọn 日本語 → SCR-M02, RoleGate VẪN là route gốc (regression Chương 15)',
+    'lần đầu: SCR-M01 → はじめる → SCR-M02, RoleGate VẪN là route gốc (regression Chương 15)',
     (tester) async {
       await pumpGate(tester, {});
       expect(find.byType(OnboardingPage), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('selectJapaneseButton')));
+      await tester.ensureVisible(find.byKey(const Key('onboardingStartButton')));
+      await tester.tap(find.byKey(const Key('onboardingStartButton')));
       await tester.pumpAndSettle();
 
       expect(find.byType(LoginSignupPage), findsOneWidget);
+      // Giữ ngôn ngữ chọn sẵn rồi bấm はじめる cũng phải lưu — có khoá này thì lần mở sau không hiện lại SCR-M01
+      expect((await SharedPreferences.getInstance()).getString('preferred_language'), isNotNull);
       // Nếu Onboarding còn pushReplacement như bản cũ, RoleGate bị thay mất → sau khi đăng nhập không
       // còn ai đưa người dùng vào màn chính.
       expect(find.byType(RoleGate), findsOneWidget);
@@ -157,7 +160,7 @@ void main() {
   // REQ-015: chọn English ở SCR-M01 → mọi chữ của màn kế tiếp đổi ngay sang tiếng Anh. Dùng EcoMealApp thật
   // (main.dart) vì chính nó nối localeControllerProvider vào MaterialApp.locale.
   testWidgets(
-    'chọn English ở SCR-M01 → SCR-M02 hiển thị tiếng Anh, lưu "en" cho lần mở sau',
+    'chọn English ở SCR-M01 (hàng ngôn ngữ → bảng chọn) → はじめる → SCR-M02 tiếng Anh, lưu "en" cho lần mở sau',
     (tester) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -166,6 +169,7 @@ void main() {
           overrides: [
             authGatewayProvider.overrideWithValue(gateway),
             sharedPreferencesProvider.overrideWithValue(prefs),
+            deviceLocaleProvider.overrideWithValue(const Locale('ja', 'JP')),
           ],
           child: const EcoMealApp(),
         ),
@@ -174,9 +178,17 @@ void main() {
       expect(
         find.text(l10nJa.onboardingHeadline),
         findsOneWidget,
-      ); // lần đầu: mặc định ja
+      ); // lần đầu: máy tiếng Nhật → chọn sẵn ja
 
-      await tester.tap(find.byKey(const Key('selectEnglishButton')));
+      await tester.ensureVisible(find.byKey(const Key('onboardingLanguageRow')));
+      await tester.tap(find.byKey(const Key('onboardingLanguageRow')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('languageOption_en')));
+      await tester.pumpAndSettle();
+      // đổi ngôn ngữ ngay trên SCR-M01, chưa rời màn
+      expect(find.text(l10nEn.onboardingStart), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('onboardingStartButton')));
+      await tester.tap(find.byKey(const Key('onboardingStartButton')));
       await tester.pumpAndSettle();
 
       expect(find.text('Log in'), findsNWidgets(3)); // tab + tiêu đề + nút
@@ -261,12 +273,17 @@ void main() {
     expect(find.text(l10nJa.signupTab), findsNothing);
   });
 
-  testWidgets('SCR-D00: nút ngôn ngữ đổi sang tiếng Anh ngay và lưu lại', (tester) async {
+  testWidgets('SCR-D00: nút 🌐 日本語 → bảng chọn → English: đổi ngay, nút hiện English', (tester) async {
     await pumpApp(tester, AppFlavor.driver);
+    expect(find.descendant(of: find.byKey(const Key('switchLanguageButton')), matching: find.text('日本語')), findsOneWidget);
     await tester.tap(find.byKey(const Key('switchLanguageButton')));
     await tester.pumpAndSettle();
+    // bảng chọn: ngôn ngữ đang dùng có dấu ✓
+    expect(find.descendant(of: find.byKey(const Key('languageOption_ja')), matching: find.byIcon(Icons.check)), findsOneWidget);
+    await tester.tap(find.byKey(const Key('languageOption_en')));
+    await tester.pumpAndSettle();
     expect(find.text(l10nEn.driverLoginLead), findsOneWidget);
-    expect(find.text(l10nEn.languageToggleBoth), findsOneWidget); // Figma: 「日本語 / English」 ở cả 2 ngôn ngữ
+    expect(find.descendant(of: find.byKey(const Key('switchLanguageButton')), matching: find.text('English')), findsOneWidget);
   });
 
   // Màn đăng nhập của app nghiệp vụ theo Figma ở cỡ iPhone 390×844

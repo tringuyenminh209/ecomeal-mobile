@@ -5,6 +5,7 @@ import '../../core/line_official_account.dart';
 import '../../core/app_version.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/l10n.dart';
+import '../../widgets/language_picker.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/logout_button.dart';
 import '../../widgets/state_panel.dart';
@@ -63,11 +64,9 @@ class MyPage extends ConsumerWidget {
               // 0055 (Figma 470:1400): あなたが救った食品 — tải xong mới hiện, lỗi thì ẩn
               const MyImpactCard(),
               const SizedBox(height: 16),
-              // Figma 470:1400: nhãn song ngữ cố định 「言語 / Language」 phía trên rãnh chọn ngôn ngữ.
-              Text(l10n.languageLabel, style: Theme.of(context).textTheme.labelMedium),
-              const SizedBox(height: 8),
-              const _LanguageSwitch(),
-              const SizedBox(height: 16),
+              // Figma 1000:1833 (2026-10-20): 1 hàng như các hàng khác → bảng chọn ngôn ngữ
+              const _LanguageSetting(),
+              const SizedBox(height: 12),
               const _PaymentMethodRow(),
               const SizedBox(height: 12),
               const _FavoriteStopsRow(),
@@ -477,17 +476,21 @@ class _AboutAppSection extends ConsumerWidget {
 // UC-02 + API-023: đổi ngôn ngữ sau khi đã đăng nhập — lưu lên users.preferred_language (server) RỒI
 // mới đổi locale ở máy. Ngược thứ tự thì lỗi mạng sẽ để UI một đằng, server một nẻo.
 // "Language switch" của Figma: rãnh xám bo 10, ô đang chọn nền trắng bo 8 chữ đậm.
-class _LanguageSwitch extends ConsumerStatefulWidget {
-  const _LanguageSwitch();
+// Ngôn ngữ (API-023): lưu lên server trước (thông báo LINE / push gửi theo users.language) rồi mới đổi trên máy.
+// Lưu lỗi → giữ ngôn ngữ cũ + báo 「言語設定の保存に失敗しました」.
+class _LanguageSetting extends ConsumerStatefulWidget {
+  const _LanguageSetting();
 
   @override
-  ConsumerState<_LanguageSwitch> createState() => _LanguageSwitchState();
+  ConsumerState<_LanguageSetting> createState() => _LanguageSettingState();
 }
 
-class _LanguageSwitchState extends ConsumerState<_LanguageSwitch> {
+class _LanguageSettingState extends ConsumerState<_LanguageSetting> {
   bool _saving = false;
 
-  Future<void> _change(String code) async {
+  Future<void> _pick() async {
+    final code = await showLanguageSheet(context, current: ref.read(localeControllerProvider).languageCode);
+    if (code == null || !mounted) return;
     setState(() => _saving = true);
     try {
       await ref.read(profileGatewayProvider).updatePreferredLanguage(code);
@@ -503,39 +506,10 @@ class _LanguageSwitchState extends ConsumerState<_LanguageSwitch> {
 
   @override
   Widget build(BuildContext context) {
-    final current = ref.watch(localeControllerProvider).languageCode;
-    // tên ngôn ngữ viết bằng chính ngôn ngữ đó (endonym) — không dịch, giống SCR-M01
-    const options = [('ja', '日本語'), ('en', 'English')];
-    return Container(
-      key: const Key('languageToggle'),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: AppColors.chip, borderRadius: BorderRadius.circular(10)),
-      child: Row(
-        children: [
-          for (final (code, label) in options)
-            Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _saving || code == current ? null : () => _change(code),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: code == current ? AppColors.surface : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: code == current ? FontWeight.w700 : FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+    return LanguageRow(
+      key: const Key('languageRow'),
+      current: ref.watch(localeControllerProvider).languageCode,
+      onTap: _saving ? null : _pick,
     );
   }
 }

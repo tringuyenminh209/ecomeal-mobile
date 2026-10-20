@@ -260,12 +260,6 @@ abstract class AppLocalizations {
   /// **'ドライバー'**
   String get driverBadge;
 
-  /// No description provided for @languageToggleBoth.
-  ///
-  /// In ja, this message translates to:
-  /// **'日本語 / English'**
-  String get languageToggleBoth;
-
   /// No description provided for @driverLoginLead.
   ///
   /// In ja, this message translates to:
@@ -379,24 +373,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'このアカウントは現在シフトに入れない状態です。理由と再開の手続きは EcoMeal 運営にお問い合わせください。'**
   String get driverSuspendedBody;
-
-  /// No description provided for @selectLanguage.
-  ///
-  /// In ja, this message translates to:
-  /// **'言語を選択 / Select language'**
-  String get selectLanguage;
-
-  /// No description provided for @japaneseLanguage.
-  ///
-  /// In ja, this message translates to:
-  /// **'日本語'**
-  String get japaneseLanguage;
-
-  /// No description provided for @englishLanguage.
-  ///
-  /// In ja, this message translates to:
-  /// **'English'**
-  String get englishLanguage;
 
   /// No description provided for @backToLogin.
   ///
@@ -1861,6 +1837,30 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'言語 / Language'**
   String get languageLabel;
+
+  /// No description provided for @languageNameJa.
+  ///
+  /// In ja, this message translates to:
+  /// **'日本語'**
+  String get languageNameJa;
+
+  /// No description provided for @languageNameEn.
+  ///
+  /// In ja, this message translates to:
+  /// **'英語'**
+  String get languageNameEn;
+
+  /// No description provided for @languageSearchHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'言語を検索 / Search'**
+  String get languageSearchHint;
+
+  /// No description provided for @onboardingStart.
+  ///
+  /// In ja, this message translates to:
+  /// **'はじめる'**
+  String get onboardingStart;
 
   /// No description provided for @errorBatchAlreadyConfirmed.
   ///

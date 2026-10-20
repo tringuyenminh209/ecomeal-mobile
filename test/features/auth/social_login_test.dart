@@ -63,6 +63,8 @@ void main() {
       overrides: [
         authGatewayProvider.overrideWithValue(gateway),
         sharedPreferencesProvider.overrideWithValue(prefs),
+        // chưa từng chọn ngôn ngữ → theo máy; cố định máy tiếng Nhật để kiểm ngôn ngữ gửi đi
+        deviceLocaleProvider.overrideWithValue(const Locale('ja')),
         lineLoginAvailableProvider.overrideWithValue(lineOn),
         appleLoginAvailableProvider.overrideWithValue(appleOn),
         lineLoginBridgeProvider.overrideWithValue(line),

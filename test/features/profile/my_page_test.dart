@@ -183,16 +183,44 @@ void main() {
     expect(find.byKey(const Key('lineStatusError')), findsNothing);
   });
 
-  testWidgets('đổi sang English → lưu preferred_language lên server (API-023) rồi mới đổi locale', (tester) async {
+  testWidgets('hàng 言語 → bảng chọn → English: lưu lên server (API-023) rồi mới đổi locale', (tester) async {
     when(() => profileGateway.isLineLinked()).thenAnswer((_) async => false);
     when(() => profileGateway.updatePreferredLanguage('en')).thenAnswer((_) async {});
     await pumpPage(tester);
 
-    await tester.tap(find.text('English'));
+    await tester.tap(find.byKey(const Key('languageRow')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('languageOption_en')));
     await tester.pumpAndSettle();
 
     verify(() => profileGateway.updatePreferredLanguage('en')).called(1);
     expect(prefs.getString('preferred_language'), 'en');
+  });
+
+  testWidgets('chọn lại ngôn ngữ đang dùng → không gọi server', (tester) async {
+    when(() => profileGateway.isLineLinked()).thenAnswer((_) async => false);
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('languageRow')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('languageOption_ja')));
+    await tester.pumpAndSettle();
+
+    verifyNever(() => profileGateway.updatePreferredLanguage(any()));
+  });
+
+  testWidgets('lưu ngôn ngữ lỗi → giữ ngôn ngữ cũ + 「言語設定の保存に失敗しました」', (tester) async {
+    when(() => profileGateway.isLineLinked()).thenAnswer((_) async => false);
+    when(() => profileGateway.updatePreferredLanguage('en')).thenThrow(Exception('offline'));
+    await pumpPage(tester);
+
+    await tester.tap(find.byKey(const Key('languageRow')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('languageOption_en')));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nJa.errorLanguageSave), findsOneWidget);
+    expect(prefs.getString('preferred_language'), isNot('en'));
   });
 
   testWidgets('đăng xuất: hiện dialog xác nhận → bấm ログアウト → gọi signOut()', (tester) async {
