@@ -64,7 +64,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('deleteCardAction')));
     await tester.pumpAndSettle();
-    expect(find.text('JCB •••• 1188 を削除します。削除すると、このカードは次回以降の注文に使えなくなります。'), findsOneWidget);
+    expect(find.text('JCB •••• 1188 を削除します。削除すると、このカードは次回以降のご注文に使えなくなります。'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('confirmDeleteCardButton')));
     await tester.pumpAndSettle();

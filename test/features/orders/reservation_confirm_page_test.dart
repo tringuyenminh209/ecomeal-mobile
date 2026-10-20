@@ -359,7 +359,7 @@ void main() {
         )).thenAnswer((_) async => const CreateOrderResult(orderId: 'o-1', status: 'pending', pricePaid: 550));
     await pumpPage(tester);
 
-    expect(find.text('友だち紹介クーポン（ようこそ）'), findsOneWidget);
+    expect(find.text('友だち紹介クーポン（登録特典）'), findsOneWidget);
     expect(find.text('−¥100'), findsOneWidget);
     expect(find.text('¥550'), findsOneWidget);
     expect(find.text('予約を確定すると、¥550が決済されます。'), findsOneWidget);

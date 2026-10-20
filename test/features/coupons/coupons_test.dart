@@ -27,7 +27,7 @@ void main() {
 
     test('referralErrorMessage: map mã lỗi', () {
       expect(referralErrorMessage(const PostgrestException(message: 'E-REF-404: x'), l10nJa), 'この紹介コードは見つかりません');
-      expect(referralErrorMessage(const PostgrestException(message: 'E-REF-409: x'), l10nJa), '自分の紹介コードは使えません');
+      expect(referralErrorMessage(const PostgrestException(message: 'E-REF-409: x'), l10nJa), 'ご自身の紹介コードは使えません');
       expect(referralErrorMessage(const PostgrestException(message: 'E-REF-410: x'), l10nJa), '紹介コードを入力できる期間が過ぎています');
       expect(referralErrorMessage(Exception('net'), l10nJa), '紹介コードを適用できませんでした。もう一度お試しください');
     });
@@ -74,7 +74,7 @@ void main() {
       expect(find.text('¥100クーポンを受け取りました'), findsOneWidget);
       expect(find.byKey(const Key('referralCodeInput')), findsNothing);
       expect(find.text('紹介コード EM3PX9 を適用しました'), findsOneWidget);
-      expect(find.text('友だち紹介クーポン（ようこそ）'), findsOneWidget);
+      expect(find.text('友だち紹介クーポン（登録特典）'), findsOneWidget);
     });
 
     testWidgets('mã sai độ dài → báo ngay, không gọi server; server báo E-REF-404 → câu lỗi', (tester) async {

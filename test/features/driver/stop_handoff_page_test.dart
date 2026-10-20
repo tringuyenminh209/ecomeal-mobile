@@ -75,13 +75,13 @@ void main() {
     when(() => gateway.fetchStopHandoff('p2')).thenAnswer((_) async => handoff());
     await pumpPage(tester);
 
-    expect(find.text('この場所で渡すもの'), findsOneWidget);
+    expect(find.text('この地点でお渡しするもの'), findsOneWidget);
     expect(tester.widget<Text>(find.byKey(const Key('handout_total'))).data, '合計 12食');
     expect(tester.widget<Text>(find.byKey(const Key('handout_reserved'))).data, '2件');
     expect(tester.widget<Text>(find.byKey(const Key('handout_sellable'))).data, '3食');
     // tên lô = điểm thu gom của quán B (restaurants bị RLS ẩn)
     expect(find.text('12食（予約なしの残り 3食）'), findsOneWidget);
-    expect(find.text('ここでの流れ'), findsOneWidget);
+    expect(find.text('この地点での流れ'), findsOneWidget);
   });
 
   testWidgets('quét QR của đơn đang chờ ở điểm này → confirm_pickup đúng order_id', (tester) async {
@@ -167,7 +167,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('この停車地点で引き渡し待ちの予約ではありません'), findsNothing);
-    expect(find.text('処理に失敗しました。もう一度お試しください'), findsOneWidget);
+    expect(find.text('エラーが発生しました。もう一度お試しください'), findsOneWidget);
     verifyNever(() => gateway.confirmPickup(any()));
   });
 

@@ -63,7 +63,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('temperatureField')), '5.2');
     await tester.tap(find.byKey(const Key('distStop_p3')));
     await tester.pump();
-    expect(find.text('選択した停車地（1箇所）に分配されます。'), findsOneWidget);
+    expect(find.text('選択した停車地点（1箇所）に分配されます。'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('confirmPickupButton')));
     await tester.pumpAndSettle();
@@ -174,7 +174,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('confirmPickupButton')));
     await tester.pumpAndSettle();
-    expect(find.text('この料理を回収しませんか？'), findsOneWidget);
+    expect(find.text('この料理の回収を見送りますか？'), findsOneWidget);
     expect(find.textContaining('中心温度が12.5℃で'), findsOneWidget);
     await tester.tap(find.text('キャンセル'));
     await tester.pumpAndSettle();

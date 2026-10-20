@@ -67,7 +67,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('licenseSourceCamera')));
     await tester.pumpAndSettle();
-    expect(find.text('カメラ（写真）へのアクセスが許可されていません'), findsOneWidget);
+    expect(find.text('カメラと写真へのアクセスが許可されていません'), findsOneWidget);
     expect(find.text('設定を開く'), findsOneWidget);
     expect(find.textContaining('提出できませんでした'), findsNothing);
   });
@@ -140,7 +140,7 @@ void main() {
     when(() => gateway.fetchLicense()).thenAnswer((_) async => const DriverLicense(status: LicenseStatus.submitted));
     await tester.pumpWidget(_cards(gateway));
     await tester.pumpAndSettle();
-    expect(find.text('予定されたシフトはありません。運営がシフトを入れると、ここに表示されます。'), findsOneWidget);
+    expect(find.text('予定されたシフトはありません。シフトが決まると、ここに表示されます。'), findsOneWidget);
     expect(find.textContaining('運営が確認しています'), findsOneWidget);
   });
 }

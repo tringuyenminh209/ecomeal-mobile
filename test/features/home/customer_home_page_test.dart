@@ -116,7 +116,7 @@ void main() {
   testWidgets('network failure retry reloads list', (tester) async {
     when(() => gateway.fetchActiveListings()).thenThrow(Exception('offline'));
     await pump(tester);
-    expect(find.text('データの取得に失敗しました。'), findsOneWidget);
+    expect(find.text('読み込めませんでした'), findsOneWidget);
     when(() => gateway.fetchActiveListings()).thenAnswer((_) async => [listing]);
     await tester.tap(find.widgetWithText(OutlinedButton, '再試行'));
     await tester.pumpAndSettle();
@@ -154,7 +154,7 @@ void main() {
   });
   testWidgets('permanently denied GPS offers Settings while batches remain available', (tester) async {
     await pump(tester, locationError: LocationPermission.deniedForever);
-    expect(find.text('位置情報の設定'), findsOneWidget);
+    expect(find.text('設定を開く'), findsOneWidget);
     expect(find.text('¥320'), findsOneWidget);
   });
 

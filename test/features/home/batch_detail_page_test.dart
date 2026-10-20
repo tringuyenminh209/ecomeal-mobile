@@ -120,7 +120,7 @@ void main() {
       await pumpPage(tester);
       await tester.pumpAndSettle();
 
-      expect(find.text('データの取得に失敗しました。'), findsOneWidget);
+      expect(find.text('読み込めませんでした'), findsOneWidget);
       expect(find.widgetWithText(OutlinedButton, '再試行'), findsOneWidget);
     },
   );

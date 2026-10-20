@@ -144,7 +144,7 @@ void main() {
       await pumpPage(tester);
       expect(find.byKey(const Key('cardNumberField')), findsNothing);
       expect(find.byKey(const Key('cardCvcField')), findsNothing);
-      expect(find.text('テスト中のため実際の請求は発生しません。テスト用カード 4242 4242 4242 4242 をお使いください（0002で終わるカードは決済が拒否されます）。'), findsNothing);
+      expect(find.text('テスト中のため、実際に請求されることはありません。テスト用カード 4242 4242 4242 4242 をお使いください（0002で終わるカードは決済が拒否されます）。'), findsNothing);
 
       await tester.tap(find.byKey(const Key('addCardSubmitButton')));
       await tester.pump();

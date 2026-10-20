@@ -157,7 +157,7 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => gateway.cancelOrder('00000000-0000-0000-0000-00000000a004')).called(1);
-    expect(find.text('キャンセルしました（返金なし）'), findsOneWidget);
+    expect(find.text('キャンセルしました（返金はありません）'), findsOneWidget);
   });
 
   // REQ-015: nhãn trạng thái, chip lọc, nút và NGÀY đều theo locale (DateFormat của intl, không ghép "M月d日")

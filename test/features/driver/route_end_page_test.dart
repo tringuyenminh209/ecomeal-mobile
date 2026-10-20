@@ -135,7 +135,7 @@ void main() {
     await fillDonation(tester, '7');
 
     expect(find.text('Stop rB（確定 28食・残り 6食）'), findsOneWidget);
-    expect(find.text('残りは 6食です。6食以下にしてください'), findsOneWidget);
+    expect(find.text('残りは 6食です。6食以下で入力してください'), findsOneWidget);
     expect(tester.widget<FilledButton>(find.byKey(const Key('recordDonationButton'))).onPressed, isNull);
   });
 

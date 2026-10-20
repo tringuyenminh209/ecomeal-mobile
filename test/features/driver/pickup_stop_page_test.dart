@@ -44,7 +44,7 @@ void main() {
 
       expect(find.text('Stop rB'), findsOneWidget);
       expect(find.text('集荷 2/2 ・ 19:00 着く予定'), findsOneWidget);
-      expect(find.text('受け取る料理（2つ）'), findsOneWidget);
+      expect(find.text('受け取る料理（2品）'), findsOneWidget);
       expect(find.text('約10食'), findsOneWidget);
       expect(find.text('お店の販売終了 18:30'), findsOneWidget);
       // bB1 (18:30) đứng trước bB2 (18:45) dù dữ liệu trả về ngược lại
@@ -126,7 +126,7 @@ void main() {
       when(() => gateway.fetchBatchDrops('bB1')).thenAnswer((_) async => const []);
       await pump(tester, PickupDonePage(collectionStop: routeFixture.stops[2], outcome: outcome));
 
-      expect(find.text('Stop p2 でお客様に渡す'), findsOneWidget);
+      expect(find.text('Stop p2 でお客様にお渡しする'), findsOneWidget);
       expect(find.text('集荷はすべて終わりました。料理が冷えたままか確認して出発してください。'), findsOneWidget);
       await tester.tap(find.byKey(const Key('doneNavigateButton')));
       expect(navigations, [(34.69, 135.50)]);

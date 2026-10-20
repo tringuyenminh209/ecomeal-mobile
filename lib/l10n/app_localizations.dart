@@ -213,7 +213,7 @@ abstract class AppLocalizations {
   /// No description provided for @webOnlyAccountTitle.
   ///
   /// In ja, this message translates to:
-  /// **'このアカウントはアプリでは利用できません'**
+  /// **'このアカウントはアプリではご利用いただけません'**
   String get webOnlyAccountTitle;
 
   /// No description provided for @webOnlyAccountBody.
@@ -273,7 +273,7 @@ abstract class AppLocalizations {
   /// No description provided for @driverAccountIssuedNote.
   ///
   /// In ja, this message translates to:
-  /// **'アカウントは運営から発行されます。招待メールのリンクでパスワードを設定してからログインしてください。'**
+  /// **'アカウントは運営から発行されます。招待メールのリンクからパスワードを設定して、ログインしてください。'**
   String get driverAccountIssuedNote;
 
   /// No description provided for @driverOnlyAppTitle.
@@ -327,7 +327,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeLoginNote.
   ///
   /// In ja, this message translates to:
-  /// **'お店の新しい登録は Web（ecomeal-pi.vercel.app）から申し込めます。'**
+  /// **'お店の新規登録は Web（ecomeal-pi.vercel.app）からお申し込みいただけます。'**
   String get storeLoginNote;
 
   /// No description provided for @adminBadge.
@@ -363,7 +363,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminOnlyAppBody.
   ///
   /// In ja, this message translates to:
-  /// **'お客様は「EcoMeal」、飲食店は「EcoMeal Store」、ドライバーの方は「EcoMeal Driver」アプリをご利用ください。'**
+  /// **'お客様は「EcoMeal」、飲食店の方は「EcoMeal Store」、ドライバーの方は「EcoMeal Driver」アプリをご利用ください。'**
   String get adminOnlyAppBody;
 
   /// No description provided for @driverSuspendedTitle.
@@ -375,7 +375,7 @@ abstract class AppLocalizations {
   /// No description provided for @driverSuspendedBody.
   ///
   /// In ja, this message translates to:
-  /// **'このアカウントは現在シフトに入れない状態です。理由と再開の手続きは EcoMeal 運営にお問い合わせください。'**
+  /// **'このアカウントは現在シフトに入れない状態です。理由や再開の手続きについては、EcoMeal 運営までお問い合わせください。'**
   String get driverSuspendedBody;
 
   /// No description provided for @backToLogin.
@@ -411,7 +411,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingLead.
   ///
   /// In ja, this message translates to:
-  /// **'街のレストランから生まれるおいしい余剰を、Eco-Truckがあなたの近くへ届けます。'**
+  /// **'街のレストランで余った、まだおいしい料理を、Eco-Truckがあなたの近くへ届けます。'**
   String get onboardingLead;
 
   /// No description provided for @onboardingImpact.
@@ -615,13 +615,13 @@ abstract class AppLocalizations {
   /// No description provided for @errorLoadRetry.
   ///
   /// In ja, this message translates to:
-  /// **'データの取得に失敗しました。再試行'**
+  /// **'もう一度読み込む'**
   String get errorLoadRetry;
 
   /// No description provided for @errorLoadTitle.
   ///
   /// In ja, this message translates to:
-  /// **'データの取得に失敗しました。'**
+  /// **'読み込めませんでした'**
   String get errorLoadTitle;
 
   /// No description provided for @errorLoadBody.
@@ -681,7 +681,7 @@ abstract class AppLocalizations {
   /// No description provided for @truckTapHint.
   ///
   /// In ja, this message translates to:
-  /// **'地図のトラックか、このカードをタップすると停車予定とメニューを表示します'**
+  /// **'地図上のトラックまたはこのカードをタップすると、停車予定とメニューを確認できます'**
   String get truckTapHint;
 
   /// No description provided for @stopPassed.
@@ -813,7 +813,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorPriceTooLow.
   ///
   /// In ja, this message translates to:
-  /// **'このフードバッグは、今の値段ではカードで支払えません。別のフードバッグをお選びください'**
+  /// **'このフードバッグは、現在の価格ではカードでお支払いいただけません。ほかのフードバッグをお選びください'**
   String get errorPriceTooLow;
 
   /// No description provided for @minutesRemaining.
@@ -855,7 +855,7 @@ abstract class AppLocalizations {
   /// No description provided for @originUnknown.
   ///
   /// In ja, this message translates to:
-  /// **'産地不明'**
+  /// **'産地情報なし'**
   String get originUnknown;
 
   /// No description provided for @detailNote.
@@ -885,7 +885,7 @@ abstract class AppLocalizations {
   /// No description provided for @openLocationSettings.
   ///
   /// In ja, this message translates to:
-  /// **'位置情報の設定'**
+  /// **'設定を開く'**
   String get openLocationSettings;
 
   /// No description provided for @batchExpired.
@@ -897,7 +897,7 @@ abstract class AppLocalizations {
   /// No description provided for @reservationCountFailed.
   ///
   /// In ja, this message translates to:
-  /// **'予約件数を確認できませんでした。再試行してください。'**
+  /// **'予約件数を確認できませんでした。もう一度お試しください。'**
   String get reservationCountFailed;
 
   /// No description provided for @homeTab.
@@ -1083,7 +1083,7 @@ abstract class AppLocalizations {
   /// No description provided for @pickupPlaceLine.
   ///
   /// In ja, this message translates to:
-  /// **'受取場所：{place}'**
+  /// **'受取地点：{place}'**
   String pickupPlaceLine(String place);
 
   /// No description provided for @pickupTimeLine.
@@ -1107,13 +1107,13 @@ abstract class AppLocalizations {
   /// No description provided for @paymentDeclinedBody.
   ///
   /// In ja, this message translates to:
-  /// **'カード会社が決済を承認しませんでした。\n別のカードを選ぶか、カード会社へご確認ください。'**
+  /// **'カード会社で決済が承認されませんでした。\n別のカードをお選びいただくか、カード会社へご確認ください。'**
   String get paymentDeclinedBody;
 
   /// No description provided for @paymentCardExpiredBody.
   ///
   /// In ja, this message translates to:
-  /// **'カードの有効期限が切れています。\n別のカードを選んでください。'**
+  /// **'カードの有効期限が切れています。\n別のカードをお選びください。'**
   String get paymentCardExpiredBody;
 
   /// No description provided for @paymentNotCompletedNote.
@@ -1143,13 +1143,13 @@ abstract class AppLocalizations {
   /// No description provided for @paymentUnknownBody.
   ///
   /// In ja, this message translates to:
-  /// **'通信が途切れたため、支払い状況を確認しています。\n重複を防ぐため、再度支払わないでください。'**
+  /// **'通信が途切れたため、支払い状況を確認しています。\n二重のお支払いを防ぐため、もう一度お支払いの操作はしないでください。'**
   String get paymentUnknownBody;
 
   /// No description provided for @paymentUnknownNote.
   ///
   /// In ja, this message translates to:
-  /// **'支払い・予約状況は確認中です。\n接続を確認してから結果を取得してください。'**
+  /// **'支払い・予約状況は確認中です。\n通信状況を確認してから、もう一度お試しください。'**
   String get paymentUnknownNote;
 
   /// No description provided for @recheckPayment.
@@ -1269,7 +1269,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteCardBody.
   ///
   /// In ja, this message translates to:
-  /// **'{card} を削除します。削除すると、このカードは次回以降の注文に使えなくなります。'**
+  /// **'{card} を削除します。削除すると、このカードは次回以降のご注文に使えなくなります。'**
   String deleteCardBody(String card);
 
   /// No description provided for @deleteConfirm.
@@ -1329,7 +1329,7 @@ abstract class AppLocalizations {
   /// No description provided for @cardHolderHint.
   ///
   /// In ja, this message translates to:
-  /// **'カード名義人'**
+  /// **'例: TARO YAMADA'**
   String get cardHolderHint;
 
   /// No description provided for @cardExpiryLabel.
@@ -1413,7 +1413,7 @@ abstract class AppLocalizations {
   /// No description provided for @testPaymentNote.
   ///
   /// In ja, this message translates to:
-  /// **'テスト中のため実際の請求は発生しません。テスト用カード 4242 4242 4242 4242 をお使いください（0002で終わるカードは決済が拒否されます）。'**
+  /// **'テスト中のため、実際に請求されることはありません。テスト用カード 4242 4242 4242 4242 をお使いください（0002で終わるカードは決済が拒否されます）。'**
   String get testPaymentNote;
 
   /// No description provided for @paymentMethodRowDefault.
@@ -1461,7 +1461,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorBatchUnavailable.
   ///
   /// In ja, this message translates to:
-  /// **'このフードバッグの予約受付は終わりました。別のフードバッグをお選びください'**
+  /// **'このフードバッグの予約受付は終了しました。別のフードバッグをお選びください'**
   String get errorBatchUnavailable;
 
   /// No description provided for @actionSeeReservations.
@@ -1557,7 +1557,7 @@ abstract class AppLocalizations {
   /// No description provided for @cancelledNoRefund.
   ///
   /// In ja, this message translates to:
-  /// **'キャンセルしました（返金なし）'**
+  /// **'キャンセルしました（返金はありません）'**
   String get cancelledNoRefund;
 
   /// No description provided for @errorCancelFailed.
@@ -1593,13 +1593,13 @@ abstract class AppLocalizations {
   /// No description provided for @allocatedExplanation.
   ///
   /// In ja, this message translates to:
-  /// **'{stopName}で1袋を確保しました。QRコードと受け取りの時間・場所は「受け取りの案内」で確認できます。'**
+  /// **'{stopName}で1袋を確保しました。QRコードと受取時間・受取地点は「受け取りの案内」で確認できます。'**
   String allocatedExplanation(String stopName);
 
   /// No description provided for @freeCancelExpired.
   ///
   /// In ja, this message translates to:
-  /// **'無料キャンセル期限を過ぎています（返金なし）'**
+  /// **'無料キャンセル期限を過ぎています（返金はありません）'**
   String get freeCancelExpired;
 
   /// No description provided for @cancelButton.
@@ -1623,7 +1623,7 @@ abstract class AppLocalizations {
   /// No description provided for @pickupQrCaption.
   ///
   /// In ja, this message translates to:
-  /// **'受け取り時にQRコードを読み取ってもらうか、コードを入力してもらってください。'**
+  /// **'受け取りのときに、QRコードを読み取ってもらうか、確認コードをドライバーにお伝えください。'**
   String get pickupQrCaption;
 
   /// No description provided for @refundFullBadge.
@@ -1815,7 +1815,7 @@ abstract class AppLocalizations {
   /// No description provided for @nameKanaHint.
   ///
   /// In ja, this message translates to:
-  /// **'例：ハルカ ミカ'**
+  /// **'例：ヤマダ タロウ'**
   String get nameKanaHint;
 
   /// No description provided for @emailNotEditable.
@@ -1887,13 +1887,13 @@ abstract class AppLocalizations {
   /// No description provided for @errorStopNotOnRoute.
   ///
   /// In ja, this message translates to:
-  /// **'選んだ停車地点は、この料理を運ぶルートにありません'**
+  /// **'選んだ停車地点は、このルートに含まれていません'**
   String get errorStopNotOnRoute;
 
   /// No description provided for @errorStopClosed.
   ///
   /// In ja, this message translates to:
-  /// **'この停車地点はすでに出発済みです'**
+  /// **'この停車地点はすでに出発しました'**
   String get errorStopClosed;
 
   /// No description provided for @errorTemperatureRange.
@@ -1965,7 +1965,7 @@ abstract class AppLocalizations {
   /// No description provided for @coldChainNotice.
   ///
   /// In ja, this message translates to:
-  /// **'冷蔵品は10℃以下を確認してください。基準外の場合は運営へ連絡します。'**
+  /// **'冷蔵品は10℃以下であることを確認してください。基準を超えた場合は運営へ連絡してください。'**
   String get coldChainNotice;
 
   /// No description provided for @coldChainOverLimit.
@@ -1977,19 +1977,19 @@ abstract class AppLocalizations {
   /// No description provided for @distributionStopsLabel.
   ///
   /// In ja, this message translates to:
-  /// **'配分先の停車地'**
+  /// **'配分先の停車地点'**
   String get distributionStopsLabel;
 
   /// No description provided for @distributionStopsHint.
   ///
   /// In ja, this message translates to:
-  /// **'現在のルートの停車地を選択してください。選択した停車地に分配されます。'**
+  /// **'現在のルートの停車地点を選択してください。選択した停車地点に分配されます。'**
   String get distributionStopsHint;
 
   /// No description provided for @noDistributableStops.
   ///
   /// In ja, this message translates to:
-  /// **'配分できる停車地がありません（全て出発済み）'**
+  /// **'配分できる停車地点がありません（すべて出発済み）'**
   String get noDistributableStops;
 
   /// No description provided for @nextStopLabel.
@@ -2013,7 +2013,7 @@ abstract class AppLocalizations {
   /// No description provided for @selectedStopsCount.
   ///
   /// In ja, this message translates to:
-  /// **'選択した停車地（{count}箇所）に分配されます。'**
+  /// **'選択した停車地点（{count}箇所）に分配されます。'**
   String selectedStopsCount(int count);
 
   /// No description provided for @confirmPickupButton.
@@ -2031,13 +2031,13 @@ abstract class AppLocalizations {
   /// No description provided for @rejectPickupDialogTitle.
   ///
   /// In ja, this message translates to:
-  /// **'この料理を回収しませんか？'**
+  /// **'この料理の回収を見送りますか？'**
   String get rejectPickupDialogTitle;
 
   /// No description provided for @rejectPickupDialogBody.
   ///
   /// In ja, this message translates to:
-  /// **'中心温度が{celsius}℃で、基準（10℃以下）を超えています。この料理は販売せず、予約はすべて返金されてお客様に通知されます。温度の記録は残ります。'**
+  /// **'中心温度が{celsius}℃で、基準（10℃以下）を超えています。この料理は販売せず、予約はすべて返金され、お客様に通知されます。温度の記録は残ります。'**
   String rejectPickupDialogBody(String celsius);
 
   /// No description provided for @rejectPickupConfirm.
@@ -2157,7 +2157,7 @@ abstract class AppLocalizations {
   /// No description provided for @driverTabPickup.
   ///
   /// In ja, this message translates to:
-  /// **'受取'**
+  /// **'集荷'**
   String get driverTabPickup;
 
   /// No description provided for @driverTabSales.
@@ -2193,7 +2193,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorNotHandoverable.
   ///
   /// In ja, this message translates to:
-  /// **'この予約は受け渡し確認できる状態ではありません'**
+  /// **'この予約は、受け渡しを確認できる状態ではありません'**
   String get errorNotHandoverable;
 
   /// No description provided for @errorPaymentNotConfirmed.
@@ -2253,7 +2253,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorGeneric.
   ///
   /// In ja, this message translates to:
-  /// **'処理に失敗しました。もう一度お試しください'**
+  /// **'エラーが発生しました。もう一度お試しください'**
   String get errorGeneric;
 
   /// No description provided for @errorDonationQtyRequired.
@@ -2643,7 +2643,7 @@ abstract class AppLocalizations {
   /// No description provided for @licensePrivacyNote.
   ///
   /// In ja, this message translates to:
-  /// **'画像は運営だけが見られます。'**
+  /// **'画像は運営チームだけが確認します。'**
   String get licensePrivacyNote;
 
   /// No description provided for @licenseSourceCamera.
@@ -2679,7 +2679,7 @@ abstract class AppLocalizations {
   /// No description provided for @upcomingShiftsEmpty.
   ///
   /// In ja, this message translates to:
-  /// **'予定されたシフトはありません。運営がシフトを入れると、ここに表示されます。'**
+  /// **'予定されたシフトはありません。シフトが決まると、ここに表示されます。'**
   String get upcomingShiftsEmpty;
 
   /// No description provided for @shiftsLoadError.
@@ -2733,7 +2733,7 @@ abstract class AppLocalizations {
   /// No description provided for @legalDemoNotice.
   ///
   /// In ja, this message translates to:
-  /// **'卒業制作のデモ用の文面です。実運用の前に専門家の確認を受けます。'**
+  /// **'卒業制作のデモ用の文面です。正式に公開する前に、専門家の確認を受ける予定です。'**
   String get legalDemoNotice;
 
   /// No description provided for @legalContactTitle.
@@ -3057,7 +3057,7 @@ abstract class AppLocalizations {
   /// No description provided for @photoAccessDeniedTitle.
   ///
   /// In ja, this message translates to:
-  /// **'カメラ（写真）へのアクセスが許可されていません'**
+  /// **'カメラと写真へのアクセスが許可されていません'**
   String get photoAccessDeniedTitle;
 
   /// No description provided for @openSettings.
@@ -3117,13 +3117,13 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountKeptTitle.
   ///
   /// In ja, this message translates to:
-  /// **'残るもの（あなたと結びつかない形で）'**
+  /// **'残るもの（個人を特定できない形で）'**
   String get deleteAccountKeptTitle;
 
   /// No description provided for @deleteAccountKeptBody.
   ///
   /// In ja, this message translates to:
-  /// **'過去の予約・購入の記録は、売上と店舗への還元の計算のため、氏名・メールアドレスを外して保存します。'**
+  /// **'過去の予約・購入の記録は、売上とお店へのお支払いの計算のため、氏名・メールアドレスを外して保存します。'**
   String get deleteAccountKeptBody;
 
   /// No description provided for @deleteAccountNote.
@@ -3531,7 +3531,7 @@ abstract class AppLocalizations {
   /// No description provided for @favoriteAddedPushOff.
   ///
   /// In ja, this message translates to:
-  /// **'いまは通知がオフのため、新着のお知らせは届きません。'**
+  /// **'通知がオフのため、新着のお知らせは届きません。'**
   String get favoriteAddedPushOff;
 
   /// No description provided for @favoriteAddedPushDenied.
@@ -3759,7 +3759,7 @@ abstract class AppLocalizations {
   /// No description provided for @couponsRowSubtitle.
   ///
   /// In ja, this message translates to:
-  /// **'クーポン{count}枚 ・ 友だちを紹介して¥100'**
+  /// **'クーポン{count}枚 ・ 友だち紹介で¥100'**
   String couponsRowSubtitle(int count);
 
   /// No description provided for @couponSectionLabel.
@@ -3789,7 +3789,7 @@ abstract class AppLocalizations {
   /// No description provided for @couponReasonWelcome.
   ///
   /// In ja, this message translates to:
-  /// **'友だち紹介クーポン（ようこそ）'**
+  /// **'友だち紹介クーポン（登録特典）'**
   String get couponReasonWelcome;
 
   /// No description provided for @couponReasonReward.
@@ -3867,13 +3867,13 @@ abstract class AppLocalizations {
   /// No description provided for @referralShareText.
   ///
   /// In ja, this message translates to:
-  /// **'EcoMealで余ったお弁当をお得に受け取れます。登録して紹介コード「{code}」を入力すると¥100クーポンがもらえます。'**
+  /// **'EcoMealで、まだおいしい料理をお得に受け取れます。登録して紹介コード「{code}」を入力すると¥100クーポンがもらえます。'**
   String referralShareText(String code);
 
   /// No description provided for @referralHowItWorks.
   ///
   /// In ja, this message translates to:
-  /// **'友だちがこのコードを入力すると、友だちに¥100クーポン。友だちが最初のフードバッグを受け取ると、あなたにも¥100クーポンが届きます。'**
+  /// **'友だちがこのコードを入力すると、友だちに¥100クーポンが届きます。友だちが最初のフードバッグを受け取ると、あなたにも¥100クーポンが届きます。'**
   String get referralHowItWorks;
 
   /// No description provided for @referralEnterLabel.
@@ -3927,7 +3927,7 @@ abstract class AppLocalizations {
   /// No description provided for @referralErrorOwnCode.
   ///
   /// In ja, this message translates to:
-  /// **'自分の紹介コードは使えません'**
+  /// **'ご自身の紹介コードは使えません'**
   String get referralErrorOwnCode;
 
   /// No description provided for @referralErrorNotEligible.
@@ -3963,7 +3963,7 @@ abstract class AppLocalizations {
   /// No description provided for @socialLoginNote.
   ///
   /// In ja, this message translates to:
-  /// **'初めての方は、LINE・Appleのアカウントで EcoMeal のアカウントが作成されます。'**
+  /// **'初めての方は、LINE・Appleのアカウントで EcoMeal に登録されます。'**
   String get socialLoginNote;
 
   /// No description provided for @lineLoginFailed.
@@ -3999,7 +3999,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeReviewPendingBody.
   ///
   /// In ja, this message translates to:
-  /// **'EcoMeal が登録の内容を確認しています。結果はメールでお知らせします。'**
+  /// **'EcoMeal がご登録内容を確認しています。結果はメールでお知らせします。'**
   String get storeReviewPendingBody;
 
   /// No description provided for @storeReviewCheckButton.
@@ -4041,19 +4041,19 @@ abstract class AppLocalizations {
   /// No description provided for @storeRejectionReasonLabel.
   ///
   /// In ja, this message translates to:
-  /// **'却下の理由'**
+  /// **'見送りの理由'**
   String get storeRejectionReasonLabel;
 
   /// No description provided for @storeNotRegisteredTitle.
   ///
   /// In ja, this message translates to:
-  /// **'店舗の登録がまだです'**
+  /// **'店舗の登録が完了していません'**
   String get storeNotRegisteredTitle;
 
   /// No description provided for @storeNotRegisteredBody.
   ///
   /// In ja, this message translates to:
-  /// **'Web（ecomeal-pi.vercel.app）からお店の登録を申し込んでください。承認されると、このアプリで今日の余りを登録できます。'**
+  /// **'Web（ecomeal-pi.vercel.app）からお店の登録をお申し込みください。承認されると、このアプリで料理を出品できます。'**
   String get storeNotRegisteredBody;
 
   /// No description provided for @storeTabHome.
@@ -4083,7 +4083,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeRegisterCta.
   ///
   /// In ja, this message translates to:
-  /// **'今日の余りを登録'**
+  /// **'今日の出品を登録'**
   String get storeRegisterCta;
 
   /// No description provided for @storeRegisterDeadline.
@@ -4095,7 +4095,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeRegisterDeadlinePassed.
   ///
   /// In ja, this message translates to:
-  /// **'目安の {time} を過ぎました。トラックがお店を出るまでは登録できます'**
+  /// **'目安の {time} を過ぎました。トラックがお店を出発するまでは登録できます。'**
   String storeRegisterDeadlinePassed(String time);
 
   /// No description provided for @durationHoursMinutes.
@@ -4107,7 +4107,7 @@ abstract class AppLocalizations {
   /// No description provided for @storePhotoRemovedTitle.
   ///
   /// In ja, this message translates to:
-  /// **'料理の写真が外されました'**
+  /// **'料理の写真が削除されました'**
   String get storePhotoRemovedTitle;
 
   /// No description provided for @storePhotoRemovedHint.
@@ -4149,7 +4149,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeSellBy.
   ///
   /// In ja, this message translates to:
-  /// **'販売の終わり {time}'**
+  /// **'販売終了 {time}'**
   String storeSellBy(String time);
 
   /// No description provided for @storeCollectionPlanned.
@@ -4161,7 +4161,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeBatchQtyConfirmed.
   ///
   /// In ja, this message translates to:
-  /// **'予定 {estimated}食 → 受け取り {confirmed}食'**
+  /// **'予定 {estimated}食 → 引き取り {confirmed}食'**
   String storeBatchQtyConfirmed(int estimated, int confirmed);
 
   /// No description provided for @storeBatchQtyEstimated.
@@ -4191,7 +4191,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeNoBatchesBody.
   ///
   /// In ja, this message translates to:
-  /// **'余りそうな料理があれば、15〜16時頃を目安に登録してください。今夜のトラックが受け取りに来ます。'**
+  /// **'余りそうな料理があれば、15〜16時頃を目安にご登録ください。今夜のトラックが引き取りに来ます。'**
   String get storeNoBatchesBody;
 
   /// No description provided for @storeLoadErrorTitle.
@@ -4281,7 +4281,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeBatchPriceLine.
   ///
   /// In ja, this message translates to:
-  /// **'{price}・販売の終わり {time}'**
+  /// **'{price}・販売終了 {time}'**
   String storeBatchPriceLine(String price, String time);
 
   /// No description provided for @storeStatConfirmed.
@@ -4323,7 +4323,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeProgress.
   ///
   /// In ja, this message translates to:
-  /// **'進み具合'**
+  /// **'進捗'**
   String get storeProgress;
 
   /// No description provided for @storeStepEstimated.
@@ -4341,7 +4341,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeStepCollected.
   ///
   /// In ja, this message translates to:
-  /// **'ドライバーが受け取り'**
+  /// **'ドライバーが引き取り'**
   String get storeStepCollected;
 
   /// No description provided for @storeStepCollectedPlanned.
@@ -4377,7 +4377,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeStepOnSaleDetail.
   ///
   /// In ja, this message translates to:
-  /// **'{count}か所の受け取り場所で販売'**
+  /// **'{count}か所の受取地点で販売'**
   String storeStepOnSaleDetail(int count);
 
   /// No description provided for @storeStepEnded.
@@ -4395,7 +4395,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeStopsRemaining.
   ///
   /// In ja, this message translates to:
-  /// **'受け取り場所ごとの残り'**
+  /// **'受取地点ごとの残り'**
   String get storeStopsRemaining;
 
   /// No description provided for @storeAutoUpdate.
@@ -4437,13 +4437,13 @@ abstract class AppLocalizations {
   /// No description provided for @storeRegisterTitle.
   ///
   /// In ja, this message translates to:
-  /// **'今日の余りを登録'**
+  /// **'今日の出品を登録'**
   String get storeRegisterTitle;
 
   /// No description provided for @storeRegisterSubtitle.
   ///
   /// In ja, this message translates to:
-  /// **'出せそうな数で登録 — 実際の数はドライバーが受け取るときに数えます'**
+  /// **'出せそうな数で登録 — 実際の数はドライバーが引き取るときに数えます'**
   String get storeRegisterSubtitle;
 
   /// No description provided for @storeRequired.
@@ -4563,13 +4563,13 @@ abstract class AppLocalizations {
   /// No description provided for @storePriceHint.
   ///
   /// In ja, this message translates to:
-  /// **'販売の終わりが近づくと、お客様に出す値段は自動で下がります（30〜70%引き）。'**
+  /// **'販売終了が近づくと、お客様への販売価格は自動で下がります（30〜70%引き）。'**
   String get storePriceHint;
 
   /// No description provided for @storeSellByLabel.
   ///
   /// In ja, this message translates to:
-  /// **'販売の終わり'**
+  /// **'販売終了時刻'**
   String get storeSellByLabel;
 
   /// No description provided for @storeSellByToday.
@@ -4689,13 +4689,13 @@ abstract class AppLocalizations {
   /// No description provided for @storeAllergenMandatory.
   ///
   /// In ja, this message translates to:
-  /// **'表示が必要なもの（8品目）'**
+  /// **'表示義務のあるもの（8品目）'**
   String get storeAllergenMandatory;
 
   /// No description provided for @storeAllergenRecommended.
   ///
   /// In ja, this message translates to:
-  /// **'できれば表示するもの（20品目）'**
+  /// **'表示を推奨するもの（20品目）'**
   String get storeAllergenRecommended;
 
   /// No description provided for @storeAllergenClear.
@@ -4815,7 +4815,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeConfirmNote.
   ///
   /// In ja, this message translates to:
-  /// **'登録すると今夜のトラックが受け取りに来て、お客様が予約できるようになります。'**
+  /// **'登録すると今夜のトラックが引き取りに来て、お客様が予約できるようになります。'**
   String get storeConfirmNote;
 
   /// No description provided for @storeConfirmPreviewTitle.
@@ -4827,13 +4827,13 @@ abstract class AppLocalizations {
   /// No description provided for @storeConfirmPreviewPrice.
   ///
   /// In ja, this message translates to:
-  /// **'今の値段 {price}'**
+  /// **'現在の価格 {price}'**
   String storeConfirmPreviewPrice(String price);
 
   /// No description provided for @storeConfirmPreviewPriceNote.
   ///
   /// In ja, this message translates to:
-  /// **'販売の終わりが近づくと、さらに下がります'**
+  /// **'販売終了が近づくと、さらに下がります'**
   String get storeConfirmPreviewPriceNote;
 
   /// No description provided for @storeConfirmEstimate.
@@ -4851,7 +4851,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeConfirmEstimateNote.
   ///
   /// In ja, this message translates to:
-  /// **'今の値段で全部売れたとき（取り分 {pct}%）。値下がりや売れ残りがあると少なくなります。'**
+  /// **'現在の価格で全部売れた場合の目安です（取り分 {pct}%）。値下がりや売れ残りがあると少なくなります。'**
   String storeConfirmEstimateNote(String pct);
 
   /// No description provided for @storeConfirmPreviewFailed.
@@ -4887,7 +4887,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeDoneBody.
   ///
   /// In ja, this message translates to:
-  /// **'今夜のトラックが受け取りに来ます。予約が入るとお知らせします。'**
+  /// **'今夜のトラックが引き取りに来ます。予約が入るとお知らせします。'**
   String get storeDoneBody;
 
   /// No description provided for @storeDoneCollection.
@@ -4935,13 +4935,13 @@ abstract class AppLocalizations {
   /// No description provided for @storeErrPrice.
   ///
   /// In ja, this message translates to:
-  /// **'値段は200円以上にしてください'**
+  /// **'価格は200円以上で入力してください'**
   String get storeErrPrice;
 
   /// No description provided for @storeErrSellByPast.
   ///
   /// In ja, this message translates to:
-  /// **'販売の終わりは、今より後の時刻にしてください'**
+  /// **'販売終了時刻は、現在より後の時刻を選んでください'**
   String get storeErrSellByPast;
 
   /// No description provided for @storeErrIngredientName.
@@ -4959,7 +4959,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeErrNotApproved.
   ///
   /// In ja, this message translates to:
-  /// **'お店の承認がまだのため、登録できません。'**
+  /// **'お店の承認が完了していないため、登録できません。'**
   String get storeErrNotApproved;
 
   /// No description provided for @storeErrPhotoInvalid.
@@ -4977,19 +4977,19 @@ abstract class AppLocalizations {
   /// No description provided for @storeErrNoStops.
   ///
   /// In ja, this message translates to:
-  /// **'受け取り場所がまだ用意されていないため、登録できません。EcoMeal にお問い合わせください。'**
+  /// **'受取地点がまだ設定されていないため、登録できません。EcoMeal にお問い合わせください。'**
   String get storeErrNoStops;
 
   /// No description provided for @storeErrNoStopsLeft.
   ///
   /// In ja, this message translates to:
-  /// **'今夜のトラックが、お店のあとに回る受け取り場所が残っていないため、登録できません。'**
+  /// **'今夜のトラックがお店のあとに回る受取地点が残っていないため、登録できません。'**
   String get storeErrNoStopsLeft;
 
   /// No description provided for @storeErrTruckDeparted.
   ///
   /// In ja, this message translates to:
-  /// **'今夜のトラックはもうお店を出たため、これ以上登録できません。'**
+  /// **'今夜のトラックはすでにお店を出発したため、これ以上登録できません。'**
   String get storeErrTruckDeparted;
 
   /// No description provided for @storeErrRegisterFailed.
@@ -5049,7 +5049,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeSettlementConfirmed.
   ///
   /// In ja, this message translates to:
-  /// **'金額決定'**
+  /// **'金額確定'**
   String get storeSettlementConfirmed;
 
   /// No description provided for @storeSettlementPaid.
@@ -5061,7 +5061,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeSettlementRowConfirmed.
   ///
   /// In ja, this message translates to:
-  /// **'{date} 金額決定・{orders}食'**
+  /// **'{date} 金額確定・{orders}食'**
   String storeSettlementRowConfirmed(String date, int orders);
 
   /// No description provided for @storeSettlementRowPaid.
@@ -5073,7 +5073,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeSettlementNote.
   ///
   /// In ja, this message translates to:
-  /// **'EcoMeal が月末にまとめて金額を決めます。振込が済むと、振込日がここに出ます。'**
+  /// **'EcoMeal が月末にまとめて金額を確定します。振込が完了すると、振込日がここに表示されます。'**
   String get storeSettlementNote;
 
   /// No description provided for @storeSettlementEmptyTitle.
@@ -5085,7 +5085,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeSettlementEmptyBody.
   ///
   /// In ja, this message translates to:
-  /// **'月が終わり、EcoMeal が金額を決めるとここに出ます。'**
+  /// **'月末に EcoMeal が金額を確定すると、ここに表示されます。'**
   String get storeSettlementEmptyBody;
 
   /// No description provided for @storeNoticeTitle.
@@ -5139,7 +5139,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeNoticeConfirmedAt.
   ///
   /// In ja, this message translates to:
-  /// **'金額が決まった日'**
+  /// **'金額確定日'**
   String get storeNoticeConfirmedAt;
 
   /// No description provided for @storeNoticePaidAt.
@@ -5163,7 +5163,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeNoticeFootnote.
   ///
   /// In ja, this message translates to:
-  /// **'お店の取り分は、お客様が受け取った注文だけで、注文ごとの割合で計算しています（返金や期限切れの注文は入りません）。'**
+  /// **'お店の取り分は、お客様への受け渡しが済んだ注文だけを対象に、注文ごとの割合で計算しています（返金や期限切れの注文は含みません）。'**
   String get storeNoticeFootnote;
 
   /// No description provided for @storeNoticePrintOnWeb.
@@ -5235,7 +5235,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeInquiryHint.
   ///
   /// In ja, this message translates to:
-  /// **'お返事はご登録のメールアドレスに届きます。対応の状況は下の一覧で確認できます。'**
+  /// **'お返事はご登録のメールアドレスにお送りします。対応の状況は下の一覧で確認できます。'**
   String get storeInquiryHint;
 
   /// No description provided for @storeInquirySend.
@@ -5367,7 +5367,7 @@ abstract class AppLocalizations {
   /// No description provided for @noticeSettlementConfirmedTitle.
   ///
   /// In ja, this message translates to:
-  /// **'入金額が決まりました'**
+  /// **'入金額が確定しました'**
   String get noticeSettlementConfirmedTitle;
 
   /// No description provided for @noticeSettlementConfirmedBody.
@@ -5397,19 +5397,19 @@ abstract class AppLocalizations {
   /// No description provided for @noticeBatchCollectedBody.
   ///
   /// In ja, this message translates to:
-  /// **'ドライバーが料理を受け取りました。受け取った数は出品の詳細でご確認ください。'**
+  /// **'ドライバーが料理を引き取りました。引き取った数は出品の詳細でご確認ください。'**
   String get noticeBatchCollectedBody;
 
   /// No description provided for @noticeBatchPhotoRemovedTitle.
   ///
   /// In ja, this message translates to:
-  /// **'料理の写真が外されました'**
+  /// **'料理の写真が削除されました'**
   String get noticeBatchPhotoRemovedTitle;
 
   /// No description provided for @noticeBatchPhotoRemovedBody.
   ///
   /// In ja, this message translates to:
-  /// **'EcoMeal が写真を外しました。理由はホームでご確認ください。'**
+  /// **'EcoMeal が料理の写真を削除しました。理由はホームでご確認ください。'**
   String get noticeBatchPhotoRemovedBody;
 
   /// No description provided for @noticeRatingReceivedTitle.
@@ -5475,7 +5475,7 @@ abstract class AppLocalizations {
   /// No description provided for @noticeIssueResolvedTitle.
   ///
   /// In ja, this message translates to:
-  /// **'ご報告に対応しました'**
+  /// **'ご報告への対応が完了しました'**
   String get noticeIssueResolvedTitle;
 
   /// No description provided for @noticeIssueResolvedBody.
@@ -5487,13 +5487,13 @@ abstract class AppLocalizations {
   /// No description provided for @noticeRefundedTitle.
   ///
   /// In ja, this message translates to:
-  /// **'ご予約は全額返金になります'**
+  /// **'全額返金のお知らせ'**
   String get noticeRefundedTitle;
 
   /// No description provided for @noticeRefundedBody.
   ///
   /// In ja, this message translates to:
-  /// **'ご予約のフードバッグをご用意できなかったため、お支払いの全額を返金します。カードへの反映時期はカード会社によって異なります。'**
+  /// **'ご予約のフードバッグをご用意できず、申し訳ありません。お支払いの全額を返金します。カードへの反映時期はカード会社によって異なります。'**
   String get noticeRefundedBody;
 
   /// No description provided for @storeSettingsTitle.
@@ -5511,7 +5511,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeSettingsInfoNote.
   ///
   /// In ja, this message translates to:
-  /// **'お店の情報を変えたいときは、お問い合わせからご連絡ください。'**
+  /// **'お店の情報を変更したい場合は、お問い合わせからご連絡ください。'**
   String get storeSettingsInfoNote;
 
   /// No description provided for @storeSettingsPush.
@@ -5727,7 +5727,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminNoRouteTonight.
   ///
   /// In ja, this message translates to:
-  /// **'今夜の運行はまだありません'**
+  /// **'今夜の運行予定はありません'**
   String get adminNoRouteTonight;
 
   /// No description provided for @adminNeedsAction.
@@ -5985,7 +5985,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminIssueMeta.
   ///
   /// In ja, this message translates to:
-  /// **'{time}・顧客 {name}'**
+  /// **'{time}・お客様 {name}'**
   String adminIssueMeta(String time, String name);
 
   /// No description provided for @adminIssueRefunded.
@@ -6099,7 +6099,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminIssueUnknownBody.
   ///
   /// In ja, this message translates to:
-  /// **'通信が途中で切れました。もう一度送信してください。すでに処理されていた場合は、そのことをお知らせします（二重に返金されることはありません）。入力した返金額と回答は残っています。'**
+  /// **'通信が途中で切れました。もう一度送信してください。すでに処理されていた場合は、その旨をお知らせします（二重に返金されることはありません）。入力した返金額と回答は残っています。'**
   String get adminIssueUnknownBody;
 
   /// No description provided for @adminIssueRetry.
@@ -6255,7 +6255,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminRestRejectNote.
   ///
   /// In ja, this message translates to:
-  /// **'理由は飲食店にメールとアプリで通知されます（必須・500文字まで）。'**
+  /// **'理由は申請者にメールとアプリで通知されます（必須・500文字まで）。'**
   String get adminRestRejectNote;
 
   /// No description provided for @adminRestReasonPl.
@@ -6291,7 +6291,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminRestDecided.
   ///
   /// In ja, this message translates to:
-  /// **'{name}を{decision}しました'**
+  /// **'{name}を{decision}にしました'**
   String adminRestDecided(String name, String decision);
 
   /// No description provided for @adminRestNotifyFailed.
@@ -6393,7 +6393,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminLicDone.
   ///
   /// In ja, this message translates to:
-  /// **'{name}さんの免許を更新しました'**
+  /// **'{name}さんの免許を確認しました'**
   String adminLicDone(String name);
 
   /// No description provided for @adminInqTitle.
@@ -6429,7 +6429,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminInqTypeDriver.
   ///
   /// In ja, this message translates to:
-  /// **'ドライバー応募'**
+  /// **'ドライバー参加相談'**
   String get adminInqTypeDriver;
 
   /// No description provided for @adminInqTypeContact.
@@ -6729,7 +6729,7 @@ abstract class AppLocalizations {
   /// No description provided for @storeContractBody.
   ///
   /// In ja, this message translates to:
-  /// **'お店のご利用条件（取り分・入金・振込・食品の扱いなど）は、EcoMeal と結んだ提携契約に書いてあります。お客様向けの利用規約はお店には当てはまりません。契約の確認や変更のご相談は、お問い合わせからご連絡ください。'**
+  /// **'お店のご利用条件（取り分・入金・振込・食品の取り扱いなど）は、EcoMeal と結んだ提携契約に記載されています。お客様向けの利用規約はお店には適用されません。契約の確認や変更のご相談は、お問い合わせからご連絡ください。'**
   String get storeContractBody;
 
   /// No description provided for @storeContractInquiry.
@@ -6943,7 +6943,7 @@ abstract class AppLocalizations {
   /// No description provided for @activeOrderPlace.
   ///
   /// In ja, this message translates to:
-  /// **'受取場所'**
+  /// **'受取地点'**
   String get activeOrderPlace;
 
   /// No description provided for @activeOrderTime.
@@ -6967,7 +6967,7 @@ abstract class AppLocalizations {
   /// No description provided for @activeOrderOver.
   ///
   /// In ja, this message translates to:
-  /// **'この受取地点の停車は終わりました。受け取れなかった場合は、予約履歴の「問題を報告」かお問い合わせからご連絡ください。'**
+  /// **'この受取地点での停車は終了しました。受け取れなかった場合は、予約履歴の「問題を報告」またはお問い合わせからご連絡ください。'**
   String get activeOrderOver;
 
   /// No description provided for @activeOrderFindTitle.
@@ -6979,7 +6979,7 @@ abstract class AppLocalizations {
   /// No description provided for @activeOrderFindBody.
   ///
   /// In ja, this message translates to:
-  /// **'受取地点に停車している Eco-Truck（車体に EcoMeal のロゴ）で、この QR を見せてください。読み取れないときは上のコードを伝えてください。トラックの位置と到着予定は、ホームの地図でも確認できます。'**
+  /// **'受取地点に停車している Eco-Truck（車体に EcoMeal のロゴ）で、このQRコードを見せてください。読み取れないときは、上の確認コードをお伝えください。トラックの位置と到着予定は、ホームの地図でも確認できます。'**
   String get activeOrderFindBody;
 
   /// No description provided for @activeOrderPickedUp.
@@ -7051,7 +7051,7 @@ abstract class AppLocalizations {
   /// No description provided for @driverReportLead.
   ///
   /// In ja, this message translates to:
-  /// **'送ると運営に通知が届き、影響する予約のお客様には運営から連絡します。急ぎの安全上の問題は、まず安全な場所に停車してください。'**
+  /// **'送ると運営に通知が届き、影響のある予約のお客様には運営から連絡します。安全に関わる急ぎのときは、まず安全な場所に停車してください。'**
   String get driverReportLead;
 
   /// No description provided for @driverReportDelay.
@@ -7205,7 +7205,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminDriverReportAlready.
   ///
   /// In ja, this message translates to:
-  /// **'ほかの運営がすでに対応済みにしました'**
+  /// **'別の担当者がすでに対応済みにしました'**
   String get adminDriverReportAlready;
 
   /// No description provided for @adminDriverReportError.
@@ -7235,7 +7235,7 @@ abstract class AppLocalizations {
   /// No description provided for @driverProgressTitle.
   ///
   /// In ja, this message translates to:
-  /// **'今夜の進み具合'**
+  /// **'今夜の進捗'**
   String get driverProgressTitle;
 
   /// No description provided for @driverProgressCount.
@@ -7283,13 +7283,13 @@ abstract class AppLocalizations {
   /// No description provided for @nextTaskSalesTitle.
   ///
   /// In ja, this message translates to:
-  /// **'{name} でお客様に渡す'**
+  /// **'{name} でお客様にお渡しする'**
   String nextTaskSalesTitle(String name);
 
   /// No description provided for @arriveByLabel.
   ///
   /// In ja, this message translates to:
-  /// **'着く予定'**
+  /// **'到着予定'**
   String get arriveByLabel;
 
   /// No description provided for @timeLeftLabel.
@@ -7307,7 +7307,7 @@ abstract class AppLocalizations {
   /// No description provided for @handoutAmountLabel.
   ///
   /// In ja, this message translates to:
-  /// **'渡す量'**
+  /// **'お渡しする数'**
   String get handoutAmountLabel;
 
   /// No description provided for @approxMeals.
@@ -7325,31 +7325,31 @@ abstract class AppLocalizations {
   /// No description provided for @nextTaskPickupDetail.
   ///
   /// In ja, this message translates to:
-  /// **'受け取る料理 {count}つ ・ お店の販売終了 {time}'**
+  /// **'受け取る料理 {count}品 ・ お店の販売終了 {time}'**
   String nextTaskPickupDetail(int count, String time);
 
   /// No description provided for @nextTaskSalesDetail.
   ///
   /// In ja, this message translates to:
-  /// **'予約 {count}件は受け取りQRを読んで渡します'**
+  /// **'予約 {count}件は受け取りQRを読み取ってお渡しします'**
   String nextTaskSalesDetail(int count);
 
   /// No description provided for @navigateButton.
   ///
   /// In ja, this message translates to:
-  /// **'ナビで行く'**
+  /// **'ナビを開く'**
   String get navigateButton;
 
   /// No description provided for @arrivedPickupButton.
   ///
   /// In ja, this message translates to:
-  /// **'着いた・受け取る'**
+  /// **'到着・受け取り'**
   String get arrivedPickupButton;
 
   /// No description provided for @arrivedSalesButton.
   ///
   /// In ja, this message translates to:
-  /// **'着いた・渡す'**
+  /// **'到着・お渡し'**
   String get arrivedSalesButton;
 
   /// No description provided for @navigationFailed.
@@ -7361,7 +7361,7 @@ abstract class AppLocalizations {
   /// No description provided for @allStopsDoneTitle.
   ///
   /// In ja, this message translates to:
-  /// **'すべての場所が終わりました'**
+  /// **'すべての地点を回りました'**
   String get allStopsDoneTitle;
 
   /// No description provided for @allStopsDoneBody.
@@ -7379,7 +7379,7 @@ abstract class AppLocalizations {
   /// No description provided for @routePhaseSales.
   ///
   /// In ja, this message translates to:
-  /// **'② お客様に渡す（販売）'**
+  /// **'② お客様にお渡し（販売）'**
   String get routePhaseSales;
 
   /// No description provided for @placesCount.
@@ -7403,7 +7403,7 @@ abstract class AppLocalizations {
   /// No description provided for @stopSalesLoad.
   ///
   /// In ja, this message translates to:
-  /// **'予約 {reserved}件 ・ 全部で {total}食'**
+  /// **'予約 {reserved}件 ・ 合計 {total}食'**
   String stopSalesLoad(int reserved, int total);
 
   /// No description provided for @pickupStopSubtitle.
@@ -7433,7 +7433,7 @@ abstract class AppLocalizations {
   /// No description provided for @foodsToPickUp.
   ///
   /// In ja, this message translates to:
-  /// **'受け取る料理（{count}つ）'**
+  /// **'受け取る料理（{count}品）'**
   String foodsToPickUp(int count);
 
   /// No description provided for @shopPlannedQty.
@@ -7481,7 +7481,7 @@ abstract class AppLocalizations {
   /// No description provided for @pickupStep3.
   ///
   /// In ja, this message translates to:
-  /// **'「受け取りを確定」を押すと、渡す場所と数が決まります'**
+  /// **'「受け取りを確定」を押すと、配分先の停車地点と数が決まります'**
   String get pickupStep3;
 
   /// No description provided for @pickupDoneTitle.
@@ -7511,7 +7511,7 @@ abstract class AppLocalizations {
   /// No description provided for @dropsTitle.
   ///
   /// In ja, this message translates to:
-  /// **'この料理を渡す場所'**
+  /// **'この料理の配分先'**
   String get dropsTitle;
 
   /// No description provided for @dropSubtitle.
@@ -7547,7 +7547,7 @@ abstract class AppLocalizations {
   /// No description provided for @handoutHereTitle.
   ///
   /// In ja, this message translates to:
-  /// **'この場所で渡すもの'**
+  /// **'この地点でお渡しするもの'**
   String get handoutHereTitle;
 
   /// No description provided for @totalMeals.
@@ -7565,13 +7565,13 @@ abstract class AppLocalizations {
   /// No description provided for @walkupSellable.
   ///
   /// In ja, this message translates to:
-  /// **'予約なしで売れる'**
+  /// **'予約なしで販売できる'**
   String get walkupSellable;
 
   /// No description provided for @scanQrToHand.
   ///
   /// In ja, this message translates to:
-  /// **'QRを読んで渡す'**
+  /// **'QRを読み取ってお渡し'**
   String get scanQrToHand;
 
   /// No description provided for @registerOnSpot.
@@ -7595,7 +7595,7 @@ abstract class AppLocalizations {
   /// No description provided for @handoutStepsTitle.
   ///
   /// In ja, this message translates to:
-  /// **'ここでの流れ'**
+  /// **'この地点での流れ'**
   String get handoutStepsTitle;
 
   /// No description provided for @handoutStep1.
@@ -7613,7 +7613,7 @@ abstract class AppLocalizations {
   /// No description provided for @handoutStep3.
   ///
   /// In ja, this message translates to:
-  /// **'終わったら「停車地点を出発」→ 次の場所へ'**
+  /// **'終わったら「停車地点を出発」→ 次の地点へ'**
   String get handoutStep3;
 
   /// No description provided for @walkupUnknownTitle.
@@ -7661,7 +7661,7 @@ abstract class AppLocalizations {
   /// No description provided for @donationQtyOverRemaining.
   ///
   /// In ja, this message translates to:
-  /// **'残りは {remaining}食です。{remaining}食以下にしてください'**
+  /// **'残りは {remaining}食です。{remaining}食以下で入力してください'**
   String donationQtyOverRemaining(int remaining);
 
   /// No description provided for @gpsPermissionTitle.
@@ -7775,25 +7775,25 @@ abstract class AppLocalizations {
   /// No description provided for @routeMapListHint.
   ///
   /// In ja, this message translates to:
-  /// **'上に引くと全部の地点（① お店で受け取る・② お客様に渡す）'**
+  /// **'上に引くと全地点を表示（① お店で受け取る・② お客様にお渡し）'**
   String get routeMapListHint;
 
   /// No description provided for @routeMapRoadLoading.
   ///
   /// In ja, this message translates to:
-  /// **'道を読み込んでいます…'**
+  /// **'ルートを読み込んでいます…'**
   String get routeMapRoadLoading;
 
   /// No description provided for @routeMapRoadLegend.
   ///
   /// In ja, this message translates to:
-  /// **'道に沿った道順 ・ 残り{count}か所 約{minutes}分（{km}km）'**
+  /// **'道に沿ったルート ・ 残り{count}か所 約{minutes}分（{km}km）'**
   String routeMapRoadLegend(int count, int minutes, String km);
 
   /// No description provided for @routeMapRoadFailed.
   ///
   /// In ja, this message translates to:
-  /// **'道を読み込めませんでした（点線は順番の目安）'**
+  /// **'ルートを読み込めませんでした（点線は順番の目安）'**
   String get routeMapRoadFailed;
 
   /// No description provided for @routeMapRoadRetry.
@@ -7805,7 +7805,7 @@ abstract class AppLocalizations {
   /// No description provided for @roadTimeLeftLabel.
   ///
   /// In ja, this message translates to:
-  /// **'道で あと'**
+  /// **'道のりで あと'**
   String get roadTimeLeftLabel;
 }
 

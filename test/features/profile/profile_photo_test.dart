@@ -184,7 +184,7 @@ void main() {
     await tester.tap(find.byKey(const Key('photoTakeOption')));
     await tester.pumpAndSettle();
 
-    expect(find.text('カメラ（写真）へのアクセスが許可されていません'), findsOneWidget);
+    expect(find.text('カメラと写真へのアクセスが許可されていません'), findsOneWidget);
     expect(find.byKey(const Key('openSettingsButton')), findsOneWidget);
   });
 
