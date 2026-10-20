@@ -2826,9 +2826,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get storeDoneHome => 'Về trang chủ';
 
   @override
-  String get storeErrQty => 'Vui lòng chọn từ 1 suất trở lên';
-
-  @override
   String get storeErrPrice => 'Vui lòng nhập giá từ 200 yên trở lên';
 
   @override
@@ -3541,9 +3538,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get adminIssueResolvedToast => 'Đã đánh dấu đã xử lý';
 
   @override
-  String get adminRestTitle => 'Xét duyệt quán ăn';
-
-  @override
   String get adminRestPending => 'Chờ duyệt';
 
   @override
@@ -3636,9 +3630,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get adminRestRejectionReason => 'Lý do từ chối';
 
   @override
-  String get adminLicTitle => 'Xác nhận giấy phép lái xe';
-
-  @override
   String adminLicSubmitted(String time) {
     return 'Bằng lái · Nộp $time';
   }
@@ -3685,9 +3676,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String adminLicDone(String name) {
     return 'Đã cập nhật bằng lái của $name';
   }
-
-  @override
-  String get adminInqTitle => 'Liên hệ';
 
   @override
   String get adminInqNew => 'Mới';
@@ -3768,10 +3756,6 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get adminRestRejectErrorBody =>
       'Vui lòng kiểm tra kết nối mạng và thử lại. Việc từ chối vẫn chưa được chốt, bạn có thể gửi lại với lý do đã chọn.';
-
-  @override
-  String get adminSaveFailed =>
-      'Không lưu được. Vui lòng kiểm tra kết nối mạng và thử lại.';
 
   @override
   String get adminOpsTitle => 'Giám sát vận hành';

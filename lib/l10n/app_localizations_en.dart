@@ -2831,9 +2831,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storeDoneHome => 'Back to home';
 
   @override
-  String get storeErrQty => 'Choose at least 1 meal';
-
-  @override
   String get storeErrPrice => 'Enter a price of at least ¥200';
 
   @override
@@ -3539,9 +3536,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminIssueResolvedToast => 'Marked as resolved';
 
   @override
-  String get adminRestTitle => 'Store reviews';
-
-  @override
   String get adminRestPending => 'Pending';
 
   @override
@@ -3632,9 +3626,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminRestRejectionReason => 'Reason';
 
   @override
-  String get adminLicTitle => 'License review';
-
-  @override
   String adminLicSubmitted(String time) {
     return 'License ・ submitted $time';
   }
@@ -3680,9 +3671,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String adminLicDone(String name) {
     return 'Updated $name\'s license';
   }
-
-  @override
-  String get adminInqTitle => 'Inquiries';
 
   @override
   String get adminInqNew => 'New';
@@ -3763,10 +3751,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get adminRestRejectErrorBody =>
       'Check your connection and try again. The rejection hasn’t been finalised; it can be resent with the same reason.';
-
-  @override
-  String get adminSaveFailed =>
-      'Couldn\'t save. Check your connection and try again.';
 
   @override
   String get adminOpsTitle => 'Operations monitor';

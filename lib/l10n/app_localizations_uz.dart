@@ -2846,9 +2846,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get storeDoneHome => 'Asosiy ekranga';
 
   @override
-  String get storeErrQty => 'Kamida 1 porsiya belgilang';
-
-  @override
   String get storeErrPrice => 'Narxni kamida ¥200 qilib belgilang';
 
   @override
@@ -3562,9 +3559,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get adminIssueResolvedToast => 'Hal qilingan deb belgilandi';
 
   @override
-  String get adminRestTitle => 'Restoranlarni koʻrib chiqish';
-
-  @override
   String get adminRestPending => 'Kutilmoqda';
 
   @override
@@ -3657,9 +3651,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get adminRestRejectionReason => 'Rad etish sababi';
 
   @override
-  String get adminLicTitle => 'Guvohnomani tekshirish';
-
-  @override
   String adminLicSubmitted(String time) {
     return 'Guvohnoma · Topshirildi $time';
   }
@@ -3706,9 +3697,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String adminLicDone(String name) {
     return '$name guvohnomasi yangilandi';
   }
-
-  @override
-  String get adminInqTitle => 'Murojaatlar';
 
   @override
   String get adminInqNew => 'Yangi';
@@ -3789,10 +3777,6 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get adminRestRejectErrorBody =>
       'Aloqani tekshirib, qayta urining. Rad etish hali yakunlanmagan, tanlangan sabab bilan qayta yuborish mumkin.';
-
-  @override
-  String get adminSaveFailed =>
-      'Saqlab boʻlmadi. Aloqani tekshirib, qayta urining.';
 
   @override
   String get adminOpsTitle => 'Harakat kuzatuvi';

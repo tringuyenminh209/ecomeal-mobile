@@ -2697,9 +2697,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get storeDoneHome => 'ホームへ';
 
   @override
-  String get storeErrQty => '1食以上にしてください';
-
-  @override
   String get storeErrPrice => '価格は200円以上で入力してください';
 
   @override
@@ -3383,9 +3380,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adminIssueResolvedToast => '対応済みにしました';
 
   @override
-  String get adminRestTitle => '飲食店の審査';
-
-  @override
   String get adminRestPending => '承認待ち';
 
   @override
@@ -3475,9 +3469,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get adminRestRejectionReason => '却下の理由';
 
   @override
-  String get adminLicTitle => '免許の確認';
-
-  @override
   String adminLicSubmitted(String time) {
     return '運転免許・提出 $time';
   }
@@ -3522,9 +3513,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String adminLicDone(String name) {
     return '$nameさんの免許を確認しました';
   }
-
-  @override
-  String get adminInqTitle => '問い合わせ';
 
   @override
   String get adminInqNew => '新着';
@@ -3601,9 +3589,6 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get adminRestRejectErrorBody =>
       '通信状況を確認して、もう一度お試しください。却下はまだ確定していません。選んだ理由はそのまま再送できます。';
-
-  @override
-  String get adminSaveFailed => '保存できませんでした。通信状況を確認して、もう一度お試しください。';
 
   @override
   String get adminOpsTitle => '運行モニタ';

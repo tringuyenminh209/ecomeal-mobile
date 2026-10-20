@@ -4926,12 +4926,6 @@ abstract class AppLocalizations {
   /// **'ホームへ'**
   String get storeDoneHome;
 
-  /// No description provided for @storeErrQty.
-  ///
-  /// In ja, this message translates to:
-  /// **'1食以上にしてください'**
-  String get storeErrQty;
-
   /// No description provided for @storeErrPrice.
   ///
   /// In ja, this message translates to:
@@ -6132,12 +6126,6 @@ abstract class AppLocalizations {
   /// **'対応済みにしました'**
   String get adminIssueResolvedToast;
 
-  /// No description provided for @adminRestTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'飲食店の審査'**
-  String get adminRestTitle;
-
   /// No description provided for @adminRestPending.
   ///
   /// In ja, this message translates to:
@@ -6306,12 +6294,6 @@ abstract class AppLocalizations {
   /// **'却下の理由'**
   String get adminRestRejectionReason;
 
-  /// No description provided for @adminLicTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'免許の確認'**
-  String get adminLicTitle;
-
   /// No description provided for @adminLicSubmitted.
   ///
   /// In ja, this message translates to:
@@ -6395,12 +6377,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'{name}さんの免許を確認しました'**
   String adminLicDone(String name);
-
-  /// No description provided for @adminInqTitle.
-  ///
-  /// In ja, this message translates to:
-  /// **'問い合わせ'**
-  String get adminInqTitle;
 
   /// No description provided for @adminInqNew.
   ///
@@ -6551,12 +6527,6 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'通信状況を確認して、もう一度お試しください。却下はまだ確定していません。選んだ理由はそのまま再送できます。'**
   String get adminRestRejectErrorBody;
-
-  /// No description provided for @adminSaveFailed.
-  ///
-  /// In ja, this message translates to:
-  /// **'保存できませんでした。通信状況を確認して、もう一度お試しください。'**
-  String get adminSaveFailed;
 
   /// No description provided for @adminOpsTitle.
   ///
