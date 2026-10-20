@@ -14,7 +14,8 @@ const languageSearchThreshold = 9;
 
 String languageEndonym(String code) => _endonyms[code] ?? code;
 
-// Tên ngôn ngữ bằng ngôn ngữ đang dùng (dòng dưới trong bảng chọn): 日本語 UI → 「英語」, English UI → "Japanese"
+// Tên ngôn ngữ bằng ngôn ngữ đang dùng — chỉ để ô tìm khớp (日本語 UI gõ 「英語」 → English). Bảng chọn chỉ hiện tên bằng
+// chính ngôn ngữ đó, 1 dòng (chủ dự án 2026-10-21: dòng tên dịch bên dưới lặp lại và làm bảng to).
 String languageNameIn(AppLocalizations l10n, String code) => switch (code) {
   'ja' => l10n.languageNameJa,
   'en' => l10n.languageNameEn,
@@ -92,7 +93,6 @@ class _LanguageSheetState extends State<_LanguageSheet> {
                   for (final (i, code) in codes.indexed)
                     _LanguageOptionTile(
                       code: code,
-                      localName: languageNameIn(l10n, code),
                       selected: code == widget.current,
                       divider: i < codes.length - 1,
                       onTap: () => Navigator.of(context).pop(code),
@@ -111,14 +111,12 @@ class _LanguageSheetState extends State<_LanguageSheet> {
 class _LanguageOptionTile extends StatelessWidget {
   const _LanguageOptionTile({
     required this.code,
-    required this.localName,
     required this.selected,
     required this.divider,
     required this.onTap,
     required this.eco,
   });
   final String code;
-  final String localName;
   final bool selected;
   final bool divider;
   final VoidCallback onTap;
@@ -133,21 +131,15 @@ class _LanguageOptionTile extends StatelessWidget {
         key: Key('languageOption_$code'),
         onTap: onTap,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 56),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           decoration: BoxDecoration(border: divider ? Border(bottom: BorderSide(color: eco.border)) : null),
           child: Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      languageEndonym(code),
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: selected ? eco.primary : eco.textPrimary),
-                    ),
-                    Text(localName, style: TextStyle(fontSize: 12, color: eco.textSecondary)),
-                  ],
+                child: Text(
+                  languageEndonym(code),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: selected ? eco.primary : eco.textPrimary),
                 ),
               ),
               if (selected) Icon(Icons.check, color: eco.primary),

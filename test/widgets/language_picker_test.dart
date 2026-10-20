@@ -62,6 +62,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('日本語'), findsWidgets);
     expect(find.text('English'), findsOneWidget);
+    // mỗi ngôn ngữ 1 dòng: không có dòng tên dịch (英語, ベトナム語…) bên dưới
+    expect(find.text('英語'), findsNothing);
+    expect(find.text('ベトナム語'), findsNothing);
     // ít hơn 9 ngôn ngữ → không có ô tìm
     expect(find.byKey(const Key('languageSearch')), findsNothing);
     await tester.tap(find.byKey(const Key('languageOption_en')));
