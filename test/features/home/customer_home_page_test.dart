@@ -58,6 +58,7 @@ void main() {
     WidgetTester tester, {
     Object? locationError,
     bool lineLinked = false,
+    bool isActive = true,
     Future<bool> Function()? openLine,
   }) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -72,7 +73,7 @@ void main() {
           lineLinkedProvider.overrideWith((ref) async => lineLinked),
           openLineOfficialAccountProvider.overrideWithValue(openLine),
         ],
-        child: testApp(const CustomerHomePage()),
+        child: testApp(CustomerHomePage(isActive: isActive)),
       ),
     );
     await tester.pumpAndSettle();
@@ -127,6 +128,7 @@ void main() {
     await pump(tester);
     clearInteractions(gateway);
     onTrucks();
+    await tester.pump(const Duration(milliseconds: 251));
     await tester.pumpAndSettle();
     verify(() => gateway.fetchTodayTrucks()).called(1);
     verifyNever(() => gateway.fetchActiveListings());
@@ -347,5 +349,42 @@ void main() {
         reason: 'frame $i: ${tops.take(i + 1).toList()}',
       );
     }
+  });
+
+  testWidgets('F05: GPS bursts produce one refresh per window', (tester) async {
+    await pump(tester);
+    clearInteractions(gateway);
+    for (var i = 0; i < 20; i++) { onTrucks(); }
+    await tester.pump(const Duration(milliseconds: 249));
+    verifyNever(() => gateway.fetchTodayTrucks());
+    await tester.pump(const Duration(milliseconds: 2));
+    await tester.pumpAndSettle();
+    verify(() => gateway.fetchTodayTrucks()).called(1);
+    verifyNever(() => gateway.fetchActiveListings());
+  });
+
+  testWidgets('F05: background stops refresh and subscription; resume refreshes', (tester) async {
+    await pump(tester);
+    clearInteractions(gateway);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump(const Duration(seconds: 31));
+    onTrucks(); onListings();
+    await tester.pump(const Duration(milliseconds: 251));
+    verifyNever(() => gateway.fetchTodayTrucks());
+    verifyNever(() => gateway.fetchActiveListings());
+    expect(unsubscribed, true);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    verify(() => gateway.fetchTodayTrucks()).called(1);
+    verify(() => gateway.fetchActiveListings()).called(1);
+  });
+
+  testWidgets('F05: inactive Home has no timer or subscription', (tester) async {
+    await pump(tester, isActive: false);
+    verifyNever(() => gateway.watchChanges(onTrucks: any(named: 'onTrucks'), onListings: any(named: 'onListings')));
+    clearInteractions(gateway);
+    await tester.pump(const Duration(seconds: 31));
+    verifyNever(() => gateway.fetchTodayTrucks());
+    verifyNever(() => gateway.fetchActiveListings());
   });
 }

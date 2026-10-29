@@ -28,7 +28,12 @@ class _DriverShellState extends ConsumerState<DriverShell> {
     // Có xe (truck_id) là bắt đầu gửi GPS — kể cả khi tối nay chưa có tuyến (khách vẫn thấy xe ở đâu).
     ref.listenManual<AsyncValue<TonightRoute?>>(tonightRouteProvider, (_, next) {
       final truckId = next.valueOrNull?.truck.id;
-      if (truckId != null) ref.read(gpsReporterProvider.notifier).start(truckId);
+      final reporter = ref.read(gpsReporterProvider.notifier);
+      if (truckId != null) {
+        reporter.start(truckId);
+      } else if (next is AsyncData<TonightRoute?>) {
+        reporter.stop();
+      }
     }, fireImmediately: true);
   }
 

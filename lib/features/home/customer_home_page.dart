@@ -46,7 +46,8 @@ final currentPositionProvider = FutureProvider.autoDispose<Position>((ref) {
 class CustomerHomePage extends ConsumerStatefulWidget {
   // onOpenMyPage: nút "LINE通知を設定する" ở trạng thái Empty mở tab マイページ (SCR-M07). Trang này
   // không tự biết tab — CustomerShell (Chương 17, giữ cả Bottom Navigation) truyền vào; null thì không vẽ nút.
-  const CustomerHomePage({super.key, this.onOpenMyPage, this.onOpenNotice, this.userId});
+  const CustomerHomePage({super.key, this.onOpenMyPage, this.onOpenNotice, this.userId, this.isActive = true});
+  final bool isActive;
   final VoidCallback? onOpenMyPage;
   // Người đang đăng nhập — có thì hiện chuông お知らせ (SCR-M20)
   final String? userId;
@@ -76,9 +77,12 @@ const _peekHeight = 120.0;
 // 高: đáy sheet dừng dưới thẻ logo (12 lề + 46 thẻ + 12 khoảng trống), vẫn thấy một dải bản đồ
 const _topBarHeight = 70.0;
 
-class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
+class _CustomerHomePageState extends ConsumerState<CustomerHomePage> with WidgetsBindingObserver {
   VoidCallback? _unsubscribe;
   Timer? _refreshTimer;
+  Timer? _truckRefresh;
+  bool _foreground = true;
+  bool get _canRefresh => widget.isActive && _foreground;
   final _sheet = DraggableScrollableController();
   _SheetLevel _level = _SheetLevel.mid;
   // Mức 低 tính theo chiều cao màn hình trong build — giữ lại cho yêu cầu từ ngoài (HomeSheetRequest.map)
@@ -98,26 +102,70 @@ class _CustomerHomePageState extends ConsumerState<CustomerHomePage> {
   @override
   void initState() {
     super.initState();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      ref.invalidate(activeListingsProvider);
-      ref.invalidate(todayTrucksProvider);
-      ref.invalidate(inboxUnreadProvider); // chấm đỏ ở chuông (SCR-M20)
-    });
-    _unsubscribe = ref
-        .read(homeGatewayProvider)
-        .watchChanges(
-          onTrucks: () {
-            if (mounted) ref.invalidate(todayTrucksProvider);
-          },
-          onListings: () {
-            if (mounted) ref.invalidate(activeListingsProvider);
-          },
-        );
+    WidgetsBinding.instance.addObserver(this);
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
+    _syncRefresh();
+  }
+
+  void _refreshData() {
+    ref.invalidate(activeListingsProvider);
+    ref.invalidate(todayTrucksProvider);
+    ref.invalidate(inboxUnreadProvider);
+  }
+
+  void _syncRefresh() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+    _truckRefresh?.cancel();
+    _truckRefresh = null;
+    _unsubscribe?.call();
+    _unsubscribe = null;
+    if (!_canRefresh) return;
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) => _refreshData());
+    _unsubscribe = ref.read(homeGatewayProvider).watchChanges(
+      onTrucks: () {
+        if (!mounted || !_canRefresh || _truckRefresh != null) return;
+        // Gop GPS trong cung cua so; khong doi het mot burst moi cap nhat.
+        _truckRefresh = Timer(const Duration(milliseconds: 250), () {
+          _truckRefresh = null;
+          if (mounted && _canRefresh) ref.invalidate(todayTrucksProvider);
+        });
+      },
+      onListings: () {
+        if (mounted && _canRefresh) ref.invalidate(activeListingsProvider);
+      },
+    );
+  }
+
+  void _resumeRefresh() {
+    _syncRefresh();
+    if (_canRefresh) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _canRefresh) _refreshData();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(CustomerHomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive) _resumeRefresh();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final foreground = state == AppLifecycleState.resumed;
+    if (foreground == _foreground) return;
+    _foreground = foreground;
+    _resumeRefresh();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _refreshTimer?.cancel();
+    _truckRefresh?.cancel();
     _unsubscribe?.call();
     _sheet.dispose();
     super.dispose();

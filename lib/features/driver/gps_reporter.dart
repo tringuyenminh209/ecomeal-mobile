@@ -29,7 +29,8 @@ class GpsReporter extends StateNotifier<GpsState> {
   final Duration interval;
   Timer? _timer;
   String? _truckId;
-  bool _inFlight = false;
+  int _generation = 0;
+  int? _inFlightGeneration;
 
   void start(String truckId) {
     if (_timer != null && _truckId == truckId) return; // build() gọi lại nhiều lần — không tạo timer trùng
@@ -42,18 +43,22 @@ class GpsReporter extends StateNotifier<GpsState> {
   void stop() {
     _timer?.cancel();
     _timer = null;
+    _truckId = null;
+    _generation++;
   }
 
   // Mạng chậm hơn chu kỳ thì bỏ qua lượt mới thay vì chồng nhiều request (vị trí cũ cũng vô ích).
   Future<void> reportOnce() async {
     final truckId = _truckId;
-    if (truckId == null || _inFlight) return;
-    _inFlight = true;
+    final generation = _generation;
+    if (truckId == null || _inFlightGeneration == generation) return;
+    _inFlightGeneration = generation;
     try {
       final ({double lat, double lng}) position;
       try {
         position = await _positionSource();
       } catch (e) {
+        if (!mounted || generation != _generation) return;
         _fail(switch (locationProblemOf(e)) {
           LocationProblem.permission => GpsProblem.permission,
           LocationProblem.serviceOff => GpsProblem.serviceOff,
@@ -62,14 +67,16 @@ class GpsReporter extends StateNotifier<GpsState> {
         return;
       }
       try {
+        if (!mounted || generation != _generation) return;
         await _gateway.sendLocation(truckId: truckId, lat: position.lat, lng: position.lng);
       } catch (_) {
+        if (!mounted || generation != _generation) return;
         _fail(GpsProblem.notSent); // lấy được vị trí nhưng mạng lỗi — tự gửi lại ở lượt sau
         return;
       }
-      if (mounted) state = GpsState(status: GpsStatus.sending, lat: position.lat, lng: position.lng);
+      if (mounted && generation == _generation) state = GpsState(status: GpsStatus.sending, lat: position.lat, lng: position.lng);
     } finally {
-      _inFlight = false;
+      if (_inFlightGeneration == generation) _inFlightGeneration = null;
     }
   }
 

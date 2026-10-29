@@ -107,4 +107,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('driverReportButton')), findsNothing);
   });
+
+  testWidgets('F03: successfully removing a truck stops an in-flight GPS read', (tester) async {
+    var removed = false;
+    final position = Completer<({double lat, double lng})>();
+    final gateway = _MockDriverGateway();
+    when(() => gateway.sendLocation(truckId: any(named: 'truckId'), lat: any(named: 'lat'), lng: any(named: 'lng'))).thenAnswer((_) async {});
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        tonightRouteProvider.overrideWith((ref) async => removed ? null : routeFixture),
+        gpsReporterProvider.overrideWith((ref) => GpsReporter(gateway, () => position.future)),
+      ],
+      child: testApp(const DriverShell()),
+    ));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(tester.element(find.byType(DriverShell)));
+    removed = true;
+    container.invalidate(tonightRouteProvider);
+    await tester.pumpAndSettle();
+    position.complete((lat: 1.0, lng: 2.0));
+    await tester.pumpAndSettle();
+    verifyNever(() => gateway.sendLocation(truckId: any(named: 'truckId'), lat: any(named: 'lat'), lng: any(named: 'lng')));
+  });
 }

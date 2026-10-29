@@ -135,6 +135,7 @@ class _CustomerShellState extends ConsumerState<CustomerShell> {
           index: index,
           children: [
             CustomerHomePage(
+              isActive: index == CustomerTab.home,
               userId: userId,
               onOpenMyPage: () => goTo(CustomerTab.myPage),
               onOpenNotice: (type) => openCustomerNotice(ref, type),

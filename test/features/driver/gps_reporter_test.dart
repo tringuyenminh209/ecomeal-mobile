@@ -70,4 +70,47 @@ void main() {
   test('D05: gửi được → không còn lỗi', () async {
     expect(await problemFor(() async => (lat: 34.70, lng: 135.50)), isNull);
   });
+
+  test('F03: stop/dispose while position is pending never sends stale GPS', () async {
+    for (final dispose in [false, true]) {
+      final position = Completer<({double lat, double lng})>();
+      final reporter = GpsReporter(gateway, () => position.future);
+      reporter.start('old');
+      if (dispose) { reporter.dispose(); } else { reporter.stop(); }
+      position.complete((lat: 1.0, lng: 2.0));
+      await pumpEventQueue();
+      verifyNever(() => gateway.sendLocation(truckId: 'old', lat: any(named: 'lat'), lng: any(named: 'lng')));
+      if (!dispose) reporter.dispose();
+    }
+  });
+
+  test('F03: a new truck starts immediately and an old request cannot overwrite it', () async {
+    final old = Completer<({double lat, double lng})>();
+    var reads = 0;
+    final reporter = GpsReporter(gateway, () => reads++ == 0 ? old.future : Future.value((lat: 3.0, lng: 4.0)));
+    reporter.start('old');
+    reporter.start('new');
+    await pumpEventQueue();
+    old.complete((lat: 1.0, lng: 2.0));
+    await pumpEventQueue();
+    verifyNever(() => gateway.sendLocation(truckId: 'old', lat: any(named: 'lat'), lng: any(named: 'lng')));
+    verify(() => gateway.sendLocation(truckId: 'new', lat: 3.0, lng: 4.0)).called(1);
+    expect(reporter.state.lat, 3.0);
+    reporter.dispose();
+  });
+
+  test('F03: a failure from an old send does not replace the new truck state', () async {
+    final oldSend = Completer<void>();
+    when(() => gateway.sendLocation(truckId: 'old', lat: any(named: 'lat'), lng: any(named: 'lng'))).thenAnswer((_) => oldSend.future);
+    final reporter = GpsReporter(gateway, () async => (lat: 3.0, lng: 4.0));
+    reporter.start('old');
+    await pumpEventQueue();
+    reporter.start('new');
+    await pumpEventQueue();
+    oldSend.completeError(Exception('offline'));
+    await pumpEventQueue();
+    expect(reporter.state.status, GpsStatus.sending);
+    expect(reporter.state.problem, isNull);
+    reporter.dispose();
+  });
 }
