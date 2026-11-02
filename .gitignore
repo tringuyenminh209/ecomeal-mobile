@@ -46,3 +46,6 @@ app.*.map.json
 
 # biến môi trường thật cho --dart-define-from-file — chỉ commit env.example.json
 env.json
+
+# flutter gen-l10n (sinh từ ARB; CI chạy `flutter gen-l10n` sau pub get)
+lib/l10n/app_localizations*.dart

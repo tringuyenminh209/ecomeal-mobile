@@ -106,7 +106,9 @@ jobs:
           done
 
       - name: Dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          flutter gen-l10n
 
       - name: CocoaPods
         run: cd ios && pod install

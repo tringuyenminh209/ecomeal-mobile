@@ -128,7 +128,9 @@ jobs:
           [ -n "${FIREBASE_ANDROID_APP_ID:-}" ] && echo "Firebase Android: có" || echo "Firebase Android: KHÔNG"
 
       - name: Dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          flutter gen-l10n
 
       - name: Prepare APK output directory
         run: mkdir -p build/apk-output

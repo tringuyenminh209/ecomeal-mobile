@@ -87,15 +87,13 @@ flutter:
   uses-material-design: true
   generate: true
 
-  # Noto Sans JP (06_画面設計.md §0 タイポスケール) — đóng gói sẵn 3 độ đậm Figma dùng (Regular/Medium/Bold),
+  # Noto Sans JP (06_画面設計.md §0 タイポスケール) — đóng gói 2 độ đậm (Regular/Bold) — w500 rơi về Regular; bỏ Medium 5,2 MB (Ponytail 2026-11-02),
   # giấy phép SIL OFL 1.1 ở assets/fonts/OFL.txt.
   fonts:
     - family: NotoSansJP
       fonts:
         - asset: assets/fonts/NotoSansJP-Regular.ttf
           weight: 400
-        - asset: assets/fonts/NotoSansJP-Medium.ttf
-          weight: 500
         - asset: assets/fonts/NotoSansJP-Bold.ttf
           weight: 700
 
