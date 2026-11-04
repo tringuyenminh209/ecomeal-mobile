@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +20,15 @@ import 'widgets/tap_outside_to_unfocus.dart';
 // Khởi động chung cho cả 2 app (ADR-007). Khác nhau chỉ ở [flavor].
 Future<void> runEcoMealApp(AppFlavor flavor) async {
   WidgetsFlutterBinding.ensureInitialized();
+  // App khách + tài xế (cầm 1 tay / trong cabin) chỉ dùng dọc trên điện thoại. Máy tính bảng (cạnh ngắn ≥ 600dp) và app
+  // quán / vận hành (iPad ngang, SCR-A*) vẫn xoay được.
+  if (!kIsWeb && (flavor == AppFlavor.customer || flavor == AppFlavor.driver)) {
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final shortestSideDp = view.physicalSize.shortestSide / view.devicePixelRatio;
+    if (shortestSideDp < 600) {
+      await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    }
+  }
   final prefs = await SharedPreferences.getInstance();
   // Phải trước initSupabase (Supabase đọc phiên từ Keychain lúc khởi động)
   await clearSessionFromPreviousInstall(prefs);
