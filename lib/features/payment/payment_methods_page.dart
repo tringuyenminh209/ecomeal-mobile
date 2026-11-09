@@ -191,7 +191,8 @@ class _SafetyCard extends StatelessWidget {
             children: [
               Icon(Icons.shield_outlined, size: 16, color: context.eco.primary),
               const SizedBox(width: 6),
-              Text(l10n.paymentSafetyTitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              // Expanded: tiêu đề dài (Filipino) xuống dòng thay vì tràn khỏi hàng (kiểm 7 ngôn ngữ 2026-11-09)
+              Expanded(child: Text(l10n.paymentSafetyTitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
             ],
           ),
           const SizedBox(height: 6),

@@ -5,6 +5,7 @@ import '../../l10n/l10n.dart';
 import '../../widgets/ecomeal_logo.dart';
 import '../../widgets/language_picker.dart';
 import 'locale_controller.dart';
+import '../../core/app_language.dart';
 
 // SCR-M01 オンボーディング — khớp frame Figma 16:16295: logo, hero xanh nhạt, thông điệp; đáy: hàng ngôn ngữ + 「はじめる」.
 class OnboardingPage extends ConsumerWidget {
@@ -50,10 +51,10 @@ class OnboardingPage extends ConsumerWidget {
                     LanguageRow(
                       key: const Key('onboardingLanguageRow'),
                       inline: true,
-                      current: ref.watch(localeControllerProvider).languageCode,
+                      current: ref.watch(localeControllerProvider).appCode,
                       onTap: () async {
-                        final code = await showLanguageSheet(context, current: ref.read(localeControllerProvider).languageCode);
-                        if (code != null) await ref.read(localeControllerProvider.notifier).setLocale(Locale(code));
+                        final code = await showLanguageSheet(context, current: ref.read(localeControllerProvider).appCode, codes: customerLanguageCodes);
+                        if (code != null) await ref.read(localeControllerProvider.notifier).setLocale(localeForCode(code));
                       },
                     ),
                     const SizedBox(height: 12),

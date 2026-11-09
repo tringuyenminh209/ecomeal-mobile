@@ -4,7 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart' show Session, AuthState;
 import '../../core/supabase_client.dart';
 import 'auth_gateway.dart';
 import 'locale_controller.dart';
-import 'package:flutter/widgets.dart' show Locale;
+import '../../core/app_flavor.dart';
+import '../../core/app_language.dart';
 
 // supabase_flutter cũng có 1 class tên AuthState (sự kiện của onAuthStateChange) — đặt tên khác
 // cho state của app để không đụng nhau.
@@ -235,10 +236,12 @@ final authControllerProvider = StateNotifierProvider<AuthController, AppAuthStat
   final controller = AuthController(
     ref.watch(authGatewayProvider),
     onLanguageChanged: (languageCode) async {
-      if (ref.read(localeControllerProvider).languageCode != languageCode) {
+      // Ngôn ngữ trên server mà app này không có (vd tài khoản dùng chung) → giữ ngôn ngữ đang chọn
+      if (!languageCodesFor(ref.read(appFlavorProvider)).contains(languageCode)) return;
+      if (ref.read(localeControllerProvider).appCode != languageCode) {
         await ref
             .read(localeControllerProvider.notifier)
-            .setLocale(Locale(languageCode));
+            .setLocale(localeForCode(languageCode));
       }
     },
   );

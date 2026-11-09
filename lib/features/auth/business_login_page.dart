@@ -8,6 +8,7 @@ import '../../widgets/language_picker.dart';
 import 'locale_controller.dart';
 import 'login_signup_page.dart';
 import 'reset_password_view.dart';
+import '../../core/app_language.dart';
 
 // Màn đăng nhập của các app nghiệp vụ — tài khoản do 運営 phát hành nên không có 新規登録 / LINE / màn giới thiệu;
 // ngôn ngữ đổi ngay tại đây (góc phải). Cùng bố cục, khác huy hiệu / câu dẫn / ghi chú theo app:
@@ -25,8 +26,8 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
   bool _resettingPassword = false;
 
   Future<void> _pickLanguage() async {
-    final code = await showLanguageSheet(context, current: ref.read(localeControllerProvider).languageCode);
-    if (code != null) await ref.read(localeControllerProvider.notifier).setLocale(Locale(code));
+    final code = await showLanguageSheet(context, current: ref.read(localeControllerProvider).appCode, codes: businessLanguageCodes);
+    if (code != null) await ref.read(localeControllerProvider.notifier).setLocale(localeForCode(code));
   }
 
   @override
@@ -89,7 +90,7 @@ class _BusinessLoginPageState extends ConsumerState<BusinessLoginPage> {
                                         // Figma 1000:21720: 🌐 ngôn ngữ đang dùng ⌄ → bảng chọn
                                         child: LanguageButton(
                                           key: const Key('switchLanguageButton'),
-                                          current: ref.watch(localeControllerProvider).languageCode,
+                                          current: ref.watch(localeControllerProvider).appCode,
                                           onPressed: _pickLanguage,
                                         ),
                                       ),

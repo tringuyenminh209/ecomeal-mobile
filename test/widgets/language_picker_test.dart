@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ecomeal_mobile/core/app_flavor.dart';
+import 'package:ecomeal_mobile/core/app_language.dart';
 import 'package:ecomeal_mobile/features/home/home_gateway.dart';
+import 'package:ecomeal_mobile/features/legal/terms_gateway.dart';
 import 'package:ecomeal_mobile/l10n/l10n.dart';
 import 'package:ecomeal_mobile/widgets/language_picker.dart';
 import '../helpers/test_app.dart';
@@ -8,7 +11,7 @@ import '../helpers/test_app.dart';
 void main() {
   test('mọi ngôn ngữ app có đều có tên viết bằng chính ngôn ngữ đó và tên bằng ja/en', () {
     for (final l in AppLocalizations.supportedLocales) {
-      final code = l.languageCode;
+      final code = l.appCode;
       expect(languageEndonym(code), isNot(code), reason: code);
       expect(languageNameIn(l10nJa, code), isNot(code), reason: code);
       expect(languageNameIn(l10nEn, code), isNot(code), reason: code);
@@ -23,7 +26,7 @@ void main() {
   });
 
   test('2026-10-20: app có tiếng Việt và Uzbek (chữ Latin); máy tiếng Việt / Uzbek → chọn sẵn đúng ngôn ngữ đó', () {
-    final codes = AppLocalizations.supportedLocales.map((l) => l.languageCode).toList();
+    final codes = AppLocalizations.supportedLocales.map((l) => l.appCode).toList();
     expect(codes, containsAll(['ja', 'en', 'vi', 'uz']));
     expect(languageEndonym('vi'), 'Tiếng Việt');
     expect(languageEndonym('uz'), 'Oʻzbekcha');
@@ -31,6 +34,31 @@ void main() {
     const supported = AppLocalizations.supportedLocales;
     expect(defaultLocaleFor(const Locale('vi', 'VN'), supported), const Locale('vi'));
     expect(defaultLocaleFor(const Locale('uz'), supported), const Locale('uz'));
+  });
+
+  test('2026-11-09: app có đủ 11 ngôn ngữ cho app khách; mỗi mã có file ARB + tên viết bằng chính ngôn ngữ đó', () {
+    final codes = AppLocalizations.supportedLocales.map((l) => l.appCode).toSet();
+    expect(codes, containsAll(customerLanguageCodes));
+    expect(customerLanguageCodes.length, 11);
+    expect(businessLanguageCodes, ['ja', 'en', 'vi', 'uz']);
+    expect(languageEndonym('tw'), '繁體中文');
+    expect(languageEndonym('ne'), 'नेपाली');
+    expect(languageNameIn(l10nEn, 'tw'), 'Chinese (Traditional)');
+    expect(languageNameIn(l10nJa, 'fil'), 'フィリピン語');
+  });
+
+  test('flavor: app khách 11 ngôn ngữ, 3 app còn lại 4', () {
+    expect(languageCodesFor(AppFlavor.customer), customerLanguageCodes);
+    for (final f in [AppFlavor.driver, AppFlavor.store, AppFlavor.admin]) {
+      expect(languageCodesFor(f), businessLanguageCodes);
+    }
+  });
+
+  test('tokushohoPageUrl: mỗi ngôn ngữ vào đúng trang của site (/tw/tokushoho/ ...)', () {
+    expect(tokushohoPageUrl('ja'), endsWith('.vercel.app/tokushoho/'));
+    expect(tokushohoPageUrl('en'), endsWith('.vercel.app/en/tokushoho/'));
+    expect(tokushohoPageUrl('tw'), endsWith('.vercel.app/tw/tokushoho/'));
+    expect(tokushohoPageUrl('pt'), endsWith('.vercel.app/pt/tokushoho/'));
   });
 
   test('tên chất gây dị ứng (DB chỉ có ja/en): tiếng Nhật → ja, còn lại (en/vi/uz) → en', () {
@@ -54,7 +82,7 @@ void main() {
     String? result = 'unset';
     await tester.pumpWidget(testApp(Builder(
       builder: (context) => TextButton(
-        onPressed: () async => result = await showLanguageSheet(context, current: 'ja'),
+        onPressed: () async => result = await showLanguageSheet(context, current: 'ja', codes: businessLanguageCodes),
         child: const Text('open'),
       ),
     )));
@@ -76,5 +104,25 @@ void main() {
     await tester.tap(find.byKey(const Key('languageOption_ja')));
     await tester.pumpAndSettle();
     expect(result, isNull);
+  });
+
+  testWidgets('app khách: 11 ngôn ngữ → có ô tìm; gõ 繁 → chỉ còn 繁體中文; chọn → trả mã tw', (tester) async {
+    String? result = 'unset';
+    await tester.pumpWidget(testApp(Builder(
+      builder: (context) => TextButton(
+        onPressed: () async => result = await showLanguageSheet(context, current: 'ja', codes: customerLanguageCodes),
+        child: const Text('open'),
+      ),
+    )));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('languageSearch')), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('languageSearch')), '繁');
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('languageOption_tw')), findsOneWidget);
+    expect(find.byKey(const Key('languageOption_zh')), findsNothing);
+    await tester.tap(find.byKey(const Key('languageOption_tw')));
+    await tester.pumpAndSettle();
+    expect(result, 'tw');
   });
 }

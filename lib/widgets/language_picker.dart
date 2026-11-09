@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
+import '../core/app_language.dart';
 import '../core/theme/app_theme.dart';
 import '../l10n/l10n.dart';
 
 // Chọn ngôn ngữ (Figma 1000:1833 / sheet 1003:1920, 2026-10-20): ở mọi màn chỉ là 1 hàng / 1 nút hiện ngôn ngữ đang dùng,
 // bấm vào thì mở bảng chọn từ dưới lên. Thêm ngôn ngữ không làm đổi màn nào — danh sách lấy từ
-// AppLocalizations.supportedLocales (có file ARB là có ngôn ngữ), cần thêm tên ở [_endonyms] và [languageNameIn].
+// danh sách mã người gọi truyền vào (app khách 11 ngôn ngữ, app quán/tài xế/vận hành 4 — xem core/app_language.dart); thêm
+// ngôn ngữ cần thêm tên ở [_endonyms] và [languageNameIn].
 
 // Tên ngôn ngữ viết bằng chính ngôn ngữ đó — không dịch (người đọc nhận ra ngôn ngữ của mình)
-const _endonyms = {'ja': '日本語', 'en': 'English', 'vi': 'Tiếng Việt', 'uz': 'Oʻzbekcha'};
+const _endonyms = {
+  'ja': '日本語',
+  'en': 'English',
+  'vi': 'Tiếng Việt',
+  'uz': 'Oʻzbekcha',
+  'zh': '简体中文',
+  'tw': '繁體中文',
+  'ko': '한국어',
+  'id': 'Bahasa Indonesia',
+  'ne': 'नेपाली',
+  'fil': 'Filipino',
+  'pt': 'Português',
+};
 
 // Từ ngần này ngôn ngữ trở lên thì có ô tìm phía trên danh sách
 const languageSearchThreshold = 9;
@@ -21,12 +35,23 @@ String languageNameIn(AppLocalizations l10n, String code) => switch (code) {
   'en' => l10n.languageNameEn,
   'vi' => l10n.languageNameVi,
   'uz' => l10n.languageNameUz,
+  'zh' => l10n.languageNameZh,
+  'tw' => l10n.languageNameTw,
+  'ko' => l10n.languageNameKo,
+  'id' => l10n.languageNameId,
+  'ne' => l10n.languageNameNe,
+  'fil' => l10n.languageNameFil,
+  'pt' => l10n.languageNamePt,
   _ => code,
 };
 
 // Ngôn ngữ chọn sẵn ở SCR-M01 khi chưa từng chọn: ngôn ngữ của máy nếu app có, không thì English
-Locale defaultLocaleFor(Locale device, List<Locale> supported) =>
-    supported.any((l) => l.languageCode == device.languageCode) ? Locale(device.languageCode) : const Locale('en');
+Locale defaultLocaleFor(Locale device, List<Locale> supported) {
+  for (final l in supported) {
+    if (l.appCode == device.appCode) return l;
+  }
+  return const Locale('en');
+}
 
 // Ô tìm: khớp tên viết bằng ngôn ngữ đó hoặc tên bằng ngôn ngữ đang dùng, không phân biệt hoa thường
 List<String> filterLanguages(List<String> codes, String query, String Function(String code) localName) {
@@ -39,20 +64,21 @@ List<String> filterLanguages(List<String> codes, String query, String Function(S
 }
 
 // Mở bảng chọn; trả về mã ngôn ngữ vừa chọn (null: đóng mà không chọn, hoặc chọn lại ngôn ngữ đang dùng)
-Future<String?> showLanguageSheet(BuildContext context, {required String current}) async {
+Future<String?> showLanguageSheet(BuildContext context, {required String current, required List<String> codes}) async {
   final picked = await showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
     backgroundColor: context.eco.surface,
-    builder: (_) => _LanguageSheet(current: current),
+    builder: (_) => _LanguageSheet(current: current, codes: codes),
   );
   return picked == current ? null : picked;
 }
 
 class _LanguageSheet extends StatefulWidget {
-  const _LanguageSheet({required this.current});
+  const _LanguageSheet({required this.current, required this.codes});
   final String current;
+  final List<String> codes;
 
   @override
   State<_LanguageSheet> createState() => _LanguageSheetState();
@@ -65,7 +91,7 @@ class _LanguageSheetState extends State<_LanguageSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final eco = context.eco;
-    final all = [for (final l in AppLocalizations.supportedLocales) l.languageCode];
+    final all = widget.codes;
     final codes = filterLanguages(all, _query, (c) => languageNameIn(l10n, c));
     return SafeArea(
       child: Padding(

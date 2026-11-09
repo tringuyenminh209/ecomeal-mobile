@@ -13,6 +13,7 @@ import '../legal/terms_gateway.dart';
 import 'locale_controller.dart';
 import 'reset_password_view.dart';
 import 'social_login.dart';
+import '../../core/app_language.dart';
 
 // SCR-M02 ログイン・新規登録 — khớp các frame Figma "SCR-M02 *": logo, 2 tab dạng nút bo tròn, tiêu đề lớn,
 // form nhãn-trên-ô, nút chính full-width, dòng chuyển tab ở đáy màn.
@@ -343,7 +344,7 @@ class _SignupTabState extends ConsumerState<_SignupTab> {
       _errorMessage = null;
     });
     try {
-      final languageCode = ref.read(localeControllerProvider).languageCode;
+      final languageCode = ref.read(localeControllerProvider).appCode;
       await ref
           .read(authControllerProvider.notifier)
           .signUp(

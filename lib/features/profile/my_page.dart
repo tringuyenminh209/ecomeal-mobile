@@ -27,6 +27,7 @@ import 'profile_avatar.dart';
 import 'profile_edit_page.dart';
 import 'profile_gateway.dart';
 import '../../widgets/skeleton.dart';
+import '../../core/app_language.dart';
 
 // SCR-M07 プロフィール・設定 — 06_画面設計 §SCR-M07, khớp frame Figma 470:1400 (thường) / 54:2843
 // (LINE連携済み) / 54:2915 (Loading) / 54:2983 (Error) / 125:243 (取得エラー) / 54:3054 (ログアウト確認).
@@ -456,7 +457,7 @@ class _AboutAppSection extends ConsumerWidget {
                 l10n.legalTokushohoTitle,
                 key: const Key('tokushohoRow'),
                 onTap: () => ref.read(openExternalUrlProvider)(
-                  tokushohoPageUrl(ref.read(localeControllerProvider).languageCode),
+                  tokushohoPageUrl(ref.read(localeControllerProvider).appCode),
                 ),
                 trailing: const Icon(Icons.open_in_new, size: 18, color: AppColors.textSecondary),
               ),
@@ -489,12 +490,12 @@ class _LanguageSettingState extends ConsumerState<_LanguageSetting> {
   bool _saving = false;
 
   Future<void> _pick() async {
-    final code = await showLanguageSheet(context, current: ref.read(localeControllerProvider).languageCode);
+    final code = await showLanguageSheet(context, current: ref.read(localeControllerProvider).appCode, codes: customerLanguageCodes);
     if (code == null || !mounted) return;
     setState(() => _saving = true);
     try {
       await ref.read(profileGatewayProvider).updatePreferredLanguage(code);
-      await ref.read(localeControllerProvider.notifier).setLocale(Locale(code));
+      await ref.read(localeControllerProvider.notifier).setLocale(localeForCode(code));
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.l10n.errorLanguageSave)));
@@ -508,7 +509,7 @@ class _LanguageSettingState extends ConsumerState<_LanguageSetting> {
   Widget build(BuildContext context) {
     return LanguageRow(
       key: const Key('languageRow'),
-      current: ref.watch(localeControllerProvider).languageCode,
+      current: ref.watch(localeControllerProvider).appCode,
       onTap: _saving ? null : _pick,
     );
   }

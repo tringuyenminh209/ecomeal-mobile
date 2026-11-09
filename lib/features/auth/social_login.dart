@@ -12,6 +12,7 @@ import '../../widgets/error_banner.dart';
 import 'auth_controller.dart';
 import 'auth_gateway.dart';
 import 'locale_controller.dart';
+import '../../core/app_language.dart';
 
 // UC-45「LINEでログイン」「Appleでサインイン」(0057, ADR-013, Figma section「M02 ログイン」211:605 —
 // 483:1395 thường / 483:1462 lỗi). Chỉ ở app khách (SCR-M02). Lần đầu → server tạo tài khoản khách; điều khoản thì
@@ -101,7 +102,7 @@ class _SocialLoginButtonsState extends ConsumerState<SocialLoginButtons> {
         final idToken = await ref.read(lineLoginBridgeProvider).obtainIdToken();
         await ref.read(authControllerProvider.notifier).signInWithLine(
               idToken: idToken,
-              languageCode: ref.read(localeControllerProvider).languageCode,
+              languageCode: ref.read(localeControllerProvider).appCode,
             );
       });
 

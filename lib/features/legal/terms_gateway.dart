@@ -11,7 +11,8 @@ const currentTermsVersion = '2026-10-11';
 // vi / uz nên app tiếng Việt / Uzbek mở bản tiếng Anh.
 const _publicSiteUrl = 'https://ecomeal-site.vercel.app';
 const contactPageUrl = '$_publicSiteUrl/contact/';
-String tokushohoPageUrl(String languageCode) => languageCode == 'ja' ? '$_publicSiteUrl/tokushoho/' : '$_publicSiteUrl/en/tokushoho/';
+// Site có trang riêng cho từng ngôn ngữ (/en/, /vi/, /zh/, /tw/ ...) — mã trùng mã ngôn ngữ của app
+String tokushohoPageUrl(String languageCode) => languageCode == 'ja' ? '$_publicSiteUrl/tokushoho/' : '$_publicSiteUrl/$languageCode/tokushoho/';
 
 abstract class TermsGateway {
   // users.terms_version của chính mình (NULL: tài khoản tạo trước 0044, chưa từng đồng ý).
