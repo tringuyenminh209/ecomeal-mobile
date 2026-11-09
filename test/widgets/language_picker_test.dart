@@ -39,7 +39,10 @@ void main() {
   test('2026-11-09: app có đủ 11 ngôn ngữ cho app khách; mỗi mã có file ARB + tên viết bằng chính ngôn ngữ đó', () {
     final codes = AppLocalizations.supportedLocales.map((l) => l.appCode).toSet();
     expect(codes, containsAll(customerLanguageCodes));
-    expect(customerLanguageCodes.length, 11);
+    // 2026-11-09: नेपाली tạm gỡ khỏi bảng chọn (rủi ro chưa có người bản xứ đọc) → app khách 10 ngôn ngữ, ARB ne vẫn có sẵn
+    expect(customerLanguageCodes.length, 10);
+    expect(customerLanguageCodes, isNot(contains('ne')));
+    expect(codes, contains('ne'));
     expect(businessLanguageCodes, ['ja', 'en', 'vi', 'uz']);
     expect(languageEndonym('tw'), '繁體中文');
     expect(languageEndonym('ne'), 'नेपाली');
@@ -106,7 +109,7 @@ void main() {
     expect(result, isNull);
   });
 
-  testWidgets('app khách: 11 ngôn ngữ → có ô tìm; gõ 繁 → chỉ còn 繁體中文; chọn → trả mã tw', (tester) async {
+  testWidgets('app khách: 10 ngôn ngữ → có ô tìm; gõ 繁 → chỉ còn 繁體中文; chọn → trả mã tw', (tester) async {
     String? result = 'unset';
     await tester.pumpWidget(testApp(Builder(
       builder: (context) => TextButton(

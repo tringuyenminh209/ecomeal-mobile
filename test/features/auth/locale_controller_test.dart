@@ -82,6 +82,15 @@ void main() {
       expect(reopened.state.appCode, 'tw');
     });
 
+    test('नेपाली tạm gỡ: máy tiếng Nepal hoặc đã lưu "ne" → app khách không dùng, theo máy / English', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      expect(LocaleController(prefs, const Locale('ne', 'NP'), allowedCodes: customerLanguageCodes).state.appCode, 'en');
+      SharedPreferences.setMockInitialValues({'preferred_language': 'ne'});
+      final saved = await SharedPreferences.getInstance();
+      expect(LocaleController(saved, const Locale('ja'), allowedCodes: customerLanguageCodes).state.appCode, 'ja');
+    });
+
     test('đã lưu "zh" nhưng app này không hỗ trợ (app quán/tài xế/vận hành) → coi như chưa chọn, theo máy', () async {
       SharedPreferences.setMockInitialValues({'preferred_language': 'zh'});
       final prefs = await SharedPreferences.getInstance();

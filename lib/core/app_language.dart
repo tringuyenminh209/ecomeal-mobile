@@ -7,7 +7,9 @@ import 'app_flavor.dart';
 //
 // Chữ của app khách có đủ 11 ngôn ngữ. App quán / tài xế / vận hành chỉ dịch 4 (ja en vi uz): 7 ngôn ngữ còn lại mới có
 // chữ của app khách (ARB thiếu khoá thì rơi về tiếng Nhật) nên KHÔNG đưa vào bảng chọn của 3 app đó.
-const customerLanguageCodes = ['ja', 'en', 'vi', 'uz', 'zh', 'ko', 'id', 'ne', 'tw', 'fil', 'pt'];
+// 'ne' (नेपाली) TẠM GỠ khỏi bảng chọn 2026-11-09 (chủ dự án: rủi ro chưa có người Nepal đọc lại). Bản dịch vẫn nằm sẵn
+// (app_ne.arb, endonym, tên ngôn ngữ, chữ thông báo, DB cho phép) — thêm 'ne' vào danh sách này (giữa 'id' và 'tw') là bật lại.
+const customerLanguageCodes = ['ja', 'en', 'vi', 'uz', 'zh', 'ko', 'id', 'tw', 'fil', 'pt'];
 const businessLanguageCodes = ['ja', 'en', 'vi', 'uz'];
 
 List<String> languageCodesFor(AppFlavor flavor) => flavor == AppFlavor.customer ? customerLanguageCodes : businessLanguageCodes;
